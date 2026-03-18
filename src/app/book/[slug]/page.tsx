@@ -5,10 +5,13 @@ import { BookingInitializer } from "@/components/booking-initializer";
 
 export default async function BookPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ checkIn?: string; checkOut?: string; guests?: string }>;
 }) {
   const { slug } = await params;
+  const { checkIn, checkOut, guests } = await searchParams;
   const site = getSiteBySlug(slug);
   if (!site) notFound();
 
@@ -20,7 +23,12 @@ export default async function BookPage({
       <p className="mb-8 text-muted-foreground">
         ${site.basePrice}/night &middot; Up to {site.maxGuests} guests
       </p>
-      <BookingInitializer siteSlug={slug} />
+      <BookingInitializer
+        siteSlug={slug}
+        checkIn={checkIn}
+        checkOut={checkOut}
+        guests={guests ? parseInt(guests, 10) : undefined}
+      />
       <BookingFlow site={site} addOns={addOns} />
     </div>
   );

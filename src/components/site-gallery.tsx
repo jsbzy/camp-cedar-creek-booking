@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { X, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, Images } from "lucide-react";
 
 interface SiteGalleryProps {
   photos: string[];
@@ -14,7 +14,7 @@ export function SiteGallery({ photos, siteName }: SiteGalleryProps) {
 
   return (
     <>
-      <div className="grid gap-2 md:grid-cols-3 md:grid-rows-2">
+      <div className="relative grid gap-2 md:grid-cols-4 md:grid-rows-2">
         {photos.map((photo, i) => (
           <button
             key={i}
@@ -22,7 +22,7 @@ export function SiteGallery({ photos, siteName }: SiteGalleryProps) {
             className={`relative overflow-hidden rounded-lg ${
               i === 0
                 ? "aspect-[16/10] md:col-span-2 md:row-span-2 md:aspect-auto"
-                : i <= 2
+                : i <= 3
                 ? "hidden aspect-[4/3] md:block"
                 : "hidden"
             }`}
@@ -32,11 +32,31 @@ export function SiteGallery({ photos, siteName }: SiteGalleryProps) {
               alt={`${siteName} photo ${i + 1}`}
               fill
               className="object-cover transition-transform hover:scale-105"
-              sizes={i === 0 ? "(max-width: 768px) 100vw, 66vw" : "(max-width: 768px) 100vw, 33vw"}
+              sizes={i === 0 ? "(max-width: 768px) 100vw, 50vw" : "(max-width: 768px) 100vw, 25vw"}
               priority={i === 0}
             />
+            {/* "View all" overlay on last visible photo */}
+            {i === 3 && photos.length > 4 && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/40 transition-colors hover:bg-black/50">
+                <div className="flex items-center gap-1.5 text-sm font-medium text-white">
+                  <Images className="size-4" />
+                  View all {photos.length} photos
+                </div>
+              </div>
+            )}
           </button>
         ))}
+
+        {/* Mobile "View all" button */}
+        {photos.length > 1 && (
+          <button
+            onClick={() => setLightboxIndex(0)}
+            className="absolute bottom-3 right-3 flex items-center gap-1.5 rounded-lg bg-white/90 px-3 py-1.5 text-xs font-medium shadow-sm backdrop-blur-sm md:hidden"
+          >
+            <Images className="size-3.5" />
+            View all {photos.length}
+          </button>
+        )}
       </div>
 
       {/* Lightbox */}

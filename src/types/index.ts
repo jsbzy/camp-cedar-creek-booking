@@ -99,3 +99,40 @@ export interface SiteTypeInfo {
   description: string;
   icon: string;
 }
+
+// Phase 2 — Property Info
+export interface PropertyInfo {
+  name: string;
+  location: string;
+  coordinates: { lat: number; lng: number };
+  checkInTime: string;
+  checkOutTime: string;
+  quietHours: string;
+  cancellationPolicy: string;
+  houseRules: string[];
+  sharedAmenities: string[];
+  host: {
+    names: string;
+    bio: string;
+    responseRate: number;
+    responseTime: string;
+    email: string;
+  };
+}
+
+// Phase 3 — Reviews
+export interface Review {
+  id: string;
+  author: string;
+  date: string;
+  rating: number;
+  text: string;
+  siteSlug: string;
+  recommends: boolean;
+}
+
+export interface PropertyRating {
+  average: number;
+  count: number;
+  breakdown: Record<number, number>;
+}

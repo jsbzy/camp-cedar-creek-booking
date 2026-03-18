@@ -1,8 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
+import { Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { Site } from "@/types";
-import { siteTypes } from "@/lib/data/seed";
+import { siteTypes, propertyRating } from "@/lib/data/seed";
 
 interface SiteCardProps {
   site: Site;
@@ -35,7 +36,11 @@ export function SiteCard({ site }: SiteCardProps) {
           </p>
           <div className="mt-3 flex items-center justify-between text-sm">
             <span className="font-semibold">From ${site.basePrice}/night</span>
-            <span className="text-muted-foreground">Up to {site.maxGuests} guests</span>
+            <div className="flex items-center gap-1 text-muted-foreground">
+              <Star className="size-3 fill-cedar text-cedar" />
+              <span className="text-xs font-medium text-foreground">{propertyRating.average}</span>
+              <span className="text-xs">({propertyRating.count})</span>
+            </div>
           </div>
         </div>
       </div>

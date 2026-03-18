@@ -1,4 +1,4 @@
-import type { Site, AddOn, PricingRule, SiteTypeInfo } from "@/types";
+import type { Site, AddOn, PricingRule, SiteTypeInfo, PropertyInfo, Review, PropertyRating } from "@/types";
 
 // ---------------------------------------------------------------------------
 // Site Types
@@ -692,4 +692,224 @@ export const pricingRules: PricingRule[] = [
   { id: "rule-weekday", name: "Weekday Rate", type: "weekday", multiplier: 1.0 },
   { id: "rule-weekend", name: "Weekend Rate", type: "weekend", multiplier: 1.0 },
   { id: "rule-holiday", name: "Holiday Rate", type: "holiday", multiplier: 1.25 },
+];
+
+// ---------------------------------------------------------------------------
+// Property Info (Phase 2)
+// ---------------------------------------------------------------------------
+
+export const propertyInfo: PropertyInfo = {
+  name: "Camp Cedar Creek",
+  location: "Sandy, Oregon",
+  coordinates: { lat: 45.37, lng: -122.18 },
+  checkInTime: "3:00 PM",
+  checkOutTime: "11:00 AM",
+  quietHours: "10:00 PM – 7:00 AM",
+  cancellationPolicy:
+    "Free cancellation up to 14 days before check-in. Cancellations within 14 days receive a 50% refund. No refunds for cancellations within 48 hours of check-in or no-shows.",
+  houseRules: [
+    "Quiet hours: 10 PM – 7 AM",
+    "Pack-in, pack-out — leave no trace",
+    "No firearms or fireworks",
+    "Campfires in designated fire pits only",
+    "Dogs must be friendly and under voice control",
+    "Do not move picnic tables or fire rings",
+    "$200 extraction/tow fee if your vehicle gets stuck",
+    "4WD/AWD required for creek-side tent sites",
+    "No amplified music after dark",
+    "Generators off during quiet hours",
+  ],
+  sharedAmenities: [
+    "Campfires",
+    "Porta-potties (seasonal)",
+    "Pets welcome (off-leash)",
+    "Showers at Blue Barn",
+    "WiFi at Blue Barn",
+    "Communal kitchen",
+    "Hiking trails",
+    "Creek & pond access",
+    "Co-working space",
+  ],
+  host: {
+    names: "Lauren & Jeremy B.",
+    bio: "We moved to Sandy in 2019 to build a place where people can slow down, unplug, and reconnect with nature. Camp Cedar Creek started as a single tent site along the creek — now it's 21 sites, a renovated barn, and a community of campers who keep coming back. We're here most weekends and love meeting our guests.",
+    responseRate: 98,
+    responseTime: "within an hour",
+    email: "hello@campcedarcreek.com",
+  },
+};
+
+// ---------------------------------------------------------------------------
+// Reviews (Phase 3)
+// ---------------------------------------------------------------------------
+
+export const propertyRating: PropertyRating = {
+  average: 4.9,
+  count: 427,
+  breakdown: { 5: 380, 4: 35, 3: 8, 2: 3, 1: 1 },
+};
+
+export const reviews: Review[] = [
+  {
+    id: "rev-001",
+    author: "Sarah M.",
+    date: "2026-02-15",
+    rating: 5,
+    text: "Absolutely magical place. We stayed at Puffball and had the entire creek to ourselves. The kids spent hours catching crawdads and skipping rocks. Lauren even dropped off a bundle of firewood as a welcome gift. Already rebooked for summer.",
+    siteSlug: "puffball",
+    recommends: true,
+  },
+  {
+    id: "rev-002",
+    author: "Mike T.",
+    date: "2026-02-08",
+    rating: 5,
+    text: "Best campground in the PNW, hands down. The mushroom-themed site names are a nice touch. Chanterelle was perfect for our group of 10 — tons of space, great fire pit, and the creek is gorgeous. Pack-in-pack-out is easy when the property is this well maintained.",
+    siteSlug: "chanterelle",
+    recommends: true,
+  },
+  {
+    id: "rev-003",
+    author: "Jen & Alex K.",
+    date: "2026-01-22",
+    rating: 5,
+    text: "We drove our van down from Seattle for a long weekend at Solar Site 4. The barn amenities are clutch — hot showers, real kitchen, and the WiFi was fast enough for a Monday morning Zoom call. Very chill vibes all around.",
+    siteSlug: "solar-site-4",
+    recommends: true,
+  },
+  {
+    id: "rev-004",
+    author: "David R.",
+    date: "2026-01-10",
+    rating: 4,
+    text: "Great property with friendly hosts. Only reason for 4 stars is the road in can be rough if you don't have proper clearance. Once you're there though, it's paradise. Reishi felt like our own private world with that little pond.",
+    siteSlug: "reishi",
+    recommends: true,
+  },
+  {
+    id: "rev-005",
+    author: "Priya N.",
+    date: "2025-12-28",
+    rating: 5,
+    text: "Winter camping here is severely underrated. The creek was running high, the forest was misty and beautiful, and we had King Bolete completely to ourselves. The fire pit is huge and the stars at night are unreal. Bring warm layers!",
+    siteSlug: "king-bolete",
+    recommends: true,
+  },
+  {
+    id: "rev-006",
+    author: "Tom & Lisa W.",
+    date: "2025-12-15",
+    rating: 5,
+    text: "Our fourth time at Camp Cedar Creek and it just keeps getting better. The new Trailer Glampsite is a game changer — queen bed, fire pit, and you're still close to the barn for morning coffee. Lauren and Jeremy clearly put their hearts into this place.",
+    siteSlug: "trailer-glampsite",
+    recommends: true,
+  },
+  {
+    id: "rev-007",
+    author: "Carlos G.",
+    date: "2025-12-01",
+    rating: 5,
+    text: "Brought my two dogs and they were in heaven. Off-leash, creek swimming, trails through the forest. Fairy Ring was the perfect home base — right next to parking so unloading gear was easy. Will definitely be back in spring.",
+    siteSlug: "fairy-ring",
+    recommends: true,
+  },
+  {
+    id: "rev-008",
+    author: "Emily S.",
+    date: "2025-11-18",
+    rating: 4,
+    text: "Really enjoyed our stay at Candy Cap. Beautiful and private site along the creek. The only thing I'd mention is the porta-potties are seasonal, so winter campers should plan accordingly. Otherwise a 10/10 experience.",
+    siteSlug: "candy-cap",
+    recommends: true,
+  },
+  {
+    id: "rev-009",
+    author: "Jason P.",
+    date: "2025-11-05",
+    rating: 5,
+    text: "Lion's Mane is the sweet spot — creek in front, beach pond behind, good shade, and close to the porta-potty. We set up our hammocks between the trees and barely moved for two days. The s'mores kit add-on is worth it.",
+    siteSlug: "lions-mane",
+    recommends: true,
+  },
+  {
+    id: "rev-010",
+    author: "Rachel & Kim H.",
+    date: "2025-10-20",
+    rating: 5,
+    text: "Celebrated our anniversary at the Fairy Ring + Candy Cap combo site. Having both sites to ourselves was incredible — we spread out camping gear on one side and set up a lounge area on the other. The swimming hole nearby is perfection.",
+    siteSlug: "fairy-ring-candy-cap",
+    recommends: true,
+  },
+  {
+    id: "rev-011",
+    author: "Ben F.",
+    date: "2025-10-08",
+    rating: 3,
+    text: "The property is gorgeous and the hosts are great. My issue was the road — my Subaru barely made it in after recent rain and I was nervous the whole time. If they could grade the road before winter it would make a big difference. The camping itself was wonderful.",
+    siteSlug: "morel",
+    recommends: true,
+  },
+  {
+    id: "rev-012",
+    author: "Naomi L.",
+    date: "2025-09-28",
+    rating: 5,
+    text: "Spent a week working remotely from the Blue Barn while living in my van at Power Site 6. Fast WiFi, power hookup, hot showers, and a creek to cool off in after work. This is the van life dream. Already planning my next extended stay.",
+    siteSlug: "power-site-6",
+    recommends: true,
+  },
+  {
+    id: "rev-013",
+    author: "Greg & Mia D.",
+    date: "2025-09-15",
+    rating: 5,
+    text: "Turkey Tail is perfect for a couple wanting a quiet weekend. Small site, direct creek access, and only one neighbor. We brought our kayak and paddled the deeper pools upstream. The early check-in add-on was totally worth the $20.",
+    siteSlug: "turkey-tail",
+    recommends: true,
+  },
+  {
+    id: "rev-014",
+    author: "Aisha J.",
+    date: "2025-09-01",
+    rating: 5,
+    text: "My kids still talk about the 'climbing tree' at Chanterelle! We had 12 people across three tents and there was room to spare. Jeremy stopped by to make sure we had everything we needed. This is how campground hospitality should be.",
+    siteSlug: "chanterelle",
+    recommends: true,
+  },
+  {
+    id: "rev-015",
+    author: "Matt B.",
+    date: "2025-08-20",
+    rating: 4,
+    text: "Amanita is a solid budget option. It's not on the creek but the pond is right there and it's easy to get in and out. Good for a one-night stop on a road trip. The firewood bundles are reasonably priced and the wood burns great.",
+    siteSlug: "amanita",
+    recommends: true,
+  },
+  {
+    id: "rev-016",
+    author: "Olivia & Dan C.",
+    date: "2025-08-05",
+    rating: 5,
+    text: "We've camped all over Oregon and this is our new favorite spot. Puffball is worth every penny — the privacy, the creek pool, the views. We felt like we were in our own national park. Pack-in-pack-out is a small price for keeping it pristine.",
+    siteSlug: "puffball",
+    recommends: true,
+  },
+  {
+    id: "rev-017",
+    author: "Yuki T.",
+    date: "2025-07-22",
+    rating: 5,
+    text: "Solar Site 1 gets sun all day, which is exactly what our van needed. The Blue Barn is a two-minute walk and has everything — kitchen, showers, even a gym. Our dog loved the open field. Super quiet, super relaxing.",
+    siteSlug: "solar-site-1",
+    recommends: true,
+  },
+  {
+    id: "rev-018",
+    author: "Chris M.",
+    date: "2025-07-10",
+    rating: 5,
+    text: "Booked King Bolete for a weekend and ended up extending two extra nights. The beach pond is a hidden gem — crystal clear water, sandy bottom, perfect for swimming. Lauren gave us tips on the best trails. Camp Cedar Creek has soul.",
+    siteSlug: "king-bolete",
+    recommends: true,
+  },
 ];
