@@ -7,616 +7,607 @@ import type { Site, AddOn, PricingRule, SiteTypeInfo } from "@/types";
 export const siteTypes: SiteTypeInfo[] = [
   {
     type: "tent",
-    label: "Tent Site",
-    pluralLabel: "Tent Sites",
+    label: "Tent Campsite",
+    pluralLabel: "Tent Campsites",
     description:
-      "Classic camping in the forest. Bring your tent and enjoy the outdoors.",
-    icon: "⛺",
-  },
-  {
-    type: "rv_tent",
-    label: "RV/Tent Site",
-    pluralLabel: "RV/Tent Sites",
-    description:
-      "Spacious sites for RVs or large tents with easy access.",
-    icon: "🚐",
+      "Creekside tent campsites named after mushrooms. 4WD/AWD required, pack-in-pack-out, off-leash dogs welcome.",
+    icon: "\u26fa",
   },
   {
     type: "van_solar",
-    label: "Van Site (Solar)",
-    pluralLabel: "Van Sites (Solar)",
-    description: "Off-grid van spots with solar charging stations.",
-    icon: "☀️",
+    label: "Solar Van Site",
+    pluralLabel: "Solar Van Sites",
+    description:
+      "Van parking spots at the Blue Barn with solar charging. 2WD OK. Shared kitchen, showers, WiFi, and co-working.",
+    icon: "\u2600\ufe0f",
   },
   {
     type: "van_power",
-    label: "Van Site (Power)",
-    pluralLabel: "Van Sites (Power)",
-    description: "Van sites with full electrical hookups.",
-    icon: "🔌",
+    label: "Power Van Site",
+    pluralLabel: "Power Van Sites",
+    description:
+      "Van spots with electrical hookups at the Blue Barn. 2WD OK. Shared kitchen, showers, WiFi, and co-working.",
+    icon: "\ud83d\udd0c",
   },
   {
     type: "glamping",
-    label: "Glamping Tent",
-    pluralLabel: "Glamping Tents",
+    label: "Glampsite",
+    pluralLabel: "Glampsites",
     description:
-      "Luxury canvas tents with beds, linens, and furnishings.",
-    icon: "✨",
-  },
-  {
-    type: "cottage",
-    label: "Cottage",
-    pluralLabel: "Cottages",
-    description:
-      "A cozy private cottage with a full kitchen and bathroom.",
-    icon: "🏡",
-  },
-  {
-    type: "event",
-    label: "Event Space",
-    pluralLabel: "Event Spaces",
-    description:
-      "A versatile 37-acre space for weddings, retreats, and gatherings.",
-    icon: "🎪",
+      "A renovated trailer with a queen bed, mini fridge, picnic table, BBQ, and fire pit. Blue Barn access included.",
+    icon: "\u2728",
   },
 ];
 
 // ---------------------------------------------------------------------------
-// Amenities per site type
+// Helper — Hipcamp Cloudinary photo URL builder
 // ---------------------------------------------------------------------------
 
-const amenitiesByType: Record<string, string[]> = {
-  tent: ["Fire pit", "Picnic table", "Shared restroom", "Water spigot nearby"],
-  rv_tent: [
-    "Fire pit",
-    "Picnic table",
-    "Shared restroom",
-    "Water hookup",
-    "Gravel pad",
-  ],
-  van_solar: [
-    "Solar charging station",
-    "Picnic table",
-    "Shared restroom",
-    "Level pad",
-  ],
-  van_power: [
-    "30-amp electrical hookup",
-    "Picnic table",
-    "Shared restroom",
-    "Level pad",
-    "Water hookup",
-  ],
-  glamping: [
-    "Queen bed",
-    "Linens provided",
-    "Lantern lighting",
-    "Fire pit",
-    "Private deck",
-    "Shared restroom",
-  ],
-  cottage: [
-    "Full kitchen",
-    "Private bathroom",
-    "Queen bed",
-    "Sofa bed",
-    "Heating",
-    "WiFi",
-    "Fire pit",
-    "Private patio",
-  ],
-  event: [
-    "Covered pavilion",
-    "Restrooms",
-    "Power access",
-    "Parking for 50+",
-    "Prep kitchen",
-  ],
-};
-
-// ---------------------------------------------------------------------------
-// Helper — Unsplash photo URL builder
-// ---------------------------------------------------------------------------
-
-function unsplash(id: string, w = 800, h = 600): string {
-  return `https://images.unsplash.com/photo-${id}?w=${w}&h=${h}&fit=crop`;
+function hipcamp(versionAndPath: string): string {
+  return `https://hipcamp-res.cloudinary.com/images/f_auto,c_limit,w_1200,q_auto/${versionAndPath}/camp-cedar-creek.jpg`;
 }
 
 // ---------------------------------------------------------------------------
-// Sites (23 total)
+// Property-level photo pool (for van/glamping sites without unique photos)
+// ---------------------------------------------------------------------------
+
+const propA = hipcamp("v1658930630/campground-photos/oitf7hqmbdmymxz2oh2w");
+const propB = hipcamp("v1661734669/campground-photos/icsklqqfpf9ovaszigrd");
+const propC = hipcamp("v1632772606/campground-photos/xn0xg0itdewj9jsshvrz");
+const propD = hipcamp("v1655954613/campground-photos/w6slduifclxedh6ehoxs");
+const propE = hipcamp("v1683402795/land-photos/xsxb1uhuscpqojrdmnzz");
+const propF = hipcamp("v1633568493/campground-photos/cnn2qczvn0xxthjy2m5m");
+const propG = hipcamp("v1689025256/campground-photos/wzxfkyjxxkewhct6xmfv");
+
+// ---------------------------------------------------------------------------
+// Shared amenity lists
+// ---------------------------------------------------------------------------
+
+const solarVanAmenities = [
+  "Solar charging",
+  "Picnic table",
+  "Shared bathrooms w/ showers",
+  "Communal kitchen",
+  "WiFi",
+  "Co-working space",
+  "Laundry",
+  "Gym & rec area",
+  "2WD OK",
+];
+
+const powerVanAmenities = [
+  "Power hookup",
+  "Picnic table",
+  "Shared bathrooms w/ showers",
+  "Communal kitchen",
+  "WiFi",
+  "Co-working space",
+  "Laundry",
+  "Gym & rec area",
+  "2WD OK",
+];
+
+// ---------------------------------------------------------------------------
+// Sites (21 total)
 // ---------------------------------------------------------------------------
 
 export const sites: Site[] = [
-  // ── Tent Sites (6) ──────────────────────────────────────────────────────
+  // ── Tent Sites (10) ────────────────────────────────────────────────────
   {
-    id: "site-tent-01",
-    slug: "chanterelle-hollow",
-    name: "Chanterelle Hollow",
-    type: "tent",
-    description:
-      "Nestled beneath towering Douglas firs, this shaded hollow is a favorite of returning campers. The soft forest floor and nearby creek make it an ideal spot to unwind. Fall visitors may even spot the golden chanterelles this site is named for.",
-    shortDescription:
-      "A shaded creekside tent site beneath old-growth Douglas firs.",
-    photos: [
-      unsplash("1504280390367-361c6d9f38f4"),
-      unsplash("1537905569824-f89f14cceb68"),
-      unsplash("1510312305653-8ed496efae75"),
-      unsplash("1501785888108-ae6ae5c40898"),
-    ],
-    amenities: amenitiesByType.tent,
-    maxGuests: 4,
-    basePrice: 25,
-    weekendPrice: 35,
-    isCombo: false,
-  },
-  {
-    id: "site-tent-02",
-    slug: "morel-meadow",
-    name: "Morel Meadow",
-    type: "tent",
-    description:
-      "Set at the edge of a wildflower meadow, this site offers wide-open sky views by day and brilliant stargazing at night. A ring of young alders provides just enough privacy from neighboring campers. Spring brings a carpet of trillium and the elusive morel mushrooms.",
-    shortDescription:
-      "A meadow-edge tent site with open skies and wildflower views.",
-    photos: [
-      unsplash("1478827536114-da961b7f86d2"),
-      unsplash("1464822759023-fed622ff2c3b"),
-      unsplash("1532339142463-fd0a8979791a"),
-      unsplash("1445308394109-4ec2920981b1"),
-    ],
-    amenities: amenitiesByType.tent,
-    maxGuests: 4,
-    basePrice: 25,
-    weekendPrice: 35,
-    isCombo: false,
-  },
-  {
-    id: "site-tent-03",
-    slug: "fiddlehead-grove",
-    name: "Fiddlehead Grove",
-    type: "tent",
-    description:
-      "Surrounded by a lush grove of sword ferns and young maples, this site feels like stepping into a fairy tale. The dappled light and soft mossy ground create a magical camping experience. Wake up to the sound of birdsong echoing through the canopy.",
-    shortDescription:
-      "A fairy-tale tent site wrapped in ferns and dappled light.",
-    photos: [
-      unsplash("1500581276021-a4bbcd0d6f4c"),
-      unsplash("1542273917363-3b1817f69a2d"),
-      unsplash("1476514525535-07fb3b4ae5f1"),
-      unsplash("1517824806704-9040b037703b"),
-    ],
-    amenities: amenitiesByType.tent,
-    maxGuests: 5,
-    basePrice: 25,
-    weekendPrice: 35,
-    isCombo: false,
-  },
-  {
-    id: "site-tent-04",
-    slug: "hemlock-ridge",
-    name: "Hemlock Ridge",
-    type: "tent",
-    description:
-      "Perched on a gentle ridge above the main campground, this elevated site offers peaceful seclusion and filtered views of the Sandy River valley. Western hemlocks frame the site on three sides, blocking wind and providing year-round shade.",
-    shortDescription:
-      "An elevated ridge-top tent site with valley views and hemlock shelter.",
-    photos: [
-      unsplash("1441974231531-c6227db76b6e"),
-      unsplash("1472396961693-142e6e269027"),
-      unsplash("1448375240586-882707db888b"),
-      unsplash("1507181179506-598491b53db4"),
-    ],
-    amenities: amenitiesByType.tent,
-    maxGuests: 6,
-    basePrice: 25,
-    weekendPrice: 35,
-    isCombo: false,
-  },
-  {
-    id: "site-tent-05",
-    slug: "sword-fern-flat",
-    name: "Sword Fern Flat",
-    type: "tent",
-    description:
-      "A level, spacious clearing ringed by towering sword ferns — one of the easiest sites in camp to set up on. Its central location makes it a short walk to the restrooms and communal fire ring. Great for families with younger kids.",
-    shortDescription:
-      "A flat, family-friendly tent site surrounded by sword ferns.",
-    photos: [
-      unsplash("1469854523086-cc02fe5d8800"),
-      unsplash("1508739773434-c26b3d09e071"),
-      unsplash("1537905569824-f89f14cceb68"),
-      unsplash("1510312305653-8ed496efae75"),
-    ],
-    amenities: amenitiesByType.tent,
-    maxGuests: 6,
-    basePrice: 25,
-    weekendPrice: 35,
-    isCombo: false,
-  },
-  {
-    id: "site-tent-06",
-    slug: "cedar-bend",
-    name: "Cedar Bend",
-    type: "tent",
-    description:
-      "Tucked into a gentle curve of Cedar Creek, this site is as close to the water as you can camp. The sound of the creek provides a natural soundtrack all night long. Ancient western red cedars arch overhead, filling the air with their warm, woodsy scent.",
-    shortDescription:
-      "A creekside tent site shaded by ancient western red cedars.",
-    photos: [
-      unsplash("1501785888108-ae6ae5c40898"),
-      unsplash("1478827536114-da961b7f86d2"),
-      unsplash("1445308394109-4ec2920981b1"),
-      unsplash("1532339142463-fd0a8979791a"),
-    ],
-    amenities: amenitiesByType.tent,
-    maxGuests: 4,
-    basePrice: 25,
-    weekendPrice: 35,
-    isCombo: false,
-  },
-
-  // ── RV/Tent Sites (3) ──────────────────────────────────────────────────
-  {
-    id: "site-rv-01",
-    slug: "big-leaf-landing",
-    name: "Big Leaf Landing",
-    type: "rv_tent",
-    description:
-      "A wide, gravel-padded pull-through site shaded by enormous bigleaf maples. There is plenty of room for a full-size RV or a multi-tent group setup. The water hookup and proximity to the dump station make this one of the most convenient sites in camp.",
-    shortDescription:
-      "A spacious pull-through site under bigleaf maples for RVs or large groups.",
-    photos: [
-      unsplash("1523987355523-c7b5b0dd90a7"),
-      unsplash("1596649299486-4cdea56fd59d"),
-      unsplash("1533745848184-3db07256e163"),
-      unsplash("1476514525535-07fb3b4ae5f1"),
-    ],
-    amenities: amenitiesByType.rv_tent,
-    maxGuests: 8,
-    basePrice: 40,
-    weekendPrice: 55,
-    isCombo: false,
-  },
-  {
-    id: "site-rv-02",
-    slug: "alder-loop",
-    name: "Alder Loop",
-    type: "rv_tent",
-    description:
-      "Located on the quiet outer loop of the campground, this site offers extra privacy and a canopy of red alders. The gravel pad can accommodate rigs up to 35 feet. Kids love the short trail to the creek that starts right behind the site.",
-    shortDescription:
-      "A quiet outer-loop RV site with creek trail access and alder canopy.",
-    photos: [
-      unsplash("1596649299486-4cdea56fd59d"),
-      unsplash("1523987355523-c7b5b0dd90a7"),
-      unsplash("1464822759023-fed622ff2c3b"),
-      unsplash("1533745848184-3db07256e163"),
-    ],
-    amenities: amenitiesByType.rv_tent,
-    maxGuests: 6,
-    basePrice: 40,
-    weekendPrice: 55,
-    isCombo: false,
-  },
-  {
-    id: "site-rv-03",
-    slug: "douglas-flat",
-    name: "Douglas Flat",
-    type: "rv_tent",
-    description:
-      "The largest flat site in camp, flanked by mature Douglas fir trees. It comfortably fits a Class A motorhome with room to spare for an awning setup and camp chairs. The fire pit sits at the far end, keeping smoke well away from your rig.",
-    shortDescription:
-      "The largest flat RV site in camp, flanked by mature Douglas firs.",
-    photos: [
-      unsplash("1533745848184-3db07256e163"),
-      unsplash("1596649299486-4cdea56fd59d"),
-      unsplash("1441974231531-c6227db76b6e"),
-      unsplash("1523987355523-c7b5b0dd90a7"),
-    ],
-    amenities: amenitiesByType.rv_tent,
-    maxGuests: 8,
-    basePrice: 40,
-    weekendPrice: 55,
-    isCombo: false,
-  },
-
-  // ── Van Solar Sites (4) ────────────────────────────────────────────────
-  {
-    id: "site-van-solar-01",
-    slug: "sunbreak-1",
-    name: "Sunbreak 1",
-    type: "van_solar",
-    description:
-      "The first of four south-facing van pads designed for off-grid living. A dedicated solar charging station keeps your auxiliary battery topped off while you explore. The site is level, compact, and bordered by wild huckleberry bushes.",
-    shortDescription:
-      "A south-facing van pad with a solar charging station and huckleberry border.",
-    photos: [
-      unsplash("1561361513-2d000a50f0dc"),
-      unsplash("1543731068-8e42d4e0e615"),
-      unsplash("1527786356703-4b100091cd2c"),
-    ],
-    amenities: amenitiesByType.van_solar,
-    maxGuests: 2,
-    basePrice: 30,
-    weekendPrice: 40,
-    isCombo: false,
-  },
-  {
-    id: "site-van-solar-02",
-    slug: "sunbreak-2",
-    name: "Sunbreak 2",
-    type: "van_solar",
-    description:
-      "Positioned for maximum morning sun, this pad is perfect for early risers who want to charge up and hit the trail. The picnic table sits in a shaded nook just off the pad. Quiet hours are strictly observed in the Sunbreak cluster.",
-    shortDescription:
-      "A morning-sun van pad ideal for early risers and trail-goers.",
-    photos: [
-      unsplash("1543731068-8e42d4e0e615"),
-      unsplash("1544620347-c4fd4a3d5957"),
-      unsplash("1561361513-2d000a50f0dc"),
-    ],
-    amenities: amenitiesByType.van_solar,
-    maxGuests: 2,
-    basePrice: 30,
-    weekendPrice: 40,
-    isCombo: false,
-  },
-  {
-    id: "site-van-solar-03",
-    slug: "sunbreak-3",
-    name: "Sunbreak 3",
-    type: "van_solar",
-    description:
-      "Set slightly apart from the other Sunbreak pads, this site offers the most privacy in the solar cluster. A mature vine maple screens the site from the access road. The shared restroom is just a two-minute walk down a gravel path.",
-    shortDescription:
-      "The most private van pad in the solar cluster, screened by vine maple.",
-    photos: [
-      unsplash("1527786356703-4b100091cd2c"),
-      unsplash("1561361513-2d000a50f0dc"),
-      unsplash("1544620347-c4fd4a3d5957"),
-    ],
-    amenities: amenitiesByType.van_solar,
-    maxGuests: 3,
-    basePrice: 30,
-    weekendPrice: 40,
-    isCombo: false,
-  },
-  {
-    id: "site-van-solar-04",
-    slug: "sunbreak-4",
-    name: "Sunbreak 4",
-    type: "van_solar",
-    description:
-      "The last pad in the Sunbreak row, closest to the meadow trailhead. It catches afternoon sun well into the evening, making it great for solar charging and sunset cooking. Pairs well with Sunbreak 3 for friends traveling in separate vans.",
-    shortDescription:
-      "An afternoon-sun van pad steps from the meadow trailhead.",
-    photos: [
-      unsplash("1544620347-c4fd4a3d5957"),
-      unsplash("1527786356703-4b100091cd2c"),
-      unsplash("1543731068-8e42d4e0e615"),
-    ],
-    amenities: amenitiesByType.van_solar,
-    maxGuests: 3,
-    basePrice: 30,
-    weekendPrice: 40,
-    isCombo: false,
-  },
-
-  // ── Van Power Sites (3) ────────────────────────────────────────────────
-  {
-    id: "site-van-power-01",
-    slug: "powerline-cove",
-    name: "Powerline Cove",
-    type: "van_power",
-    description:
-      "A sheltered cove with a dedicated 30-amp hookup, water spigot, and a level concrete pad. Perfect for van lifers who need reliable power for remote work or creature comforts. A cluster of Oregon grape bushes adds a splash of year-round color.",
-    shortDescription:
-      "A sheltered van site with 30-amp hookup and water access.",
-    photos: [
-      unsplash("1561361513-2d000a50f0dc"),
-      unsplash("1544620347-c4fd4a3d5957"),
-      unsplash("1527786356703-4b100091cd2c"),
-    ],
-    amenities: amenitiesByType.van_power,
-    maxGuests: 2,
-    basePrice: 50,
-    weekendPrice: 65,
-    isCombo: false,
-  },
-  {
-    id: "site-van-power-02",
-    slug: "electric-meadow",
-    name: "Electric Meadow",
-    type: "van_power",
-    description:
-      "Tucked at the edge of the central meadow, this powered van site offers wide views and easy access to camp amenities. The hookup pedestal includes a 30-amp outlet and a water tap. Evenings here feature some of the best sunset light in camp.",
-    shortDescription:
-      "A meadow-edge powered van site with sunset views and full hookups.",
-    photos: [
-      unsplash("1543731068-8e42d4e0e615"),
-      unsplash("1561361513-2d000a50f0dc"),
-      unsplash("1544620347-c4fd4a3d5957"),
-    ],
-    amenities: amenitiesByType.van_power,
-    maxGuests: 3,
-    basePrice: 50,
-    weekendPrice: 65,
-    isCombo: false,
-  },
-  {
-    id: "site-van-power-03",
-    slug: "charged-cedar",
-    name: "Charged Cedar",
-    type: "van_power",
-    description:
-      "Named for the enormous cedar that stands guard at the pad entrance, this is the most sought-after powered van site. Full hookups and a flat pad make setup effortless. The cedar provides deep shade in summer and shelter from rain in winter.",
-    shortDescription:
-      "A premium powered van site beneath a landmark cedar tree.",
-    photos: [
-      unsplash("1527786356703-4b100091cd2c"),
-      unsplash("1543731068-8e42d4e0e615"),
-      unsplash("1561361513-2d000a50f0dc"),
-    ],
-    amenities: amenitiesByType.van_power,
-    maxGuests: 4,
-    basePrice: 50,
-    weekendPrice: 65,
-    isCombo: false,
-  },
-
-  // ── Glamping Tents (3) ─────────────────────────────────────────────────
-  {
-    id: "site-glamping-01",
+    id: "site-598372",
     slug: "fairy-ring",
     name: "Fairy Ring",
-    type: "glamping",
-    description:
-      "A luxury canvas bell tent set inside a natural ring of mushroom-covered stumps deep in the forest. Inside, a queen bed with down linens, lantern lighting, and a handcrafted nightstand await. Step onto the private deck and listen to the creek below.",
+    type: "tent",
     shortDescription:
-      "A luxury bell tent in a mystical ring of mossy stumps with a private deck.",
+      "Large creekside campsite next to the parking area and hiking trails.",
+    description:
+      "Large campsite lining the north side of the creek. Right next to the parking area making it convenient to tent camp next to your cars. This site is close to a pond and a couple trails up the forest hills. It\u2019s also the closest to one of the porta-potties during the peak season (end of May through September). Great for tent camping \u2014 no vehicles on the grass please.",
     photos: [
-      unsplash("1499696010180-025ef6e1a8f9"),
-      unsplash("1445019980597-93fa8acb246c"),
-      unsplash("1520824399827-6e0c192cfe0b"),
-      unsplash("1532339142463-fd0a8979791a"),
+      hipcamp("v1684192861/campsite-photos/lmofwgiyivkypsabdehk"),
+      hipcamp("v1684192865/campsite-photos/zhewenari5ynt3izjja3"),
+      hipcamp("v1684193714/campsite-photos/odzrthsx7ecdbh2j5puv"),
+      hipcamp("v1633016381/campground-photos/o7b8xbhybjeucdd4qj8b"),
     ],
-    amenities: amenitiesByType.glamping,
-    maxGuests: 2,
-    basePrice: 95,
-    weekendPrice: 120,
+    amenities: [
+      "Fire pit",
+      "Picnic table",
+      "Porta-potty (seasonal)",
+      "Creek access",
+      "Pond access",
+      "Hiking trails",
+      "Off-leash dogs",
+      "4WD/AWD required",
+    ],
+    maxGuests: 10,
+    basePrice: 65,
+    weekendPrice: 80,
     isCombo: false,
   },
   {
-    id: "site-glamping-02",
+    id: "site-598371",
     slug: "candy-cap",
     name: "Candy Cap",
-    type: "glamping",
-    description:
-      "Named after the maple-scented candy cap mushroom found nearby, this glamping tent balances rugged forest atmosphere with resort-level comfort. The queen bed faces a roll-up canvas wall so you can wake up to the forest. A fire pit and Adirondack chairs sit just outside.",
+    type: "tent",
     shortDescription:
-      "A forest-facing glamping tent with roll-up walls and a cozy fire pit.",
+      "Private western campsite along the creek with its own trailhead.",
+    description:
+      "Another larger campsite on the north side of the creek, at the most western point of the campground offering a good amount of privacy and an almost personal trailhead. This site lines the creek, has a couple big trees offering shade, and a lot of space for dogs and humans to run and play. Tent camping only \u2014 dedicated parking area. Very private, along the creek.",
     photos: [
-      unsplash("1520824399827-6e0c192cfe0b"),
-      unsplash("1499696010180-025ef6e1a8f9"),
-      unsplash("1445019980597-93fa8acb246c"),
-      unsplash("1469854523086-cc02fe5d8800"),
+      hipcamp("v1684192739/campsite-photos/nrponkrototadd2w99so"),
+      hipcamp("v1684192745/campsite-photos/mfqospsyopztirknndcp"),
+      hipcamp("v1657074169/campsite-photos/mxkvgxyobkcqxfggr7lj"),
+      hipcamp("v1631506032/campground-photos/gjidilx6bhxadmwaxice"),
     ],
-    amenities: amenitiesByType.glamping,
-    maxGuests: 3,
-    basePrice: 95,
-    weekendPrice: 120,
+    amenities: [
+      "Fire pit",
+      "Picnic table",
+      "Porta-potty (seasonal)",
+      "Creek access",
+      "Private trailhead",
+      "Shaded",
+      "Off-leash dogs",
+      "4WD/AWD required",
+    ],
+    maxGuests: 12,
+    basePrice: 120,
+    weekendPrice: 150,
     isCombo: false,
   },
   {
-    id: "site-glamping-03",
-    slug: "lions-mane",
-    name: "Lions Mane",
-    type: "glamping",
+    id: "site-598368",
+    slug: "reishi",
+    name: "Reishi",
+    type: "tent",
+    shortDescription: "Secluded hideaway with its own private pond.",
     description:
-      "The crown jewel of the glamping cluster, Lions Mane sits on a raised platform overlooking a fern-filled ravine. The tent is outfitted with a queen bed, woven rugs, and string lights. It is the most popular site for anniversaries and romantic getaways.",
-    shortDescription:
-      "A raised-platform glamping tent with ravine views — perfect for couples.",
+      "This site isn\u2019t right along the creek, but basically has its own private pond, and is located in an area that\u2019s almost easy to miss when you drive in, making it feel like a little hideaway. Tent camping only \u2014 please do not drive past the big tree. Decent privacy and a lot of shade. Not on the creek.",
     photos: [
-      unsplash("1445019980597-93fa8acb246c"),
-      unsplash("1520824399827-6e0c192cfe0b"),
-      unsplash("1499696010180-025ef6e1a8f9"),
-      unsplash("1508739773434-c26b3d09e071"),
+      hipcamp("v1684192644/campsite-photos/sb3ysmdpcncfhyp29ai2"),
+      hipcamp("v1684192645/campsite-photos/upcjr07etlsf7lpaztbg"),
+      hipcamp("v1651115180/campsite-photos/hcjhhvlgxgezvx5y0i2r"),
+      hipcamp("v1631319133/campground-photos/verk0todsbgz4dcwqity"),
     ],
-    amenities: amenitiesByType.glamping,
+    amenities: [
+      "Fire pit",
+      "Picnic table",
+      "Porta-potty (seasonal)",
+      "Private pond",
+      "Shaded",
+      "Secluded",
+      "Off-leash dogs",
+      "4WD/AWD required",
+    ],
+    maxGuests: 6,
+    basePrice: 45,
+    weekendPrice: 55,
+    isCombo: false,
+  },
+  {
+    id: "site-598374",
+    slug: "lions-mane",
+    name: "Lion\u2019s Mane",
+    type: "tent",
+    shortDescription:
+      "Popular creekside site with shade, a beach pond, and room for all camping types.",
+    description:
+      "One of our more popular campsites along the creek with a good amount of shade. Plenty of space for both tents and vehicles with little nooks to enjoy a campfire or set up your tent betwixt the trees. You have the creek right in front of you and the biggest pond with a little beach behind you. Great for all camping types, along the creek.",
+    photos: [
+      hipcamp("v1684193918/campsite-photos/d4ttrnlucpcae1uyehnk"),
+      hipcamp("v1651116270/campsite-photos/gybreq6q9izc6xv4xrl6"),
+      hipcamp("v1657075848/campsite-photos/smru2tzwahec0wlsi6vm"),
+      hipcamp("v1631319444/campground-photos/lgnyrts8pkcdjwyamo66"),
+    ],
+    amenities: [
+      "Fire pit",
+      "Picnic table",
+      "Porta-potty (seasonal)",
+      "Creek access",
+      "Beach pond",
+      "Shaded",
+      "Off-leash dogs",
+      "4WD/AWD required",
+    ],
+    maxGuests: 8,
+    basePrice: 55,
+    weekendPrice: 70,
+    isCombo: false,
+  },
+  {
+    id: "site-900886",
+    slug: "morel",
+    name: "Morel",
+    type: "tent",
+    shortDescription:
+      "Smaller picturesque site nestled along the creek near the bridge.",
+    description:
+      "One of our smaller campsites along the creek with a good amount of shade. While a little more exposed than some other sites, it\u2019s arguably one of the most picturesque being right along the creek, nestled behind some grand trees, and next to the bridge. Great for all camping types. Smaller site, perfect for 2-4 people. One of our least private sites as it\u2019s located in the middle of the campground.",
+    photos: [
+      hipcamp("v1631319203/campground-photos/pomhrqcqsagbytcma9il"),
+      hipcamp("v1631319206/campground-photos/lmnfvpzbtxayst2vns89"),
+      hipcamp("v1631476337/campground-photos/v8qplvfa0uwszt9l5bns"),
+      hipcamp("v1658930630/campground-photos/oitf7hqmbdmymxz2oh2w"),
+    ],
+    amenities: [
+      "Fire pit",
+      "Picnic table",
+      "Porta-potty (seasonal)",
+      "Creek access",
+      "Bridge access",
+      "Shaded",
+      "Off-leash dogs",
+      "4WD/AWD required",
+    ],
     maxGuests: 4,
-    basePrice: 95,
-    weekendPrice: 120,
+    basePrice: 50,
+    weekendPrice: 65,
+    isCombo: false,
+  },
+  {
+    id: "site-598373",
+    slug: "king-bolete",
+    name: "King Bolete",
+    type: "tent",
+    shortDescription:
+      "One of the largest campsites with prime creek access and a beach pond.",
+    description:
+      "This is one of our largest campsites, and one of our least private. That being said, it\u2019s one of our most popular as you have prime creek access, a lot of sun, and are close to our largest pond with a beach. It\u2019s also close \u2014 just over the bridge \u2014 to the porta-potty during peak season. Great for all camping types \u2014 tents on the grass, camper vehicles in the shaded parking area near the fire ring.",
+    photos: [
+      hipcamp("v1684193783/campsite-photos/y7zfzielhmgtmy3kybkk"),
+      hipcamp("v1657074966/campsite-photos/vjiueyj3v219bvatoiek"),
+      hipcamp("v1657074967/campsite-photos/hgwcit4kqvp9gnpipdks"),
+      hipcamp("v1657074980/campsite-photos/bku0qpkxgsd20ze9gyju"),
+    ],
+    amenities: [
+      "Fire pit",
+      "Picnic table",
+      "Porta-potty (seasonal)",
+      "Creek access",
+      "Beach pond",
+      "Sunny",
+      "Off-leash dogs",
+      "4WD/AWD required",
+    ],
+    maxGuests: 10,
+    basePrice: 75,
+    weekendPrice: 95,
+    isCombo: false,
+  },
+  {
+    id: "site-705521",
+    slug: "amanita",
+    name: "Amanita",
+    type: "tent",
+    shortDescription:
+      "Convenient tent site next to the biggest pond with easy access.",
+    description:
+      "Located next to the largest pond on the property, with space between the water and a large tree/stump, it provides a natural barrier and privacy from the other sites. Amanita is the first site you\u2019ll see on the right when you enter the campground. Parking is just beyond the tree/sign. Great for tent camping. Not along the creek, but right next to the biggest pond. Best for a quick stop, convenient in and out.",
+    photos: [
+      hipcamp("v1657075491/campsite-photos/wsukytqgzij3eftmh5k1"),
+      hipcamp("v1657075493/campsite-photos/zvcc0yyvdd4cgd6d0kaf"),
+      hipcamp("v1657075494/campsite-photos/vlvvseplmyjxqyymrxux"),
+      hipcamp("v1657075499/campsite-photos/f2sgtcflzbyekkqdatfj"),
+    ],
+    amenities: [
+      "Fire pit",
+      "Picnic table",
+      "Porta-potty (seasonal)",
+      "Pond access",
+      "Easy access",
+      "Off-leash dogs",
+      "4WD/AWD required",
+    ],
+    maxGuests: 4,
+    basePrice: 45,
+    weekendPrice: 55,
+    isCombo: false,
+  },
+  {
+    id: "site-816547",
+    slug: "chanterelle",
+    name: "Chanterelle",
+    type: "tent",
+    shortDescription:
+      "Best for group camping \u2014 spacious, private, with creek access and a climbing tree.",
+    description:
+      "One of our most popular sites due to its size, location, and privacy, the Chanterelle Campsite is perfect for a larger group to enjoy. There\u2019s space for tents and vehicles, has its own creek and pond access point, a giant climbing tree, and large fire pit. During peak season, there is a porta-potty right outside. Please note: while this site is more secluded, it still has neighboring campsites.",
+    photos: [
+      hipcamp("v1684191006/campground-photos/c3xpamgdesfg6ippspqw"),
+      hipcamp("v1684191017/campground-photos/lxpteedcjzvxtdv0uoqk"),
+      hipcamp("v1651115547/campsite-photos/bnrong95krqedvozqwkw"),
+      hipcamp("v1631319212/campground-photos/zniqklnnxtryhniiunvq"),
+    ],
+    amenities: [
+      "Large fire pit",
+      "Picnic table",
+      "Porta-potty (seasonal)",
+      "Creek access",
+      "Pond access",
+      "Climbing tree",
+      "Secluded",
+      "Off-leash dogs",
+      "4WD/AWD required",
+    ],
+    maxGuests: 12,
+    basePrice: 110,
+    weekendPrice: 140,
+    isCombo: false,
+  },
+  {
+    id: "site-940725",
+    slug: "puffball",
+    name: "Puffball",
+    type: "tent",
+    shortDescription:
+      "Premium creekside site with unmatched privacy, views, and space for two vans.",
+    description:
+      "When it comes to privacy, views, tranquility, spaciousness, and mix of shade and sun, this site really does have it all. Flat with enough space for two campervans, plenty of space along the creek to spread out your tents, and no neighbors within view, Puffball provides the most epic creekside escape. With a large picnic table, fire ring, and personal creek pool, it is an undeniable vibe.",
+    photos: [
+      hipcamp("v1658930630/campground-photos/oitf7hqmbdmymxz2oh2w"),
+      hipcamp("v1661734669/campground-photos/icsklqqfpf9ovaszigrd"),
+      hipcamp("v1655954613/campground-photos/w6slduifclxedh6ehoxs"),
+      hipcamp("v1683402795/land-photos/xsxb1uhuscpqojrdmnzz"),
+    ],
+    amenities: [
+      "Fire ring",
+      "Large picnic table",
+      "Porta-potty (seasonal)",
+      "Creek access",
+      "Private creek pool",
+      "No neighbors in view",
+      "Shade & sun mix",
+      "Off-leash dogs",
+      "4WD/AWD required",
+    ],
+    maxGuests: 10,
+    basePrice: 240,
+    weekendPrice: 300,
+    isCombo: false,
+  },
+  {
+    id: "site-1057258",
+    slug: "turkey-tail",
+    name: "Turkey Tail",
+    type: "tent",
+    shortDescription:
+      "Smaller creekside site with direct creek access and only one neighbor.",
+    description:
+      "One of our smaller campsites along the creek with a good amount of shade. Turkey Tail is a great location, with direct access to the creek, only one direct neighbor, and very close to a porta-potty. Best for vans, trucks, and tents. Smaller site, perfect for 2-4 people.",
+    photos: [
+      hipcamp("v1657075809/campsite-photos/fxwvt7gwazk5lbolieya"),
+      hipcamp("v1657075848/campsite-photos/smru2tzwahec0wlsi6vm"),
+      hipcamp("v1692132517/campground-photos/xssrn0w5n4c0nkrbkie8"),
+      hipcamp("v1692132518/campground-photos/z8kbka35vs2pictqvoqe"),
+    ],
+    amenities: [
+      "Fire pit",
+      "Picnic table",
+      "Porta-potty (seasonal)",
+      "Creek access",
+      "Shaded",
+      "Semi-private",
+      "Off-leash dogs",
+      "4WD/AWD required",
+    ],
+    maxGuests: 4,
+    basePrice: 50,
+    weekendPrice: 65,
     isCombo: false,
   },
 
   // ── Combo Site (1) ─────────────────────────────────────────────────────
   {
-    id: "site-combo-01",
-    slug: "fairy-ring-candy-cap-combo",
-    name: "Fairy Ring + Candy Cap Combo",
-    type: "glamping",
-    description:
-      "Book both the Fairy Ring and Candy Cap glamping tents as a single reservation — ideal for families, friend groups, or small retreats. The two tents sit just 30 yards apart in the forest, connected by a lantern-lit path. A shared fire pit sits halfway between them.",
+    id: "site-977904",
+    slug: "fairy-ring-candy-cap",
+    name: "Fairy Ring + Candy Cap",
+    type: "tent",
     shortDescription:
-      "Two adjacent glamping tents booked together for groups up to eight.",
+      "Both Fairy Ring and Candy Cap sites combined \u2014 perfect for larger groups.",
+    description:
+      "Another great option for bigger groups! Fairy Ring and Candy Cap sites sit along the north side of creek, over the bridge and separated from the other eight campsites. Close proximity to the porta-potties, best entry point to the deepest part of the creek for swimming, and closest to the hiking trails, this is a prime location and a beautiful area to spread out however you\u2019d like.",
     photos: [
-      unsplash("1499696010180-025ef6e1a8f9"),
-      unsplash("1520824399827-6e0c192cfe0b"),
-      unsplash("1445019980597-93fa8acb246c"),
-      unsplash("1532339142463-fd0a8979791a"),
+      hipcamp("v1684194062/campsite-photos/of5vs2fsoiqy20jykvxt"),
+      hipcamp("v1657074745/campsite-photos/txp5tb2xq97lm15ytj7z"),
+      hipcamp("v1658692141/campground-photos/z9zcj59m6xquww7hwc5g"),
+      hipcamp("v1697311704/campground-photos/ult5ulfcksyxctpymoab"),
     ],
-    amenities: amenitiesByType.glamping,
-    maxGuests: 8,
-    basePrice: 180,
-    weekendPrice: 230,
+    amenities: [
+      "Fire pits",
+      "Picnic tables",
+      "Porta-potty (seasonal)",
+      "Creek access",
+      "Swimming hole",
+      "Hiking trails",
+      "Private trailhead",
+      "Off-leash dogs",
+      "4WD/AWD required",
+    ],
+    maxGuests: 20,
+    basePrice: 210,
+    weekendPrice: 260,
     isCombo: true,
     componentSiteSlugs: ["fairy-ring", "candy-cap"],
   },
 
-  // ── Cottage (1) ────────────────────────────────────────────────────────
+  // ── Solar Van Sites (6) ────────────────────────────────────────────────
   {
-    id: "site-cottage-01",
-    slug: "trillium-cottage",
-    name: "Trillium Cottage",
-    type: "cottage",
-    description:
-      "A hand-built A-frame cottage surrounded by wild trillium in spring. Inside you will find a full kitchen, a private bathroom with a rain shower, a queen bed in the loft, and a sofa bed downstairs. The private patio overlooks a moss-covered rock garden.",
+    id: "site-1083368",
+    slug: "solar-site-1",
+    name: "Solar Site 1",
+    type: "van_solar",
     shortDescription:
-      "A charming A-frame cottage with a full kitchen, loft bedroom, and private patio.",
-    photos: [
-      unsplash("1449158743715-0a90ebb6d2d8"),
-      unsplash("1510798831971-661eb04b3739"),
-      unsplash("1587061949409-02df41d5e562"),
-      unsplash("1448375240586-882707db888b"),
-    ],
-    amenities: amenitiesByType.cottage,
-    maxGuests: 6,
-    basePrice: 150,
-    weekendPrice: 185,
+      "Upper lot solar spot with all-day sun and open field views.",
+    description:
+      "Located on the upper lot just before the Blue Barn. This spot gets sunshine all day so it\u2019s perfect for a vehicle with solar panels. It\u2019s very quiet, with just one neighboring spot, is great for dogs to roam with an open field in front, and still convenient \u2014 just a 2 minute walk to the barn\u2019s amenities and about a 5 minute walk down to the creek.",
+    photos: [propA, propB, propC, propE],
+    amenities: solarVanAmenities,
+    maxGuests: 4,
+    basePrice: 30,
+    weekendPrice: 40,
+    isCombo: false,
+  },
+  {
+    id: "site-1083391",
+    slug: "solar-site-2",
+    name: "Solar Site 2",
+    type: "van_solar",
+    shortDescription:
+      "Upper lot solar spot next to Site 1 with all-day sun.",
+    description:
+      "Located on the upper lot just before the Blue Barn. This spot gets sunshine all day so it\u2019s perfect for a vehicle with solar panels. It\u2019s very quiet, with just one neighboring spot for another campervan, is great for your dogs to roam with an open field in front of it, and still very convenient being just a 2 minute walk to the barn\u2019s amenities, and about a 5 minute walk down to the creek.",
+    photos: [propB, propC, propD, propF],
+    amenities: solarVanAmenities,
+    maxGuests: 4,
+    basePrice: 30,
+    weekendPrice: 40,
+    isCombo: false,
+  },
+  {
+    id: "site-1083688",
+    slug: "solar-site-4",
+    name: "Solar Site 4",
+    type: "van_solar",
+    shortDescription: "Behind the barn with privacy and afternoon sun.",
+    description:
+      "Situated on the backside of the barn. The best way to park is parallel to the barn. You\u2019ll have plenty of room and privacy in this space. The site gets sun in the afternoon, but is shaded by the barn\u2019s walls for the first half of the day.",
+    photos: [propC, propD, propE, propG],
+    amenities: solarVanAmenities,
+    maxGuests: 4,
+    basePrice: 40,
+    weekendPrice: 50,
+    isCombo: false,
+  },
+  {
+    id: "site-1083724",
+    slug: "solar-site-5",
+    name: "Solar Site 5",
+    type: "van_solar",
+    shortDescription:
+      "Close to barn entrance with no neighbors and partial creek views.",
+    description:
+      "Located very close to the barn\u2019s front entrance, has no direct neighbors and partial views of the creek. This spot gets sunshine all day long so it\u2019s great for vehicles with solar panels.",
+    photos: [propD, propE, propF, propA],
+    amenities: solarVanAmenities,
+    maxGuests: 4,
+    basePrice: 40,
+    weekendPrice: 50,
+    isCombo: false,
+  },
+  {
+    id: "site-1083728",
+    slug: "solar-site-8",
+    name: "Solar Site 8",
+    type: "van_solar",
+    shortDescription:
+      "Main lot spot with all-day sunshine, between Sites 7 and 9.",
+    description:
+      "Situated between Sites 7 and 9 on the south side of the main parking lot. This site gets sunshine all day long and is great for vehicles with solar panels.",
+    photos: [propE, propF, propG, propB],
+    amenities: solarVanAmenities,
+    maxGuests: 4,
+    basePrice: 40,
+    weekendPrice: 50,
+    isCombo: false,
+  },
+  {
+    id: "site-1083729",
+    slug: "solar-site-9",
+    name: "Solar Site 9",
+    type: "van_solar",
+    shortDescription:
+      "Furthest from the barn entrance on the main lot.",
+    description:
+      "Situated next to Site 8 in the main parking lot, all the way to the left and furthest from the barn entrance.",
+    photos: [propF, propG, propA, propC],
+    amenities: solarVanAmenities,
+    maxGuests: 4,
+    basePrice: 40,
+    weekendPrice: 50,
     isCombo: false,
   },
 
-  // ── Event Spaces (2) ───────────────────────────────────────────────────
+  // ── Power Van Sites (3) ────────────────────────────────────────────────
   {
-    id: "site-event-01",
-    slug: "meadow-pavilion",
-    name: "Meadow Pavilion",
-    type: "event",
-    description:
-      "A covered timber-frame pavilion at the center of a wildflower meadow. Power access, a prep kitchen, and restrooms are all on-site. It comfortably hosts weddings, corporate retreats, and community gatherings for up to 150 guests.",
+    id: "site-1083690",
+    slug: "power-site-3",
+    name: "Power Site 3",
+    type: "van_power",
     shortDescription:
-      "A covered timber pavilion in a wildflower meadow for up to 150 guests.",
-    photos: [
-      unsplash("1464366400600-7168b8af9bc3"),
-      unsplash("1519167758481-83f550bb49b3"),
-      unsplash("1505236858219-8359eb29e329"),
-      unsplash("1507181179506-598491b53db4"),
-    ],
-    amenities: amenitiesByType.event,
-    maxGuests: 150,
-    basePrice: 500,
-    weekendPrice: 750,
+      "Elevated gravel platform behind the barn with shade and power.",
+    description:
+      "Situated on the back side of the barn on its own elevated gravel platform with plenty of space to set up an outdoor patio area and hammock. This is one of the only sites with power hookups and also gets a good amount of shade.",
+    photos: [propA, propD, propE, propG],
+    amenities: powerVanAmenities,
+    maxGuests: 4,
+    basePrice: 50,
+    weekendPrice: 65,
     isCombo: false,
   },
   {
-    id: "site-event-02",
-    slug: "cedar-amphitheater",
-    name: "Cedar Amphitheater",
-    type: "event",
-    description:
-      "A natural amphitheater carved into a hillside of old-growth cedars with tiered log seating. The stage area is level and wired for sound and lighting. Perfect for outdoor concerts, ceremonies, and large group presentations under the open sky.",
+    id: "site-1083725",
+    slug: "power-site-6",
+    name: "Power Site 6",
+    type: "van_power",
     shortDescription:
-      "A hillside amphitheater under old-growth cedars for ceremonies and concerts.",
+      "Front lot spot closest to the barn with power and plenty of sun.",
+    description:
+      "Located in the front parking lot of the barn and is situated closest to the barn with access to power. This spot also gets a lot of sun for most of the day.",
+    photos: [propB, propE, propF, propG],
+    amenities: powerVanAmenities,
+    maxGuests: 4,
+    basePrice: 50,
+    weekendPrice: 65,
+    isCombo: false,
+  },
+  {
+    id: "site-1083726",
+    slug: "power-site-7",
+    name: "Power Site 7",
+    type: "van_power",
+    shortDescription:
+      "Between Sites 6 and 8 with power hookups and all-day sun.",
+    description:
+      "Situated between Sites 6 and 8 on the south side of the main parking lot, and has access to power hookups. It also gets plenty of sunshine throughout most of the day.",
+    photos: [propC, propF, propG, propA],
+    amenities: powerVanAmenities,
+    maxGuests: 4,
+    basePrice: 50,
+    weekendPrice: 65,
+    isCombo: false,
+  },
+
+  // ── Glamping (1) ───────────────────────────────────────────────────────
+  {
+    id: "site-1541211",
+    slug: "trailer-glampsite",
+    name: "Trailer Glampsite",
+    type: "glamping",
+    shortDescription:
+      "Renovated 19\u2019 trailer with queen bed, BBQ, fire pit, and Blue Barn access.",
+    description:
+      "If you\u2019re looking for comfort, privacy, and beautiful forest and creek views, you\u2019ve found the perfect spot! Our newest glampsite is a spacious 19\u2019 renovated camper, complete with a queen size bed, dining area, mini fridge and lots of space. Your site includes a picnic table, BBQ, and fire pit with two Adirondack chairs. Located up on the hill in close proximity to the Blue Barn with access to full kitchen, flush toilets and hot showers, fast WiFi, game room and rec area. Note: bathroom inside the trailer is not available \u2014 use the Barn\u2019s facilities (less than one minute walk).",
     photos: [
-      unsplash("1505236858219-8359eb29e329"),
-      unsplash("1464366400600-7168b8af9bc3"),
-      unsplash("1519167758481-83f550bb49b3"),
-      unsplash("1441974231531-c6227db76b6e"),
+      hipcamp("v1658930630/campground-photos/oitf7hqmbdmymxz2oh2w"),
+      hipcamp("v1683402795/land-photos/xsxb1uhuscpqojrdmnzz"),
+      hipcamp("v1632772606/campground-photos/xn0xg0itdewj9jsshvrz"),
+      hipcamp("v1689025256/campground-photos/wzxfkyjxxkewhct6xmfv"),
     ],
-    amenities: amenitiesByType.event,
-    maxGuests: 150,
-    basePrice: 500,
-    weekendPrice: 750,
+    amenities: [
+      "Queen bed",
+      "Mini fridge",
+      "Dining area",
+      "Picnic table",
+      "BBQ grill",
+      "Fire pit",
+      "Adirondack chairs",
+      "Shared bathrooms w/ showers",
+      "Communal kitchen",
+      "WiFi",
+      "Parking for 1 car",
+      "2WD OK",
+    ],
+    maxGuests: 4,
+    basePrice: 105,
+    weekendPrice: 130,
     isCombo: false,
   },
 ];
@@ -632,7 +623,7 @@ export const addOns: AddOn[] = [
     description: "Pre-split seasoned firewood delivered to your site.",
     price: 12,
     perNight: true,
-    applicableSiteTypes: ["tent", "rv_tent", "glamping", "cottage"],
+    applicableSiteTypes: ["tent", "glamping"],
     maxQuantity: 3,
   },
   {
@@ -641,14 +632,7 @@ export const addOns: AddOn[] = [
     description: "Graham crackers, chocolate, and marshmallows for 4.",
     price: 8,
     perNight: false,
-    applicableSiteTypes: [
-      "tent",
-      "rv_tent",
-      "van_solar",
-      "van_power",
-      "glamping",
-      "cottage",
-    ],
+    applicableSiteTypes: ["tent", "van_solar", "van_power", "glamping"],
     maxQuantity: 5,
   },
   {
@@ -657,7 +641,7 @@ export const addOns: AddOn[] = [
     description: "LED camping lantern with USB charging.",
     price: 5,
     perNight: true,
-    applicableSiteTypes: ["tent", "rv_tent", "van_solar", "van_power"],
+    applicableSiteTypes: ["tent", "van_solar", "van_power"],
     maxQuantity: 2,
   },
   {
@@ -666,14 +650,7 @@ export const addOns: AddOn[] = [
     description: "Single kayak with paddle and life jacket for the day.",
     price: 35,
     perNight: false,
-    applicableSiteTypes: [
-      "tent",
-      "rv_tent",
-      "van_solar",
-      "van_power",
-      "glamping",
-      "cottage",
-    ],
+    applicableSiteTypes: ["tent", "van_solar", "van_power", "glamping"],
     maxQuantity: 4,
   },
   {
@@ -682,14 +659,7 @@ export const addOns: AddOn[] = [
     description: "Check in at 11 AM instead of 3 PM.",
     price: 20,
     perNight: false,
-    applicableSiteTypes: [
-      "tent",
-      "rv_tent",
-      "van_solar",
-      "van_power",
-      "glamping",
-      "cottage",
-    ],
+    applicableSiteTypes: ["tent", "van_solar", "van_power", "glamping"],
     maxQuantity: 1,
   },
 ];

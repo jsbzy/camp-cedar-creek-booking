@@ -1,11 +1,8 @@
 export type SiteType =
   | "tent"
-  | "rv_tent"
   | "van_solar"
   | "van_power"
-  | "glamping"
-  | "cottage"
-  | "event";
+  | "glamping";
 
 export interface Site {
   id: string;
