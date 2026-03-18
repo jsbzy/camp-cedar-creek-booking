@@ -7,7 +7,7 @@ export default function EventsPage() {
       {/* Hero */}
       <section className="relative flex h-[50vh] items-center justify-center">
         <Image
-          src="https://picsum.photos/seed/cedar-creek-events/1920/1080"
+          src="https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=1920&h=1080&fit=crop"
           alt="Event space at Camp Cedar Creek"
           fill
           className="object-cover"

@@ -12,7 +12,7 @@ export default function HomePage() {
       {/* Hero */}
       <section className="relative flex min-h-[70vh] items-center justify-center">
         <Image
-          src="https://picsum.photos/seed/cedar-creek-hero/1920/1080"
+          src="https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=1920&h=1080&fit=crop"
           alt="Camp Cedar Creek"
           fill
           className="object-cover"

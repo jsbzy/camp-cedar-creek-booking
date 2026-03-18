@@ -46,8 +46,9 @@ export function ReviewStep({ site }: ReviewStepProps) {
       }
 
       const { booking } = await res.json();
+      sessionStorage.setItem("lastBooking", JSON.stringify(booking));
       store.reset();
-      router.push(`/book/confirmation/${booking.id}`);
+      router.push("/book/confirmation");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {

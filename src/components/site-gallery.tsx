@@ -14,13 +14,17 @@ export function SiteGallery({ photos, siteName }: SiteGalleryProps) {
 
   return (
     <>
-      <div className="grid gap-2 md:grid-cols-3">
+      <div className="grid gap-2 md:grid-cols-3 md:grid-rows-2">
         {photos.map((photo, i) => (
           <button
             key={i}
             onClick={() => setLightboxIndex(i)}
             className={`relative overflow-hidden rounded-lg ${
-              i === 0 ? "aspect-[16/10] md:col-span-2 md:row-span-2" : "aspect-[4/3]"
+              i === 0
+                ? "aspect-[16/10] md:col-span-2 md:row-span-2 md:aspect-auto"
+                : i <= 2
+                ? "hidden aspect-[4/3] md:block"
+                : "hidden"
             }`}
           >
             <Image
