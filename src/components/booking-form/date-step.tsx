@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { DayPicker, type DateRange } from "react-day-picker";
-import "react-day-picker/style.css";
+import { type DateRange } from "react-day-picker";
 import { format, addDays, startOfDay } from "date-fns";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import { Label } from "@/components/ui/label";
 import { useBookingStore } from "@/lib/booking-store";
 import type { Site } from "@/types";
@@ -74,15 +74,12 @@ export function DateStep({ site }: DateStepProps) {
       </p>
 
       <div className="mt-6 flex justify-center">
-        <DayPicker
+        <Calendar
           mode="range"
           selected={range}
           onSelect={setRange}
           numberOfMonths={2}
           disabled={{ before: addDays(today, 1) }}
-          classNames={{
-            root: "text-sm",
-          }}
         />
       </div>
 
