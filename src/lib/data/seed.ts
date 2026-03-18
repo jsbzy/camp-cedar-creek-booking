@@ -342,10 +342,10 @@ export const sites: Site[] = [
     description:
       "When it comes to privacy, views, tranquility, spaciousness, and mix of shade and sun, this site really does have it all. Flat with enough space for two campervans, plenty of space along the creek to spread out your tents, and no neighbors within view, Puffball provides the most epic creekside escape. With a large picnic table, fire ring, and personal creek pool, it is an undeniable vibe.",
     photos: [
+      hipcamp("v1696912042/dev-campground-photos/io22y79ad8dymok6kcfn"),
+      hipcamp("v1696912250/dev-campground-photos/jnlpgfujse48iyzvzbqg"),
+      hipcamp("v1696912276/dev-campground-photos/d2jxc9ymvicdzr5kfski"),
       hipcamp("v1658930630/campground-photos/oitf7hqmbdmymxz2oh2w"),
-      hipcamp("v1661734669/campground-photos/icsklqqfpf9ovaszigrd"),
-      hipcamp("v1655954613/campground-photos/w6slduifclxedh6ehoxs"),
-      hipcamp("v1683402795/land-photos/xsxb1uhuscpqojrdmnzz"),
     ],
     amenities: [
       "Fire ring",
@@ -438,7 +438,12 @@ export const sites: Site[] = [
       "Upper lot solar spot with all-day sun and open field views.",
     description:
       "Located on the upper lot just before the Blue Barn. This spot gets sunshine all day so it\u2019s perfect for a vehicle with solar panels. It\u2019s very quiet, with just one neighboring spot, is great for dogs to roam with an open field in front, and still convenient \u2014 just a 2 minute walk to the barn\u2019s amenities and about a 5 minute walk down to the creek.",
-    photos: [propA, propB, propC, propE],
+    photos: [
+      hipcamp("v1721086972/dev-campground-photos/ciuyjsdjagxeh18qysgx"),
+      hipcamp("v1721086975/dev-campground-photos/viutv8vrr517nbkgweai"),
+      hipcamp("v1749779914/dev-campground-photos/jxfrk1s5noet4t36v4x6"),
+      hipcamp("v1749779915/dev-campground-photos/zuxwfysyar4e7wbu3is7"),
+    ],
     amenities: solarVanAmenities,
     maxGuests: 4,
     basePrice: 30,
@@ -454,7 +459,12 @@ export const sites: Site[] = [
       "Upper lot solar spot next to Site 1 with all-day sun.",
     description:
       "Located on the upper lot just before the Blue Barn. This spot gets sunshine all day so it\u2019s perfect for a vehicle with solar panels. It\u2019s very quiet, with just one neighboring spot for another campervan, is great for your dogs to roam with an open field in front of it, and still very convenient being just a 2 minute walk to the barn\u2019s amenities, and about a 5 minute walk down to the creek.",
-    photos: [propB, propC, propD, propF],
+    photos: [
+      hipcamp("v1749780150/dev-campground-photos/t94nqsyabrprzz2uibdl"),
+      hipcamp("v1749780151/dev-campground-photos/lrbzefst2kbolrqulgzf"),
+      propA,
+      propE,
+    ],
     amenities: solarVanAmenities,
     maxGuests: 4,
     basePrice: 30,
@@ -469,7 +479,12 @@ export const sites: Site[] = [
     shortDescription: "Behind the barn with privacy and afternoon sun.",
     description:
       "Situated on the backside of the barn. The best way to park is parallel to the barn. You\u2019ll have plenty of room and privacy in this space. The site gets sun in the afternoon, but is shaded by the barn\u2019s walls for the first half of the day.",
-    photos: [propC, propD, propE, propG],
+    photos: [
+      hipcamp("v1720659545/dev-campground-photos/ttftf03jzqm8wg8tyw7f"),
+      hipcamp("v1723162128/campground-photos/gxvu9zripsmsvydmpkjo"),
+      hipcamp("v1755303482/campground-photos/yovn7dfdcqfcspxfdotx"),
+      propA,
+    ],
     amenities: solarVanAmenities,
     maxGuests: 4,
     basePrice: 40,
@@ -517,7 +532,12 @@ export const sites: Site[] = [
       "Furthest from the barn entrance on the main lot.",
     description:
       "Situated next to Site 8 in the main parking lot, all the way to the left and furthest from the barn entrance.",
-    photos: [propF, propG, propA, propC],
+    photos: [
+      hipcamp("v1723656247/campground-photos/os2ultdsparuvjzycrgi"),
+      hipcamp("v1723656248/campground-photos/t06ia3agowwk4qf3pyia"),
+      propA,
+      propE,
+    ],
     amenities: solarVanAmenities,
     maxGuests: 4,
     basePrice: 40,
@@ -586,10 +606,10 @@ export const sites: Site[] = [
     description:
       "If you\u2019re looking for comfort, privacy, and beautiful forest and creek views, you\u2019ve found the perfect spot! Our newest glampsite is a spacious 19\u2019 renovated camper, complete with a queen size bed, dining area, mini fridge and lots of space. Your site includes a picnic table, BBQ, and fire pit with two Adirondack chairs. Located up on the hill in close proximity to the Blue Barn with access to full kitchen, flush toilets and hot showers, fast WiFi, game room and rec area. Note: bathroom inside the trailer is not available \u2014 use the Barn\u2019s facilities (less than one minute walk).",
     photos: [
-      hipcamp("v1658930630/campground-photos/oitf7hqmbdmymxz2oh2w"),
-      hipcamp("v1683402795/land-photos/xsxb1uhuscpqojrdmnzz"),
-      hipcamp("v1632772606/campground-photos/xn0xg0itdewj9jsshvrz"),
-      hipcamp("v1689025256/campground-photos/wzxfkyjxxkewhct6xmfv"),
+      hipcamp("v1749517296/dev-campground-photos/kqmlmvnj1ck0yesiupr0"),
+      hipcamp("v1749517322/dev-campground-photos/erccjfhwdypwnd6lokku"),
+      hipcamp("v1750266940/dev-campground-photos/nze6a1y52z1bkbd0jegm"),
+      propA,
     ],
     amenities: [
       "Queen bed",
