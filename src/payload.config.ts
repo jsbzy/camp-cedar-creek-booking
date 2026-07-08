@@ -1,6 +1,7 @@
 import path from "path";
 import { fileURLToPath } from "url";
 import { buildConfig } from "payload";
+import { postgresAdapter } from "@payloadcms/db-postgres";
 import { sqliteAdapter } from "@payloadcms/db-sqlite";
 import { lexicalEditor } from "@payloadcms/richtext-lexical";
 import sharp from "sharp";
@@ -17,6 +18,19 @@ import { Settings } from "./globals/Settings";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
+
+// SQLite for local dev, Neon Postgres in production — picked by URI scheme.
+// Dev relies on schema push; production Postgres runs committed migrations
+// from src/migrations (npm run migrate during the Vercel build).
+const databaseUri = process.env.DATABASE_URI || "file:./ccc-booking.db";
+const db = databaseUri.startsWith("postgres")
+  ? postgresAdapter({
+      pool: { connectionString: databaseUri },
+      migrationDir: path.resolve(dirname, "migrations"),
+    })
+  : sqliteAdapter({
+      client: { url: databaseUri },
+    });
 
 export default buildConfig({
   admin: {
@@ -37,11 +51,7 @@ export default buildConfig({
   typescript: {
     outputFile: path.resolve(dirname, "payload-types.ts"),
   },
-  db: sqliteAdapter({
-    client: {
-      url: process.env.DATABASE_URI || "file:./ccc-booking.db",
-    },
-  }),
+  db,
   graphQL: {
     disable: true,
   },
