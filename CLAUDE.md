@@ -1,6 +1,8 @@
 # Camp Cedar Creek — Booking App
 
-Hipcamp-style direct booking system for Camp Cedar Creek (Sandy, OR). 21 bookable sites + event inquiries. Full spec: `../BUILD_PLAN.md` (data model, emails, iCal architecture, real site inventory — read it before big changes).
+Hipcamp-style direct booking system for Camp Cedar Creek (Sandy, OR). 21 bookable sites + event inquiries. Full spec: `docs/BUILD_PLAN.md` (data model, emails, iCal architecture, real site inventory — read it before big changes).
+
+**Active branch: `payload-backend`** — Phase 2+ happens here (devbox agent, see `HANDOFF.md`). ⚠️ Never push `main`: GitHub → Vercel auto-deploys it to the live demo, which has no Payload env vars yet. Merge + deploy is Phase 4, from the Mac.
 
 ## Decisions (locked 2026-07-08)
 
