@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSiteBySlug, calculatePrice } from "@/lib/data";
+import { getSiteBySlug, calculatePrice, sanitizeAddOns } from "@/lib/data";
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
@@ -12,11 +12,12 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const site = getSiteBySlug(siteSlug);
+  const site = await getSiteBySlug(siteSlug);
   if (!site) {
     return NextResponse.json({ error: "Site not found" }, { status: 404 });
   }
 
-  const pricing = calculatePrice(site, checkIn, checkOut, addOns);
+  const safeAddOns = await sanitizeAddOns(site.type, addOns);
+  const pricing = calculatePrice(site, checkIn, checkOut, safeAddOns);
   return NextResponse.json(pricing);
 }

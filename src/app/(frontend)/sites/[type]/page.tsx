@@ -3,6 +3,8 @@ import { getSitesByType, getSiteTypeInfo } from "@/lib/data";
 import { SiteCard } from "@/components/site-card";
 import type { SiteType } from "@/types";
 
+export const dynamic = "force-dynamic";
+
 export default async function CategoryPage({
   params,
 }: {
@@ -12,7 +14,7 @@ export default async function CategoryPage({
   const typeInfo = getSiteTypeInfo(type as SiteType);
   if (!typeInfo) notFound();
 
-  const sites = getSitesByType(type as SiteType);
+  const sites = await getSitesByType(type as SiteType);
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-12">

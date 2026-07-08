@@ -14,11 +14,11 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const site = getSiteBySlug(slug);
+  const site = await getSiteBySlug(slug);
   if (!site) {
     return NextResponse.json({ error: "Site not found" }, { status: 404 });
   }
 
-  const availability = getAvailability(site, start, end);
+  const availability = await getAvailability(site, start, end);
   return NextResponse.json({ availability });
 }

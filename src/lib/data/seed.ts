@@ -1,43 +1,7 @@
-import type { Site, AddOn, PricingRule, SiteTypeInfo, PropertyInfo, Review, PropertyRating } from "@/types";
-
-// ---------------------------------------------------------------------------
-// Site Types
-// ---------------------------------------------------------------------------
-
-export const siteTypes: SiteTypeInfo[] = [
-  {
-    type: "tent",
-    label: "Tent Campsite",
-    pluralLabel: "Tent Campsites",
-    description:
-      "Creekside tent campsites named after mushrooms. 4WD/AWD required, pack-in-pack-out, off-leash dogs welcome.",
-    icon: "\u26fa",
-  },
-  {
-    type: "van_solar",
-    label: "Solar Van Site",
-    pluralLabel: "Solar Van Sites",
-    description:
-      "Van parking spots at the Blue Barn with solar charging. 2WD OK. Shared kitchen, showers, WiFi, and co-working.",
-    icon: "\u2600\ufe0f",
-  },
-  {
-    type: "van_power",
-    label: "Power Van Site",
-    pluralLabel: "Power Van Sites",
-    description:
-      "Van spots with electrical hookups at the Blue Barn. 2WD OK. Shared kitchen, showers, WiFi, and co-working.",
-    icon: "\ud83d\udd0c",
-  },
-  {
-    type: "glamping",
-    label: "Glampsite",
-    pluralLabel: "Glampsites",
-    description:
-      "A renovated trailer with a queen bed, mini fridge, picnic table, BBQ, and fire pit. Blue Barn access included.",
-    icon: "\u2728",
-  },
-];
+// SEED FIXTURES \u2014 no longer read at runtime. The website reads from Payload
+// (see src/lib/data/*); this file is the source for `npm run seed` only.
+// Relative type import so `payload run scripts/seed.ts` works without aliases.
+import type { Site, AddOn, PricingRule, PropertyInfo, Review, PropertyRating } from "../../types";
 
 // ---------------------------------------------------------------------------
 // Helper — Hipcamp Cloudinary photo URL builder

@@ -2,8 +2,13 @@ import { notFound } from "next/navigation";
 import { Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { getSiteBySlug, getSiteTypeInfo, getReviews, getPropertyRating } from "@/lib/data";
-import { propertyInfo } from "@/lib/data/seed";
+import {
+  getSiteBySlug,
+  getSiteTypeInfo,
+  getReviews,
+  getPropertyRating,
+  getPropertyInfo,
+} from "@/lib/data";
 import { SiteGallery } from "@/components/site-gallery";
 import { AmenityList } from "@/components/amenity-list";
 import { AvailabilityCalendar } from "@/components/availability-calendar";
@@ -16,18 +21,23 @@ import { Breadcrumbs } from "@/components/breadcrumbs";
 import { SectionTabs } from "@/components/section-tabs";
 import type { SiteType } from "@/types";
 
+export const dynamic = "force-dynamic";
+
 export default async function SiteDetailPage({
   params,
 }: {
   params: Promise<{ type: string; slug: string }>;
 }) {
   const { slug } = await params;
-  const site = getSiteBySlug(slug);
+  const site = await getSiteBySlug(slug);
   if (!site) notFound();
 
   const typeInfo = getSiteTypeInfo(site.type as SiteType);
-  const reviews = getReviews();
-  const rating = getPropertyRating();
+  const [reviews, rating, propertyInfo] = await Promise.all([
+    getReviews(),
+    getPropertyRating(),
+    getPropertyInfo(),
+  ]);
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-8 pb-28 lg:pb-12">

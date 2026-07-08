@@ -1,39 +1,76 @@
 import { format, eachDayOfInterval, parseISO } from "date-fns";
 import type { DateAvailability, Site } from "@/types";
-import { getSiteBySlug } from "./sites";
-import { bookings } from "./bookings";
-import { sites as allSitesData } from "./seed";
+import { getDb } from "./db";
 
-export function getAvailability(
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+// A booking on any of these slugs blocks this site:
+// - the site itself
+// - its component sites (when this is a combo)
+// - any combo that includes this site
+async function getBlockingSlugs(site: Site): Promise<string[]> {
+  const db = await getDb();
+  const slugs =
+    site.isCombo && site.componentSiteSlugs?.length
+      ? [site.slug, ...site.componentSiteSlugs]
+      : [site.slug];
+
+  const combos = await db.find({
+    collection: "sites",
+    where: {
+      and: [{ isCombo: { equals: true } }, { "componentSiteSlugs.slug": { equals: site.slug } }],
+    },
+    pagination: false,
+    depth: 0,
+  });
+
+  return [...new Set([...slugs, ...combos.docs.map((d: any) => d.slug as string)])];
+}
+
+export async function getAvailability(
   site: Site,
   startDate: string,
   endDate: string
-): DateAvailability[] {
-  const start = parseISO(startDate);
-  const end = parseISO(endDate);
-  const days = eachDayOfInterval({ start, end });
+): Promise<DateAvailability[]> {
+  const db = await getDb();
+  const slugsToCheck = await getBlockingSlugs(site);
 
-  // Get slugs to check (for combo sites, check component sites too)
-  const slugsToCheck = site.isCombo && site.componentSiteSlugs
-    ? [site.slug, ...site.componentSiteSlugs]
-    : [site.slug];
+  // ISO date strings compare lexicographically, so string operators are safe here.
+  const [bookingsRes, blocksRes] = await Promise.all([
+    db.find({
+      collection: "bookings",
+      pagination: false,
+      depth: 0,
+      where: {
+        and: [
+          { siteSlug: { in: slugsToCheck } },
+          { status: { not_in: ["cancelled", "refunded"] } },
+          { checkIn: { less_than: endDate } },
+          { checkOut: { greater_than: startDate } },
+        ],
+      },
+    }),
+    db.find({
+      collection: "blocked-dates",
+      pagination: false,
+      depth: 0,
+      where: {
+        and: [
+          { siteSlug: { in: slugsToCheck } },
+          { startDate: { less_than: endDate } },
+          { endDate: { greater_than: startDate } },
+        ],
+      },
+    }),
+  ]);
 
-  // Also check any combo site that includes this site as a component
-  // (booking an individual site blocks the combo)
-  const comboSlugsBlocking = allSitesData
-    .filter((s) => s.isCombo && s.componentSiteSlugs?.includes(site.slug))
-    .map((s) => s.slug);
-
-  const allSlugsToCheck = [...new Set([...slugsToCheck, ...comboSlugsBlocking])];
+  const days = eachDayOfInterval({ start: parseISO(startDate), end: parseISO(endDate) });
 
   return days.map((day) => {
     const dateStr = format(day, "yyyy-MM-dd");
-    const isBooked = bookings.some((b) =>
-      allSlugsToCheck.includes(b.siteSlug) &&
-      b.status !== "cancelled" &&
-      dateStr >= b.checkIn &&
-      dateStr < b.checkOut
-    );
+    const isBooked =
+      bookingsRes.docs.some((b: any) => dateStr >= b.checkIn && dateStr < b.checkOut) ||
+      blocksRes.docs.some((bl: any) => dateStr >= bl.startDate && dateStr < bl.endDate);
 
     const isWeekendDay = day.getDay() === 5 || day.getDay() === 6;
     return {
@@ -44,12 +81,12 @@ export function getAvailability(
   });
 }
 
-export function checkDateRange(
+export async function checkDateRange(
   site: Site,
   checkIn: string,
   checkOut: string
-): boolean {
-  const availability = getAvailability(site, checkIn, checkOut);
+): Promise<boolean> {
+  const availability = await getAvailability(site, checkIn, checkOut);
   // Exclude check-out date from availability check
   const stayDates = availability.filter((d) => d.date < checkOut);
   return stayDates.every((d) => d.available);

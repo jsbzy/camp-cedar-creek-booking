@@ -3,6 +3,8 @@ import { SiteCard } from "@/components/site-card";
 import Link from "next/link";
 import type { SiteType } from "@/types";
 
+export const dynamic = "force-dynamic";
+
 export default async function SitesPage({
   searchParams,
 }: {
@@ -10,13 +12,14 @@ export default async function SitesPage({
 }) {
   const { type } = await searchParams;
   const allTypes = getAllSiteTypes();
-  const sites = type ? getSitesByType(type as SiteType) : getSites();
+  const allSites = await getSites();
+  const sites = type ? await getSitesByType(type as SiteType) : allSites;
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-12">
       <h1 className="font-heading text-4xl font-bold">All Sites</h1>
       <p className="mt-2 text-muted-foreground">
-        Explore all {getSites().length} bookable sites at Camp Cedar Creek.
+        Explore all {allSites.length} bookable sites at Camp Cedar Creek.
       </p>
 
       {/* Filter pills */}

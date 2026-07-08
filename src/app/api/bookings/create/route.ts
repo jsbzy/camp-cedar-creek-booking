@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSiteBySlug, calculatePrice, checkDateRange, createBooking } from "@/lib/data";
+import {
+  getSiteBySlug,
+  calculatePrice,
+  checkDateRange,
+  createBooking,
+  sanitizeAddOns,
+} from "@/lib/data";
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
@@ -24,23 +30,24 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const site = getSiteBySlug(siteSlug);
+  const site = await getSiteBySlug(siteSlug);
   if (!site) {
     return NextResponse.json({ error: "Site not found" }, { status: 404 });
   }
 
   // Check availability
-  if (!checkDateRange(site, checkIn, checkOut)) {
+  if (!(await checkDateRange(site, checkIn, checkOut))) {
     return NextResponse.json(
       { error: "Selected dates are no longer available" },
       { status: 409 }
     );
   }
 
-  // Recalculate price server-side
-  const pricing = calculatePrice(site, checkIn, checkOut, addOns);
+  // Never trust client prices — resolve add-ons and recalculate server-side
+  const safeAddOns = await sanitizeAddOns(site.type, addOns);
+  const pricing = calculatePrice(site, checkIn, checkOut, safeAddOns);
 
-  const booking = createBooking({
+  const booking = await createBooking({
     siteId: siteId || site.id,
     siteSlug,
     siteName: siteName || site.name,
@@ -49,7 +56,7 @@ export async function POST(request: NextRequest) {
     nights: pricing.nights,
     guests,
     guest,
-    addOns,
+    addOns: safeAddOns,
     nightlyBreakdown: pricing.nightlyBreakdown,
     subtotal: pricing.subtotal,
     addOnsTotal: pricing.addOnsTotal,

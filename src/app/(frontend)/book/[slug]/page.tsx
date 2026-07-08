@@ -3,6 +3,8 @@ import { getSiteBySlug, getAddonsForSiteType } from "@/lib/data";
 import { BookingFlow } from "@/components/booking-flow";
 import { BookingInitializer } from "@/components/booking-initializer";
 
+export const dynamic = "force-dynamic";
+
 export default async function BookPage({
   params,
   searchParams,
@@ -12,10 +14,10 @@ export default async function BookPage({
 }) {
   const { slug } = await params;
   const { checkIn, checkOut, guests } = await searchParams;
-  const site = getSiteBySlug(slug);
+  const site = await getSiteBySlug(slug);
   if (!site) notFound();
 
-  const addOns = getAddonsForSiteType(site.type);
+  const addOns = await getAddonsForSiteType(site.type);
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-12">

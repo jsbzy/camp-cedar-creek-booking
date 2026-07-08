@@ -4,8 +4,13 @@ import { Button } from "@/components/ui/button";
 import { SiteCategoryCard } from "@/components/site-category-card";
 import { getAllSiteTypes, getSitesByType } from "@/lib/data";
 
-export default function HomePage() {
+export const dynamic = "force-dynamic";
+
+export default async function HomePage() {
   const types = getAllSiteTypes();
+  const countsByType = await Promise.all(
+    types.map(async (t) => (await getSitesByType(t.type)).length)
+  );
 
   return (
     <>
@@ -43,16 +48,13 @@ export default function HomePage() {
           From primitive tent camping to a cozy cottage — we have something for everyone.
         </p>
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {types.map((typeInfo) => {
-            const count = getSitesByType(typeInfo.type).length;
-            return (
-              <SiteCategoryCard
-                key={typeInfo.type}
-                typeInfo={typeInfo}
-                siteCount={count}
-              />
-            );
-          })}
+          {types.map((typeInfo, i) => (
+            <SiteCategoryCard
+              key={typeInfo.type}
+              typeInfo={typeInfo}
+              siteCount={countsByType[i]}
+            />
+          ))}
         </div>
       </section>
 

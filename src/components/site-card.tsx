@@ -3,14 +3,16 @@ import Link from "next/link";
 import { Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { Site } from "@/types";
-import { siteTypes, propertyRating } from "@/lib/data/seed";
+import { siteTypes } from "@/lib/site-types";
+import { getPropertyRating } from "@/lib/data";
 
 interface SiteCardProps {
   site: Site;
 }
 
-export function SiteCard({ site }: SiteCardProps) {
+export async function SiteCard({ site }: SiteCardProps) {
   const typeInfo = siteTypes.find((t) => t.type === site.type);
+  const propertyRating = await getPropertyRating();
 
   return (
     <Link href={`/sites/${site.type}/${site.slug}`} className="group block">

@@ -4,3 +4,4 @@ export * from "./availability";
 export * from "./addons";
 export * from "./bookings";
 export * from "./reviews";
+export * from "./property";
