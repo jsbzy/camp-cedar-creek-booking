@@ -279,6 +279,23 @@ export interface Booking {
   stripeSessionId?: string | null;
   stripePaymentIntent?: string | null;
   cancellationReason?: string | null;
+  /**
+   * ISO timestamp
+   */
+  cancelledAt?: string | null;
+  /**
+   * USD owed back per the cancellation policy.
+   */
+  refundAmount?: number | null;
+  /**
+   * When each automated email went out (ISO timestamps, set by the app).
+   */
+  notifications?: {
+    confirmationSentAt?: string | null;
+    preArrivalSentAt?: string | null;
+    dayBeforeSentAt?: string | null;
+    postStaySentAt?: string | null;
+  };
   updatedAt: string;
   createdAt: string;
 }
@@ -627,6 +644,16 @@ export interface BookingsSelect<T extends boolean = true> {
   stripeSessionId?: T;
   stripePaymentIntent?: T;
   cancellationReason?: T;
+  cancelledAt?: T;
+  refundAmount?: T;
+  notifications?:
+    | T
+    | {
+        confirmationSentAt?: T;
+        preArrivalSentAt?: T;
+        dayBeforeSentAt?: T;
+        postStaySentAt?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }
@@ -796,6 +823,23 @@ export interface Setting {
   checkOutTime?: string | null;
   quietHours?: string | null;
   cancellationPolicy?: string | null;
+  /**
+   * Drives the refund calculation when a guest cancels. Keep the policy text above in sync with these numbers.
+   */
+  cancellationTerms?: {
+    /**
+     * Cancel at least this many days before check-in → 100% refund.
+     */
+    fullRefundDays?: number | null;
+    /**
+     * Cancel at least this many days before check-in → partial refund.
+     */
+    partialRefundDays?: number | null;
+    /**
+     * Percent refunded in the partial window.
+     */
+    partialRefundPercent?: number | null;
+  };
   houseRules?:
     | {
         rule: string;
@@ -854,6 +898,13 @@ export interface SettingsSelect<T extends boolean = true> {
   checkOutTime?: T;
   quietHours?: T;
   cancellationPolicy?: T;
+  cancellationTerms?:
+    | T
+    | {
+        fullRefundDays?: T;
+        partialRefundDays?: T;
+        partialRefundPercent?: T;
+      };
   houseRules?:
     | T
     | {

@@ -671,6 +671,8 @@ export const propertyInfo: PropertyInfo = {
   quietHours: "10:00 PM – 7:00 AM",
   cancellationPolicy:
     "Free cancellation up to 14 days before check-in. Cancellations within 14 days receive a 50% refund. No refunds for cancellations within 48 hours of check-in or no-shows.",
+  // Structured mirror of the policy text above — drives the refund calculation.
+  cancellationTerms: { fullRefundDays: 14, partialRefundDays: 2, partialRefundPercent: 50 },
   houseRules: [
     "Quiet hours: 10 PM – 7 AM",
     "Pack-in, pack-out — leave no trace",

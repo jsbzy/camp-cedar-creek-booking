@@ -34,12 +34,17 @@ function mapBooking(doc: any): Booking {
     waiverSigned: Boolean(doc.waiverSigned),
     waiverSignature: doc.waiverSignature ?? undefined,
     status: doc.status,
+    magicLinkToken: doc.magicLinkToken ?? undefined,
+    stripePaymentIntent: doc.stripePaymentIntent ?? undefined,
+    cancelledAt: doc.cancelledAt ?? undefined,
+    refundAmount: doc.refundAmount ?? undefined,
     createdAt: doc.createdAt,
   };
 }
 
 export async function createBooking(
-  input: Omit<Booking, "id" | "createdAt" | "status">
+  input: Omit<Booking, "id" | "createdAt" | "status">,
+  options: { status?: "pending" | "confirmed" } = {}
 ): Promise<Booking> {
   const db = await getDb();
   const siteRes = await db.find({
@@ -68,8 +73,9 @@ export async function createBooking(
       total: input.total,
       waiverSigned: input.waiverSigned,
       waiverSignature: input.waiverSignature,
-      // Phase 2 (Stripe) will create as "pending" and confirm via webhook.
-      status: "confirmed",
+      // Stripe flow creates as "pending" and confirms via webhook; the
+      // no-keys demo flow confirms immediately.
+      status: options.status ?? "confirmed",
       source: "direct",
     },
   });
@@ -85,4 +91,98 @@ export async function getBookingById(id: string): Promise<Booking | undefined> {
     depth: 0,
   });
   return res.docs[0] ? mapBooking(res.docs[0]) : undefined;
+}
+
+export async function getBookingByToken(token: string): Promise<Booking | undefined> {
+  if (!token) return undefined;
+  const db = await getDb();
+  const res = await db.find({
+    collection: "bookings",
+    where: { magicLinkToken: { equals: token } },
+    limit: 1,
+    depth: 0,
+  });
+  return res.docs[0] ? mapBooking(res.docs[0]) : undefined;
+}
+
+async function updateByCode(confirmationCode: string, data: Record<string, unknown>) {
+  const db = await getDb();
+  const res = await db.update({
+    collection: "bookings",
+    where: { confirmationCode: { equals: confirmationCode } },
+    data,
+  });
+  const doc = (res.docs ?? [])[0];
+  return doc ? mapBooking(doc) : undefined;
+}
+
+export async function attachStripeSession(
+  confirmationCode: string,
+  stripeSessionId: string
+): Promise<Booking | undefined> {
+  return updateByCode(confirmationCode, { stripeSessionId });
+}
+
+export async function confirmBooking(
+  confirmationCode: string,
+  stripe?: { stripeSessionId?: string; stripePaymentIntent?: string }
+): Promise<Booking | undefined> {
+  return updateByCode(confirmationCode, { status: "confirmed", ...stripe });
+}
+
+export async function cancelBooking(
+  confirmationCode: string,
+  opts: { reason?: string; refundAmount: number; refunded?: boolean }
+): Promise<Booking | undefined> {
+  return updateByCode(confirmationCode, {
+    // "refunded" only once money has actually moved (Stripe refund issued);
+    // until keys exist the demo flow always lands on "cancelled".
+    status: opts.refunded ? "refunded" : "cancelled",
+    cancellationReason: opts.reason || undefined,
+    cancelledAt: new Date().toISOString(),
+    refundAmount: opts.refundAmount,
+  });
+}
+
+export async function markNotificationSent(
+  confirmationCode: string,
+  field: "confirmationSentAt" | "preArrivalSentAt" | "dayBeforeSentAt" | "postStaySentAt"
+): Promise<void> {
+  const db = await getDb();
+  const res = await db.find({
+    collection: "bookings",
+    where: { confirmationCode: { equals: confirmationCode } },
+    limit: 1,
+    depth: 0,
+  });
+  const doc: any = res.docs[0];
+  if (!doc) return;
+  await updateByCode(confirmationCode, {
+    notifications: { ...(doc.notifications ?? {}), [field]: new Date().toISOString() },
+  });
+}
+
+/**
+ * Confirmed bookings whose lifecycle email is due today and not yet sent.
+ * `field` picks the checked date column and the notifications flag.
+ */
+export async function findBookingsDueForEmail(
+  field: "preArrivalSentAt" | "dayBeforeSentAt" | "postStaySentAt",
+  date: string
+): Promise<Booking[]> {
+  const db = await getDb();
+  const dateField = field === "postStaySentAt" ? "checkOut" : "checkIn";
+  const res = await db.find({
+    collection: "bookings",
+    pagination: false,
+    depth: 0,
+    where: {
+      and: [
+        { status: { equals: "confirmed" } },
+        { [dateField]: { equals: date } },
+        { [`notifications.${field}`]: { exists: false } },
+      ],
+    },
+  });
+  return res.docs.map(mapBooking);
 }

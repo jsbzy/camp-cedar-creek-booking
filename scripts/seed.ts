@@ -89,6 +89,7 @@ async function run() {
       checkOutTime: propertyInfo.checkOutTime,
       quietHours: propertyInfo.quietHours,
       cancellationPolicy: propertyInfo.cancellationPolicy,
+      cancellationTerms: propertyInfo.cancellationTerms,
       houseRules: propertyInfo.houseRules.map((rule) => ({ rule })),
       sharedAmenities: propertyInfo.sharedAmenities.map((label) => ({ label })),
       host: propertyInfo.host,

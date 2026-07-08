@@ -1,5 +1,5 @@
 import { cache } from "react";
-import type { PropertyInfo, PropertyRating } from "@/types";
+import type { CancellationTerms, PropertyInfo, PropertyRating } from "@/types";
 import { getDb } from "./db";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -18,6 +18,11 @@ export async function getPropertyInfo(): Promise<PropertyInfo> {
     checkOutTime: s.checkOutTime ?? "",
     quietHours: s.quietHours ?? "",
     cancellationPolicy: s.cancellationPolicy ?? "",
+    cancellationTerms: {
+      fullRefundDays: s.cancellationTerms?.fullRefundDays ?? 14,
+      partialRefundDays: s.cancellationTerms?.partialRefundDays ?? 2,
+      partialRefundPercent: s.cancellationTerms?.partialRefundPercent ?? 50,
+    },
     houseRules: (s.houseRules ?? []).map((r: any) => r.rule),
     sharedAmenities: (s.sharedAmenities ?? []).map((a: any) => a.label),
     host: {
@@ -28,6 +33,11 @@ export async function getPropertyInfo(): Promise<PropertyInfo> {
       email: s.host?.email ?? "",
     },
   };
+}
+
+export async function getCancellationTerms(): Promise<CancellationTerms> {
+  const info = await getPropertyInfo();
+  return info.cancellationTerms;
 }
 
 export async function getPropertyRating(): Promise<PropertyRating> {

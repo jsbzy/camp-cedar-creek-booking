@@ -40,6 +40,43 @@ export const Settings: GlobalConfig = {
     },
     { name: "cancellationPolicy", type: "textarea" },
     {
+      name: "cancellationTerms",
+      type: "group",
+      admin: {
+        description:
+          "Drives the refund calculation when a guest cancels. Keep the policy text above in sync with these numbers.",
+      },
+      fields: [
+        {
+          type: "row",
+          fields: [
+            {
+              name: "fullRefundDays",
+              type: "number",
+              min: 0,
+              defaultValue: 14,
+              admin: { description: "Cancel at least this many days before check-in → 100% refund." },
+            },
+            {
+              name: "partialRefundDays",
+              type: "number",
+              min: 0,
+              defaultValue: 2,
+              admin: { description: "Cancel at least this many days before check-in → partial refund." },
+            },
+            {
+              name: "partialRefundPercent",
+              type: "number",
+              min: 0,
+              max: 100,
+              defaultValue: 50,
+              admin: { description: "Percent refunded in the partial window." },
+            },
+          ],
+        },
+      ],
+    },
+    {
       name: "houseRules",
       type: "array",
       fields: [{ name: "rule", type: "text", required: true }],

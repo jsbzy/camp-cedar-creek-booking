@@ -80,8 +80,18 @@ export interface Booking {
   total: number;
   waiverSigned: boolean;
   waiverSignature?: string;
-  status: "pending" | "confirmed" | "cancelled";
+  status: "pending" | "confirmed" | "cancelled" | "completed" | "refunded";
+  magicLinkToken?: string;
+  stripePaymentIntent?: string;
+  cancelledAt?: string;
+  refundAmount?: number;
   createdAt: string;
+}
+
+export interface CancellationTerms {
+  fullRefundDays: number;
+  partialRefundDays: number;
+  partialRefundPercent: number;
 }
 
 export interface PriceCalculation {
@@ -109,6 +119,7 @@ export interface PropertyInfo {
   checkOutTime: string;
   quietHours: string;
   cancellationPolicy: string;
+  cancellationTerms: CancellationTerms;
   houseRules: string[];
   sharedAmenities: string[];
   host: {

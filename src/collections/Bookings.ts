@@ -121,5 +121,41 @@ export const Bookings: CollectionConfig = {
     { name: "stripeSessionId", type: "text", admin: { readOnly: true } },
     { name: "stripePaymentIntent", type: "text", admin: { readOnly: true } },
     { name: "cancellationReason", type: "textarea" },
+    {
+      type: "row",
+      fields: [
+        {
+          name: "cancelledAt",
+          type: "text",
+          admin: { readOnly: true, description: "ISO timestamp" },
+        },
+        {
+          name: "refundAmount",
+          type: "number",
+          admin: { readOnly: true, description: "USD owed back per the cancellation policy." },
+        },
+      ],
+    },
+    {
+      name: "notifications",
+      type: "group",
+      admin: { description: "When each automated email went out (ISO timestamps, set by the app)." },
+      fields: [
+        {
+          type: "row",
+          fields: [
+            { name: "confirmationSentAt", type: "text", admin: { readOnly: true } },
+            { name: "preArrivalSentAt", type: "text", admin: { readOnly: true } },
+          ],
+        },
+        {
+          type: "row",
+          fields: [
+            { name: "dayBeforeSentAt", type: "text", admin: { readOnly: true } },
+            { name: "postStaySentAt", type: "text", admin: { readOnly: true } },
+          ],
+        },
+      ],
+    },
   ],
 };
