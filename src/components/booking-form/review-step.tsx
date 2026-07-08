@@ -45,10 +45,16 @@ export function ReviewStep({ site }: ReviewStepProps) {
         throw new Error(data.error || "Booking failed");
       }
 
-      const { booking } = await res.json();
+      const { booking, checkoutUrl } = await res.json();
       sessionStorage.setItem("lastBooking", JSON.stringify(booking));
       store.reset();
-      router.push("/book/confirmation");
+      if (checkoutUrl) {
+        // Stripe mode: pay on Stripe Checkout, which redirects back to the
+        // confirmation page on success.
+        window.location.assign(checkoutUrl);
+      } else {
+        router.push("/book/confirmation");
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
