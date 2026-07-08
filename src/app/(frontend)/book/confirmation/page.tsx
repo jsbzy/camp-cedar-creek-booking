@@ -1,21 +1,46 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import type { Booking } from "@/types";
 
-export default function ConfirmationPage() {
-  const [booking, setBooking] = useState<Booking | null>(null);
+const noopSubscribe = () => () => {};
+const readStoredBooking = () => sessionStorage.getItem("lastBooking");
 
+export default function ConfirmationPage() {
+  // sessionStorage isn't available during SSR — snapshot it hydration-safely.
+  const stored = useSyncExternalStore(noopSubscribe, readStoredBooking, () => null);
+  const booking = useMemo<Booking | null>(() => (stored ? JSON.parse(stored) : null), [stored]);
+
+  // In Stripe mode the booking is still "pending" when the guest lands back
+  // here — poll the live status until the webhook confirms it.
+  const [liveStatus, setLiveStatus] = useState<Booking["status"] | null>(null);
+  const token = booking?.magicLinkToken;
   useEffect(() => {
-    const stored = sessionStorage.getItem("lastBooking");
-    if (stored) {
-      setBooking(JSON.parse(stored));
-    }
-  }, []);
+    if (!token) return;
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+
+    const check = () => {
+      fetch(`/api/bookings/status?token=${token}`)
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (cancelled || !data) return;
+          setLiveStatus(data.status);
+          if (data.status === "pending") timer = setTimeout(check, 4000);
+        })
+        .catch(() => {});
+    };
+    check();
+
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+    };
+  }, [token]);
 
   if (!booking) {
     return (
@@ -30,6 +55,9 @@ export default function ConfirmationPage() {
       </div>
     );
   }
+
+  const status = liveStatus ?? booking.status;
+  const isPending = status === "pending";
 
   const icsStart = booking.checkIn.replace(/-/g, "") + "T150000";
   const icsEnd = booking.checkOut.replace(/-/g, "") + "T110000";
@@ -51,9 +79,13 @@ export default function ConfirmationPage() {
   return (
     <div className="mx-auto max-w-2xl px-6 py-16 text-center">
       <div className="text-5xl">🏕️</div>
-      <h1 className="mt-4 font-heading text-3xl font-bold">Booking Confirmed!</h1>
+      <h1 className="mt-4 font-heading text-3xl font-bold">
+        {isPending ? "Finishing up your payment..." : "Booking Confirmed!"}
+      </h1>
       <p className="mt-2 text-muted-foreground">
-        We can&apos;t wait to see you at Camp Cedar Creek.
+        {isPending
+          ? "Hang tight — we're confirming your payment. This page will update automatically."
+          : "We can't wait to see you at Camp Cedar Creek. A confirmation email is on its way."}
       </p>
 
       <div className="mt-8 rounded-lg border bg-card p-6 text-left">
@@ -107,6 +139,9 @@ export default function ConfirmationPage() {
       </div>
 
       <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+        {token && (
+          <Button render={<Link href={`/booking/${token}`} />}>Manage Booking</Button>
+        )}
         <a
           href={icsDataUrl}
           download={`camp-cedar-creek-${booking.id}.ics`}

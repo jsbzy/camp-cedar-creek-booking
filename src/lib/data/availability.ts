@@ -8,7 +8,7 @@ import { getDb } from "./db";
 // - the site itself
 // - its component sites (when this is a combo)
 // - any combo that includes this site
-async function getBlockingSlugs(site: Site): Promise<string[]> {
+export async function getBlockingSlugs(site: Site): Promise<string[]> {
   const db = await getDb();
   const slugs =
     site.isCombo && site.componentSiteSlugs?.length

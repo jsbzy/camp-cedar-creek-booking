@@ -44,6 +44,7 @@ export const BlockedDates: CollectionConfig = {
         { label: "Manual", value: "manual" },
         { label: "Hipcamp sync", value: "hipcamp" },
         { label: "Airbnb sync", value: "airbnb" },
+        { label: "Other calendar sync", value: "other" },
       ],
       admin: { readOnly: false },
     },

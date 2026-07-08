@@ -1,0 +1,12 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/emails",
+      "schedule": "0 16 * * *"
+    },
+    {
+      "path": "/api/cron/ical",
+      "schedule": "*/15 * * * *"
+    }
+  ]
+}

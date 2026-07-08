@@ -318,7 +318,7 @@ export interface BlockedDate {
    */
   endDate: string;
   reason: 'owner_block' | 'maintenance' | 'seasonal_closure' | 'ota_booking';
-  source?: ('manual' | 'hipcamp' | 'airbnb') | null;
+  source?: ('manual' | 'hipcamp' | 'airbnb' | 'other') | null;
   /**
    * Event ID from the synced calendar (managed automatically).
    */

@@ -2,6 +2,9 @@ import type { NextConfig } from "next";
 import { withPayload } from "@payloadcms/next/withPayload";
 
 const nextConfig: NextConfig = {
+  // node-ical is Node-only — bundling it breaks (BigInt/rrule internals), so
+  // load it from node_modules at runtime instead.
+  serverExternalPackages: ["node-ical"],
   images: {
     remotePatterns: [
       {
