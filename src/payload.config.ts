@@ -35,6 +35,8 @@ const db = databaseUri.startsWith("postgres")
 export default buildConfig({
   admin: {
     user: "users",
+    // Owners use the admin — keep it simple and consistent: always light.
+    theme: "light",
     meta: {
       titleSuffix: " — Camp Cedar Creek",
     },
