@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { type DateRange } from "react-day-picker";
-import { format, addDays, startOfDay } from "date-fns";
+import { format, addDays, startOfDay, parseISO } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Label } from "@/components/ui/label";
@@ -17,11 +17,23 @@ export function DateStep({ site }: DateStepProps) {
   const { checkIn, checkOut, guests, setDates, setGuests, setPricing, nextStep } =
     useBookingStore();
 
+  // parseISO, not new Date(): a bare yyyy-MM-dd parses as UTC midnight, which
+  // in Oregon is the evening before, so the calendar showed the wrong day.
   const [range, setRange] = useState<DateRange | undefined>(
     checkIn && checkOut
-      ? { from: new Date(checkIn), to: new Date(checkOut) }
+      ? { from: parseISO(checkIn), to: parseISO(checkOut) }
       : undefined
   );
+
+  // Dates chosen on the site page arrive via the URL and are written to the
+  // store by BookingInitializer in an effect, i.e. after this component's
+  // first render. Pick them up when they land so the guest is not asked to
+  // choose the same dates twice.
+  useEffect(() => {
+    if (!range && checkIn && checkOut) {
+      setRange({ from: parseISO(checkIn), to: parseISO(checkOut) });
+    }
+  }, [checkIn, checkOut, range]);
   const [loading, setLoading] = useState(false);
   const [breakdown, setBreakdown] = useState<{ date: string; price: number }[]>([]);
 
