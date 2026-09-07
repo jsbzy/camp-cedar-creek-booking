@@ -112,45 +112,83 @@ export async function syncFeedEvents(
   const result: IcalFeedSyncResult = { siteSlug, platform, created: 0, updated: 0, removed: 0 };
   const seenUids = new Set<string>();
 
+  // Plan first, then write in parallel batches: this runs inside a request
+  // (the Sites save hook) and a few hundred sequential round-trips to the
+  // database would outlive the lambda.
+  const ops: (() => Promise<void>)[] = [];
   for (const ev of events) {
     if (!ev.uid || !ev.start || !ev.end) continue;
     seenUids.add(ev.uid);
     const existing = existingByUid.get(ev.uid);
     if (existing) {
       if (existing.startDate !== ev.start || existing.endDate !== ev.end) {
-        await db.update({
-          collection: "blocked-dates",
-          id: existing.id,
-          data: { startDate: ev.start, endDate: ev.end, note: ev.summary },
+        ops.push(async () => {
+          await db.update({
+            collection: "blocked-dates",
+            id: existing.id,
+            data: { startDate: ev.start, endDate: ev.end, note: ev.summary },
+          });
+          result.updated++;
         });
-        result.updated++;
       }
     } else {
-      await db.create({
-        collection: "blocked-dates",
-        data: {
-          site: siteId,
-          siteSlug,
-          startDate: ev.start,
-          endDate: ev.end,
-          reason: "ota_booking",
-          source: platform,
-          externalUid: ev.uid,
-          note: ev.summary,
-        },
+      ops.push(async () => {
+        await db.create({
+          collection: "blocked-dates",
+          data: {
+            site: siteId,
+            siteSlug,
+            startDate: ev.start,
+            endDate: ev.end,
+            reason: "ota_booking",
+            source: platform,
+            externalUid: ev.uid,
+            note: ev.summary,
+          },
+        });
+        result.created++;
       });
-      result.created++;
     }
   }
-
   for (const [uid, doc] of existingByUid) {
     if (!seenUids.has(uid)) {
-      await db.delete({ collection: "blocked-dates", id: doc.id });
-      result.removed++;
+      ops.push(async () => {
+        await db.delete({ collection: "blocked-dates", id: doc.id });
+        result.removed++;
+      });
     }
   }
+  await inBatches(ops, 8);
 
   return result;
+}
+
+async function inBatches(ops: (() => Promise<void>)[], size: number): Promise<void> {
+  for (let i = 0; i < ops.length; i += size) {
+    await Promise.all(ops.slice(i, i + size).map((op) => op()));
+  }
+}
+
+/**
+ * Delete imported blocks whose platform is no longer configured on the site
+ * (the owner removed the feed). Manual blocks are never touched.
+ */
+export async function removeOrphanedPlatformBlocks(siteSlug: string, configuredPlatforms: string[]): Promise<number> {
+  const db = await getDb();
+  const res = await db.find({
+    collection: "blocked-dates",
+    pagination: false,
+    depth: 0,
+    where: {
+      and: [
+        { siteSlug: { equals: siteSlug } },
+        { source: { not_equals: "manual" } },
+        ...(configuredPlatforms.length ? [{ source: { not_in: configuredPlatforms } }] : []),
+      ],
+    },
+  });
+  await inBatches(res.docs.map((d: any) => async () => { await db.delete({ collection: "blocked-dates", id: d.id }); }), 8);
+  return res.docs.length;
 }
 
 export async function markSiteSynced(siteSlug: string): Promise<void> {

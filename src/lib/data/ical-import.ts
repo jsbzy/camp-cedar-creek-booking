@@ -1,5 +1,5 @@
 import nodeIcal from "node-ical";
-import { syncFeedEvents, type IcalFeedSyncResult, type IcalImportEvent } from "./ical";
+import { removeOrphanedPlatformBlocks, syncFeedEvents, type IcalFeedSyncResult, type IcalImportEvent } from "./ical";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -12,16 +12,26 @@ function toDateString(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
-export function parseEvents(data: nodeIcal.CalendarResponse): IcalImportEvent[] {
+// How far ahead to import. A Google feed can carry years of events (the US
+// holidays calendar has 300+); a lambda cannot sit through creating a row
+// for each, and nothing older than today can block a booking anyway.
+const HORIZON_DAYS = 550;
+
+export function parseEvents(data: nodeIcal.CalendarResponse, today = new Date()): IcalImportEvent[] {
+  const todayStr = toDateString(today);
+  const horizon = toDateString(new Date(today.getTime() + HORIZON_DAYS * 86400000));
   const events: IcalImportEvent[] = [];
   for (const item of Object.values(data)) {
     if ((item as any).type !== "VEVENT") continue;
     const ev = item as nodeIcal.VEvent;
     if (!ev.uid || !ev.start || !ev.end) continue;
+    const start = toDateString(ev.start);
+    const end = toDateString(ev.end);
+    if (end <= todayStr || start > horizon) continue;   // already over, or too far out to matter
     events.push({
       uid: ev.uid,
-      start: toDateString(ev.start),
-      end: toDateString(ev.end),
+      start,
+      end,
       summary: typeof ev.summary === "string" ? ev.summary : undefined,
     });
   }
@@ -60,6 +70,10 @@ export async function syncSiteFeeds(site: { slug: string; icalImportUrls?: any[]
       out.errors.push({ url, error: err instanceof Error ? err.message : String(err) });
     }
   }
+  // A feed that was removed from the site takes its blocks with it.
+  const configured = new Set(feeds.map((f: any) => f.platform ?? "other"));
+  const removed = await removeOrphanedPlatformBlocks(site.slug, [...configured]);
+  if (removed) out.results.push({ siteSlug: site.slug, platform: "removed-feeds", created: 0, updated: 0, removed });
   return out;
 }
 
