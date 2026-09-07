@@ -9,5 +9,10 @@
       "path": "/api/cron/ical",
       "schedule": "*/15 * * * *"
     }
-  ]
+  ],
+  "git": {
+    "deploymentEnabled": {
+      "payload-backend": false
+    }
+  }
 }
