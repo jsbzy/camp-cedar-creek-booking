@@ -6,6 +6,7 @@ import { format, addDays, startOfDay, differenceInDays } from "date-fns";
 import { Calendar as CalendarIcon, Minus, Plus, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
+import { useUnavailableDates } from "@/lib/use-unavailable-dates";
 import type { Site } from "@/types";
 
 interface BookingWidgetProps {
@@ -15,6 +16,7 @@ interface BookingWidgetProps {
 export function BookingWidget({ site }: BookingWidgetProps) {
   const [range, setRange] = useState<DateRange | undefined>();
   const [guests, setGuests] = useState(1);
+  const { dates: unavailable } = useUnavailableDates(site.slug);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [pricing, setPricing] = useState<{
@@ -103,7 +105,8 @@ export function BookingWidget({ site }: BookingWidgetProps) {
                   selected={range}
                   onSelect={setRange}
                   numberOfMonths={1}
-                  disabled={{ before: addDays(today, 1) }}
+                  disabled={[{ before: addDays(today, 1) }, ...unavailable]}
+                  excludeDisabled
                 />
               </div>
             )}

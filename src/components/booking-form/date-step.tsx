@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Label } from "@/components/ui/label";
 import { useBookingStore } from "@/lib/booking-store";
+import { useUnavailableDates } from "@/lib/use-unavailable-dates";
 import type { Site } from "@/types";
 
 interface DateStepProps {
@@ -19,6 +20,7 @@ export function DateStep({ site }: DateStepProps) {
 
   // parseISO, not new Date(): a bare yyyy-MM-dd parses as UTC midnight, which
   // in Oregon is the evening before, so the calendar showed the wrong day.
+  const { dates: unavailable } = useUnavailableDates(site.slug);
   const [range, setRange] = useState<DateRange | undefined>(
     checkIn && checkOut
       ? { from: parseISO(checkIn), to: parseISO(checkOut) }
@@ -91,8 +93,10 @@ export function DateStep({ site }: DateStepProps) {
           selected={range}
           onSelect={setRange}
           numberOfMonths={2}
-          disabled={{ before: addDays(today, 1) }}
+          disabled={[{ before: addDays(today, 1) }, ...unavailable]}
+          excludeDisabled
         />
+        {/* Greyed-out days are booked or blocked; the server refuses them too. */}
       </div>
 
       <div className="mt-6">
