@@ -1,4 +1,5 @@
 import type { CollectionConfig } from "payload";
+import { after } from "next/server";
 import { describeSync, syncSiteFeeds } from "@/lib/data/ical-import";
 
 // Set by the hooks below so their own status writes do not re-trigger a sync.
@@ -29,31 +30,43 @@ export const Sites: CollectionConfig = {
       },
     ],
     afterChange: [
-      async ({ doc, previousDoc, req, context }) => {
+      ({ doc, previousDoc, req, context }) => {
         if (context?.[INTERNAL]) return doc;
         const before = JSON.stringify(previousDoc?.icalImportUrls ?? []);
-        const after = JSON.stringify(doc?.icalImportUrls ?? []);
-        if (before === after) return doc;
+        const now = JSON.stringify(doc?.icalImportUrls ?? []);
+        if (before === now) return doc;
         // A pasted calendar URL should take effect on save, not at the next
-        // 15-minute cron. Never let a bad feed fail the save: record it.
-        let status = "";
-        let ok = false;
-        try {
-          const sync = await syncSiteFeeds(doc);
-          status = describeSync(sync);
-          ok = sync.results.length > 0;
-        } catch (err) {
-          status = `Sync failed: ${err instanceof Error ? err.message : String(err)}`;
-        }
-        await req.payload.update({
-          collection: "sites",
-          id: doc.id,
-          data: {
-            icalLastError: status,
-            ...(ok ? { icalLastSynced: new Date().toISOString() } : {}),
-          },
-          context: { [INTERNAL]: true },
-          req,
+        // 15-minute cron. But NOT inside the save: this hook runs within the
+        // save's transaction, which holds the site row, and the import's
+        // blocked-dates inserts need a share lock on that same row (FK). Run
+        // inline, the two wait on each other until the lambda dies and the
+        // stuck sessions starve the connection pool for every other request
+        // (this happened, during an owner test). after() runs once the
+        // response is sent and the transaction has committed.
+        const payload = req.payload;
+        after(async () => {
+          let status = "";
+          let ok = false;
+          try {
+            const sync = await syncSiteFeeds(doc);
+            status = describeSync(sync);
+            ok = sync.results.length > 0;
+          } catch (err) {
+            status = `Sync failed: ${err instanceof Error ? err.message : String(err)}`;
+          }
+          try {
+            await payload.update({
+              collection: "sites",
+              id: doc.id,
+              data: {
+                icalLastError: status,
+                ...(ok ? { icalLastSynced: new Date().toISOString() } : {}),
+              },
+              context: { [INTERNAL]: true },
+            });
+          } catch (err) {
+            console.error("[ical] could not record sync status:", err);
+          }
         });
         return doc;
       },
