@@ -27,6 +27,11 @@ const db = databaseUri.startsWith("postgres")
   ? postgresAdapter({
       pool: { connectionString: databaseUri },
       migrationDir: path.resolve(dirname, "migrations"),
+      // Never push schema to Postgres. Push mode (the dev default, and what
+      // `npm run seed` triggered) writes a 'dev' marker to payload_migrations,
+      // after which `payload migrate` stalls on an interactive data-loss
+      // prompt during the Vercel build. Migrations are the only schema path.
+      push: false,
     })
   : sqliteAdapter({
       client: { url: databaseUri },
