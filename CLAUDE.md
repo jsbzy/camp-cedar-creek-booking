@@ -11,6 +11,7 @@ Hipcamp-style direct booking system for Camp Cedar Creek (Sandy, OR). 21 bookabl
 - **Launch path:** staging-complete on `camp-cedar-creek-booking.bzy.design` with Stripe TEST mode, then flip with owners (their Stripe live keys, `book.campcedarcreek.com` DNS, Hipcamp iCal URLs, real waiver text, confirmed pricing).
 - **Marketing site:** separate repo `~/repos/campcedarcreek.com` (governed mirror + AI-CMS connector, live at https://campcedarcreek.bzy.design). Cross-link only.
 - **Guests:** no accounts. Guest checkout + magic-link booking management.
+- **Commercial model (decided 2026-09-07):** no per-booking fee, ever — that is what the owners are leaving Hipcamp to escape. Stripe runs on the owners' own account (their keys; no Stripe Connect / platform fees). Hosting stays on Jeff's Vercel/Neon/Resend and is billed only if it has a real cost; otherwise handed over free. Full transfer (Vercel project, Neon, Resend, GitHub) is available any time.
 - **Reviews:** current seed reviews are fabricated for demo. Must be replaced with real Hipcamp reviews (or removed) before launch.
 
 ## Stack
