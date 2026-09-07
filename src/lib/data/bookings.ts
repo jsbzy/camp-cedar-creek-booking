@@ -37,6 +37,7 @@ function mapBooking(doc: any): Booking {
     magicLinkToken: doc.magicLinkToken ?? undefined,
     stripePaymentIntent: doc.stripePaymentIntent ?? undefined,
     cancelledAt: doc.cancelledAt ?? undefined,
+    cancellationReason: doc.cancellationReason ?? undefined,
     refundAmount: doc.refundAmount ?? undefined,
     createdAt: doc.createdAt,
   };

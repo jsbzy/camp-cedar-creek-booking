@@ -8,6 +8,7 @@ import { PreArrivalEmail } from "@/emails/pre-arrival";
 import { DayBeforeReminderEmail } from "@/emails/day-before-reminder";
 import { PostStayEmail } from "@/emails/post-stay";
 import { CancellationConfirmationEmail } from "@/emails/cancellation-confirmation";
+import { BookingOwnerNoticeEmail } from "@/emails/booking-owner-notice";
 import { EventInquiryReceivedEmail } from "@/emails/event-inquiry-received";
 import { EventInquiryOwnerEmail } from "@/emails/event-inquiry-owner";
 
@@ -44,7 +45,7 @@ export async function sendEmail(opts: {
   try {
     const { data, error } = await client.emails.send({
       from: FROM,
-      to: opts.to,
+      to: opts.to.split(",").map((a) => a.trim()).filter(Boolean),
       subject: opts.subject,
       react: opts.react,
       replyTo: opts.replyTo,
@@ -61,8 +62,44 @@ export async function sendEmail(opts: {
   }
 }
 
+/**
+ * Tell the owners. Every confirmed booking and every cancellation goes to
+ * OWNER_NOTIFY_EMAIL (comma-separated is fine), falling back to the host
+ * email in Settings. Reply-to is the guest. Never blocks the guest's email.
+ */
+export async function sendOwnerBookingNotice(
+  booking: Booking,
+  kind: "new" | "cancelled",
+  extra?: { refundAmount?: number; cancellationReason?: string }
+): Promise<string | null> {
+  const info = await getPropertyInfo();
+  const to = process.env.OWNER_NOTIFY_EMAIL || info.host.email;
+  if (!to) return null;
+  const g = booking.guest;
+  const name = `${g.firstName} ${g.lastName}`.trim();
+  const adminUrl = `${appUrl()}/admin/collections/bookings?search=${encodeURIComponent(booking.id)}`;
+  return sendEmail({
+    to,
+    replyTo: g.email,
+    subject:
+      kind === "new"
+        ? `New booking: ${booking.siteName}, ${booking.checkIn} — ${name} (${booking.id})`
+        : `Cancelled: ${booking.siteName}, ${booking.checkIn} — ${name} (${booking.id})`,
+    react: (
+      <BookingOwnerNoticeEmail
+        booking={booking}
+        kind={kind}
+        adminUrl={adminUrl}
+        refundAmount={extra?.refundAmount}
+        cancellationReason={extra?.cancellationReason}
+      />
+    ),
+  });
+}
+
 export async function sendBookingConfirmation(booking: Booking): Promise<string | null> {
   const info = await getPropertyInfo();
+  void sendOwnerBookingNotice(booking, "new");
   const id = await sendEmail({
     to: booking.guest.email,
     subject: `Booking confirmed — ${booking.siteName}, ${booking.checkIn} (${booking.id})`,
@@ -128,6 +165,10 @@ export async function sendCancellationConfirmation(
   booking: Booking,
   refund: { amount: number; percent: number }
 ): Promise<string | null> {
+  void sendOwnerBookingNotice(booking, "cancelled", {
+    refundAmount: refund.amount,
+    cancellationReason: booking.cancellationReason,
+  });
   return sendEmail({
     to: booking.guest.email,
     subject: `Booking cancelled — ${booking.siteName} (${booking.id})`,

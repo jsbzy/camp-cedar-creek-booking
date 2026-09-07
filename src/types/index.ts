@@ -84,6 +84,7 @@ export interface Booking {
   magicLinkToken?: string;
   stripePaymentIntent?: string;
   cancelledAt?: string;
+  cancellationReason?: string;
   refundAmount?: number;
   createdAt: string;
 }
