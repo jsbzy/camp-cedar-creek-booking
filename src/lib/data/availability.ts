@@ -1,4 +1,5 @@
 import { format, eachDayOfInterval, parseISO } from "date-fns";
+import { isWeekendNight } from "./pricing";
 import type { DateAvailability, Site } from "@/types";
 import { getDb } from "./db";
 
@@ -72,11 +73,10 @@ export async function getAvailability(
       bookingsRes.docs.some((b: any) => dateStr >= b.checkIn && dateStr < b.checkOut) ||
       blocksRes.docs.some((bl: any) => dateStr >= bl.startDate && dateStr < bl.endDate);
 
-    const isWeekendDay = day.getDay() === 5 || day.getDay() === 6;
     return {
       date: dateStr,
       available: !isBooked,
-      price: isWeekendDay ? site.weekendPrice : site.basePrice,
+      price: isWeekendNight(day) ? site.weekendPrice : site.basePrice,
     };
   });
 }

@@ -2,14 +2,14 @@
 
 Hipcamp-style direct booking system for Camp Cedar Creek (Sandy, OR). 21 bookable sites + event inquiries. Full spec: `docs/BUILD_PLAN.md` (data model, emails, iCal architecture, real site inventory — read it before big changes).
 
-**Active branch: `payload-backend`** — Phase 2+ happens here (devbox agent, see `HANDOFF.md`). ⚠️ Never push `main`: GitHub → Vercel auto-deploys it to the live demo, which has no Payload env vars yet. Merge + deploy is Phase 4, from the Mac.
+**Deployed 2026-09-07 (Phase 4 done).** Staging is live at https://camp-cedar-creek-booking.bzy.design on Neon Postgres (Vercel marketplace, project `camp-cedar-creek-booking`), Stripe off (no keys → direct-confirm), emails via Resend to jeff@bzydigital.com. **`main` deploys on push** — the build runs `payload migrate && next build`. Work on `payload-backend`, merge `--ff-only` into `main` to ship. Admin login: `ADMIN.local.md` (gitignored). Owner test script: `docs/TESTING.md`. Runbook: `docs/DEPLOY.md`. Never run `npm run seed` or `npm run dev` against the Neon URI — `push:false` in the adapter now guards it, but `seed` poisoned the migration state once (see DEPLOY.md).
 
 ## Decisions (locked 2026-07-08)
 
 - **Backend/admin:** Payload CMS 3 inside this Next.js app. Admin at `/admin` (owners use it; keep it simple). Schema lives in `src/collections/`. SQLite (`@payloadcms/db-sqlite`) for local dev; Neon Postgres at deploy.
 - **OTA sync:** full two-way iCal with Hipcamp (+ Airbnb for cottage). Export feed per site at `/api/ical/[siteId].ics`; import cron every 15 min → blocked-dates. No public APIs exist — iCal is the only channel.
 - **Launch path:** staging-complete on `camp-cedar-creek-booking.bzy.design` with Stripe TEST mode, then flip with owners (their Stripe live keys, `book.campcedarcreek.com` DNS, Hipcamp iCal URLs, real waiver text, confirmed pricing).
-- **Marketing site:** stays separate. Webflow mirror at `/Users/jeffbzy/dev/projects/campcedarcreek.com` deploys as its own static site; cross-link only.
+- **Marketing site:** separate repo `~/repos/campcedarcreek.com` (governed mirror + AI-CMS connector, live at https://campcedarcreek.bzy.design). Cross-link only.
 - **Guests:** no accounts. Guest checkout + magic-link booking management.
 - **Reviews:** current seed reviews are fabricated for demo. Must be replaced with real Hipcamp reviews (or removed) before launch.
 
@@ -20,7 +20,7 @@ Next.js 16 (App Router) · React 19 · Tailwind v4 + shadcn/ui · Zustand (booki
 ## Run
 
 ```bash
-cd "/Users/jeffbzy/dev/clients/Camp Cedar Creek/camp-cedar-creek-booking" && npm run dev
+cd ~/repos/camp-cedar-creek-booking && npm run dev   # port 3000 is taken on bzybox; Next picks 3001
 ```
 
 Dev server on http://localhost:3000, admin at /admin. Seed the DB: `npm run seed`.
