@@ -72,16 +72,38 @@ updates immediately.
 goes to `OWNER_NOTIFY_EMAIL` (Jeff's inbox on staging), the guest gets an
 acknowledgement, and the inquiry appears in the admin.
 
-## 6. The Hipcamp sync, explained (no action yet)
+## 6. Calendar sync with Hipcamp (5 min to demo, live)
 
-Each site has a calendar feed at
-`/api/ical/<site-slug>.ics` — for example
-https://camp-cedar-creek-booking.bzy.design/api/ical/fairy-ring.ics. At
-launch, that URL gets pasted into Hipcamp (and Airbnb for the cottage) so a
-direct booking here blocks the dates there. In the other direction,
-Hipcamp's export URL goes into the site's **iCal import URLs** in the
-admin, and a cron pulls it every 15 minutes into Blocked dates. iCal is the
-only channel Hipcamp offers; the delay is theirs, not ours.
+Two directions, both iCal, both per site. Open a site in the admin and
+scroll to the bottom.
+
+**Their bookings block dates here.** Under **Calendars to import**, add a
+row: platform Hipcamp, and paste the export link from Hipcamp (host
+dashboard → Calendar → Sync calendars → Export). Save. The import runs on
+save; **Last sync result** tells you what it read, and the blocked nights
+appear under Blocked Dates and vanish from the public calendar. After that
+it re-syncs every 15 minutes, so a booking made on Hipcamp shows up here
+within a quarter hour. A cancellation on Hipcamp removes the block the same
+way.
+
+**Live demo without Hipcamp:** in a Google Calendar you control, create an
+all-day event called "Hipcamp booking" on some dates. Google Calendar →
+Settings → that calendar → **Secret address in iCal format** → copy. Paste
+it into a site as platform *Other*, save. Those dates block within seconds.
+Delete the event in Google, save the site again (or wait 15 min): unblocked.
+
+**Our bookings block dates there.** The read-only field **This site's
+calendar** at the top of that section is the URL to paste into Hipcamp
+(Calendar → Sync calendars → Import) and into Airbnb for the cottage. It
+carries direct bookings and manual blocks, never anything that was itself
+imported, so nothing echoes back.
+
+Two honest caveats for the owners: iCal is the only channel Hipcamp offers,
+and Hipcamp re-reads import URLs on its own schedule (hours, not minutes), so
+the risk window for a double booking is Hipcamp's side, not ours. And a
+Google Calendar that *itself* imports Hipcamp refreshes slowly (Google
+polls external calendars roughly daily), so connect Hipcamp's link
+directly rather than going through Google.
 
 ## What is not on yet
 
