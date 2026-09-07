@@ -29,11 +29,17 @@ export const Bookings: CollectionConfig = {
   },
   fields: [
     {
+      // The booking as the owner reads it. Everything codey below is hidden.
+      name: "summary",
+      type: "ui",
+      admin: { components: { Field: "/components/admin/BookingSummary#BookingSummary" } },
+    },
+    {
       name: "confirmationCode",
       type: "text",
       unique: true,
       index: true,
-      admin: { readOnly: true },
+      admin: { hidden: true },
     },
     {
       name: "status",
@@ -48,15 +54,15 @@ export const Bookings: CollectionConfig = {
         { label: "Refunded", value: "refunded" },
       ],
     },
-    { name: "site", type: "relationship", relationTo: "sites" },
-    { name: "siteSlug", type: "text", required: true, index: true },
-    { name: "siteName", type: "text", required: true },
+    { name: "site", type: "relationship", relationTo: "sites", admin: { hidden: true } },
+    { name: "siteSlug", type: "text", required: true, index: true, admin: { hidden: true } },
+    { name: "siteName", type: "text", required: true, admin: { readOnly: true } },
     {
       type: "row",
       fields: [
-        { name: "checkIn", type: "text", required: true, validate: dateValidate, admin: { description: "YYYY-MM-DD" } },
-        { name: "checkOut", type: "text", required: true, validate: dateValidate, admin: { description: "YYYY-MM-DD" } },
-        { name: "nights", type: "number", min: 1 },
+        { name: "checkIn", type: "text", required: true, validate: dateValidate, admin: { readOnly: true, description: "To move a booking, cancel and rebook — this does not re-check availability." } },
+        { name: "checkOut", type: "text", required: true, validate: dateValidate, admin: { readOnly: true } },
+        { name: "nights", type: "number", min: 1, admin: { readOnly: true } },
         { name: "guests", type: "number", min: 1 },
       ],
     },
@@ -84,6 +90,7 @@ export const Bookings: CollectionConfig = {
     {
       name: "addOns",
       type: "array",
+      admin: { hidden: true },
       fields: [
         { name: "addOnId", type: "text" },
         { name: "name", type: "text" },
@@ -92,20 +99,20 @@ export const Bookings: CollectionConfig = {
         { name: "perNight", type: "checkbox", defaultValue: false },
       ],
     },
-    { name: "nightlyBreakdown", type: "json", admin: { readOnly: true } },
+    { name: "nightlyBreakdown", type: "json", admin: { hidden: true } },
     {
       type: "row",
       fields: [
-        { name: "subtotal", type: "number" },
-        { name: "addOnsTotal", type: "number" },
-        { name: "total", type: "number" },
+        { name: "subtotal", type: "number", admin: { hidden: true } },
+        { name: "addOnsTotal", type: "number", admin: { hidden: true } },
+        { name: "total", type: "number", admin: { hidden: true } },
       ],
     },
-    { name: "waiverSigned", type: "checkbox", defaultValue: false },
+    { name: "waiverSigned", type: "checkbox", defaultValue: false, admin: { hidden: true } },
     {
       name: "waiverSignature",
       type: "textarea",
-      admin: { readOnly: true, description: "Guest signature (image data)." },
+      admin: { hidden: true },
     },
     {
       name: "source",
@@ -118,16 +125,21 @@ export const Bookings: CollectionConfig = {
       ],
     },
     { name: "magicLinkToken", type: "text", admin: { hidden: true } },
-    { name: "stripeSessionId", type: "text", admin: { readOnly: true } },
-    { name: "stripePaymentIntent", type: "text", admin: { readOnly: true } },
-    { name: "cancellationReason", type: "textarea" },
+    { name: "stripeSessionId", type: "text", admin: { hidden: true } },
+    { name: "stripePaymentIntent", type: "text", admin: { hidden: true } },
+    {
+      name: "cancellationReason",
+      type: "textarea",
+      admin: { condition: (data) => data?.status === "cancelled" || data?.status === "refunded" },
+    },
     {
       type: "row",
+      admin: { condition: (data) => data?.status === "cancelled" || data?.status === "refunded" },
       fields: [
         {
           name: "cancelledAt",
           type: "text",
-          admin: { readOnly: true, description: "ISO timestamp" },
+          admin: { readOnly: true, description: "When it was cancelled" },
         },
         {
           name: "refundAmount",
@@ -139,7 +151,7 @@ export const Bookings: CollectionConfig = {
     {
       name: "notifications",
       type: "group",
-      admin: { description: "When each automated email went out (ISO timestamps, set by the app)." },
+      admin: { hidden: true },
       fields: [
         {
           type: "row",

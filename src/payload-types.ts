@@ -242,12 +242,9 @@ export interface Booking {
   siteSlug: string;
   siteName: string;
   /**
-   * YYYY-MM-DD
+   * To move a booking, cancel and rebook — this does not re-check availability.
    */
   checkIn: string;
-  /**
-   * YYYY-MM-DD
-   */
   checkOut: string;
   nights?: number | null;
   guests?: number | null;
@@ -281,9 +278,6 @@ export interface Booking {
   addOnsTotal?: number | null;
   total?: number | null;
   waiverSigned?: boolean | null;
-  /**
-   * Guest signature (image data).
-   */
   waiverSignature?: string | null;
   source?: ('direct' | 'hipcamp' | 'airbnb') | null;
   magicLinkToken?: string | null;
@@ -291,16 +285,13 @@ export interface Booking {
   stripePaymentIntent?: string | null;
   cancellationReason?: string | null;
   /**
-   * ISO timestamp
+   * When it was cancelled
    */
   cancelledAt?: string | null;
   /**
    * USD owed back per the cancellation policy.
    */
   refundAmount?: number | null;
-  /**
-   * When each automated email went out (ISO timestamps, set by the app).
-   */
   notifications?: {
     confirmationSentAt?: string | null;
     preArrivalSentAt?: string | null;

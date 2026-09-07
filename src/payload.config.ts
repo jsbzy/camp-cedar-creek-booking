@@ -45,6 +45,18 @@ export default buildConfig({
     meta: {
       titleSuffix: " — Camp Cedar Creek",
     },
+    // Component paths in this config ("/components/admin/…") resolve from src/.
+    importMap: { baseDir: path.resolve(dirname) },
+    components: {
+      // Month-at-a-glance of every site's bookings and blocks, linked from the sidebar.
+      views: {
+        calendar: {
+          Component: "/components/admin/CalendarView#CalendarView",
+          path: "/calendar",
+        },
+      },
+      afterNavLinks: ["/components/admin/CalendarNavLink#CalendarNavLink"],
+    },
   },
   // Payload's REST API lives at /payload-api so it never collides with the
   // app's own /api/* routes (bookings, ical feeds, webhooks).
