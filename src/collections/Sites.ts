@@ -1,4 +1,8 @@
 import type { CollectionConfig } from "payload";
+import { describeSync, syncSiteFeeds } from "@/lib/data/ical-import";
+
+// Set by the hooks below so their own status writes do not re-trigger a sync.
+const INTERNAL = "icalStatusWrite";
 
 export const Sites: CollectionConfig = {
   slug: "sites",
@@ -13,6 +17,47 @@ export const Sites: CollectionConfig = {
   defaultSort: "sortOrder",
   access: {
     read: () => true,
+  },
+  hooks: {
+    beforeChange: [
+      ({ data }) => {
+        // The URL Hipcamp/Airbnb should import from, shown read-only so the
+        // owner can copy it straight out of the site record.
+        const base = (process.env.NEXT_PUBLIC_APP_URL || "").replace(/\/$/, "");
+        if (data?.slug) data.icalExportUrl = `${base}/api/ical/${data.slug}.ics`;
+        return data;
+      },
+    ],
+    afterChange: [
+      async ({ doc, previousDoc, req, context }) => {
+        if (context?.[INTERNAL]) return doc;
+        const before = JSON.stringify(previousDoc?.icalImportUrls ?? []);
+        const after = JSON.stringify(doc?.icalImportUrls ?? []);
+        if (before === after) return doc;
+        // A pasted calendar URL should take effect on save, not at the next
+        // 15-minute cron. Never let a bad feed fail the save: record it.
+        let status = "";
+        let ok = false;
+        try {
+          const sync = await syncSiteFeeds(doc);
+          status = describeSync(sync);
+          ok = sync.results.length > 0;
+        } catch (err) {
+          status = `Sync failed: ${err instanceof Error ? err.message : String(err)}`;
+        }
+        await req.payload.update({
+          collection: "sites",
+          id: doc.id,
+          data: {
+            icalLastError: status,
+            ...(ok ? { icalLastSynced: new Date().toISOString() } : {}),
+          },
+          context: { [INTERNAL]: true },
+          req,
+        });
+        return doc;
+      },
+    ],
   },
   fields: [
     { name: "name", type: "text", required: true },
@@ -115,28 +160,52 @@ export const Sites: CollectionConfig = {
       admin: { description: "Lower numbers appear first." },
     },
     {
+      name: "icalExportUrl",
+      label: "This site's calendar (give this to Hipcamp / Airbnb)",
+      type: "text",
+      admin: {
+        readOnly: true,
+        description:
+          "Paste this into Hipcamp → Calendar → Sync calendars → Import, and into Airbnb for the cottage. Bookings made here then block those dates there.",
+      },
+    },
+    {
       name: "icalImportUrls",
+      label: "Calendars to import (Hipcamp / Airbnb / Google)",
       type: "array",
       admin: {
-        description: "External calendars (Hipcamp/Airbnb) whose bookings should block dates here.",
+        description:
+          "Their bookings block dates here. Hipcamp: Calendar → Sync calendars → Export → copy the link. Google Calendar: Settings → the calendar → \"Secret address in iCal format\". Syncs when you save, then every 15 minutes.",
       },
       fields: [
         {
           name: "platform",
           type: "select",
+          defaultValue: "hipcamp",
           options: [
             { label: "Hipcamp", value: "hipcamp" },
             { label: "Airbnb", value: "airbnb" },
-            { label: "Other", value: "other" },
+            { label: "Other (Google Calendar, etc.)", value: "other" },
           ],
         },
-        { name: "url", type: "text" },
+        { name: "url", type: "text", admin: { description: "Ends in .ics — webcal:// links are fine too." } },
       ],
     },
     {
-      name: "icalLastSynced",
-      type: "date",
-      admin: { readOnly: true, description: "Last successful calendar import." },
+      type: "row",
+      fields: [
+        {
+          name: "icalLastSynced",
+          type: "date",
+          admin: { readOnly: true, description: "Last successful import.", date: { displayFormat: "MMM d, yyyy h:mm a" } },
+        },
+        {
+          name: "icalLastError",
+          label: "Last sync result",
+          type: "text",
+          admin: { readOnly: true, description: "What happened on the last import. Empty until the first sync." },
+        },
+      ],
     },
   ],
 };

@@ -201,19 +201,30 @@ export interface Site {
    */
   sortOrder?: number | null;
   /**
-   * External calendars (Hipcamp/Airbnb) whose bookings should block dates here.
+   * Paste this into Hipcamp → Calendar → Sync calendars → Import, and into Airbnb for the cottage. Bookings made here then block those dates there.
+   */
+  icalExportUrl?: string | null;
+  /**
+   * Their bookings block dates here. Hipcamp: Calendar → Sync calendars → Export → copy the link. Google Calendar: Settings → the calendar → "Secret address in iCal format". Syncs when you save, then every 15 minutes.
    */
   icalImportUrls?:
     | {
         platform?: ('hipcamp' | 'airbnb' | 'other') | null;
+        /**
+         * Ends in .ics — webcal:// links are fine too.
+         */
         url?: string | null;
         id?: string | null;
       }[]
     | null;
   /**
-   * Last successful calendar import.
+   * Last successful import.
    */
   icalLastSynced?: string | null;
+  /**
+   * What happened on the last import. Empty until the first sync.
+   */
+  icalLastError?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -589,6 +600,7 @@ export interface SitesSelect<T extends boolean = true> {
   latitude?: T;
   longitude?: T;
   sortOrder?: T;
+  icalExportUrl?: T;
   icalImportUrls?:
     | T
     | {
@@ -597,6 +609,7 @@ export interface SitesSelect<T extends boolean = true> {
         id?: T;
       };
   icalLastSynced?: T;
+  icalLastError?: T;
   updatedAt?: T;
   createdAt?: T;
 }
