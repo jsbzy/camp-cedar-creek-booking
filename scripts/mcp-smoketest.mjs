@@ -119,7 +119,10 @@ const pedit = await call(EDITOR, "edit_page_text", { slug: PSLUG, find: MARK, re
 ok("the page can be edited", !pedit.isError, pedit.text);
 ok("the edit is live", (await fetch(`${BASE}/${PSLUG}`).then((r) => r.text())).includes(MARK + " edited"));
 ok("the homepage keeps its own tools", (await call(EDITOR, "edit_page_text", { slug: "home", find: "a", replace: "b" })).isError);
-ok("a missing page 404s", (await fetch(`${BASE}/no-such-page-${MARK}`)).status === 404);
+const miss = await fetch(`${BASE}/no-such-page-${MARK}`);
+const missBody = await miss.text();
+ok("a missing page 404s", miss.status === 404);
+ok("the 404 wears the site header and footer", /navbar2_component/.test(missBody) && /That page is not here/.test(missBody), missBody.slice(0, 90));
 
 const SSLUG = "smokesite-" + Date.now().toString(36);
 const badType = await call(EDITOR, "create_site", { name: "X", slug: SSLUG, type: "treehouse", weekday: 50 });
