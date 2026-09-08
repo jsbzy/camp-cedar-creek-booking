@@ -58,7 +58,7 @@ export function Footer() {
 
         {/* Bottom bar */}
         <div className="mt-16 border-t border-primary-foreground/20 pt-8 text-center text-sm text-primary-foreground/50">
-          &copy; 2025 Camp Cedar Creek. All rights reserved.
+          &copy; {new Date().getFullYear()} Camp Cedar Creek. All rights reserved.
         </div>
       </div>
     </footer>
