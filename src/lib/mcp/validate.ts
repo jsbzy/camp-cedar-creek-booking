@@ -21,6 +21,21 @@ export function lawFrom(guide: string | null | undefined): Law | null {
   }
 }
 
+/**
+ * The rules, in the words the guide already uses to explain them. Handed to the
+ * client when it connects, so nobody has to remember to go and fetch them: the
+ * rules are enforced on the server either way, and an agent that knows them up
+ * front writes an edit that passes instead of one that bounces.
+ */
+export function rulesSummary(law: Law | null): string {
+  const whys = (law?.banned_patterns ?? []).map((r) => r.why).filter(Boolean);
+  if (!whys.length) return "";
+  return (
+    "These are enforced by the server on every wording change:\n" +
+    whys.map((w) => `- ${w}`).join("\n")
+  );
+}
+
 const ENT: Record<string, string> = {
   amp: "&", quot: '"', apos: "'", lt: "<", gt: ">", nbsp: " ", ndash: "–",
   mdash: "—", hellip: "…", rsquo: "’", lsquo: "‘",

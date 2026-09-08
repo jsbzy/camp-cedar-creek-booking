@@ -1,6 +1,8 @@
 import { NextRequest } from "next/server";
 import { callTool, type Tier } from "@/lib/mcp/tools";
 import { READ_TOOLS, WRITE_TOOLS, ADMIN_TOOLS, INSTRUCTIONS } from "@/lib/mcp/toolDefs";
+import { lawFrom, rulesSummary } from "@/lib/mcp/validate";
+import { getDb } from "@/lib/data/db";
 
 // MCP connector for Camp Cedar Creek. Streamable-HTTP JSON-RPC, stateless.
 // Two tiers: ?k=<MCP_ADMIN_KEY> or ?k=<MCP_EDITOR_KEY>. Editors do the daily
@@ -31,6 +33,24 @@ export async function DELETE() {
   return new Response(null, { status: 200 });
 }
 
+/**
+ * The rules travel with the connection. Built from the stored Brand Guide, so
+ * they cannot drift from what the validator actually enforces, and so a session
+ * starts knowing them rather than being told to go and look them up.
+ */
+async function instructionsWithRules(): Promise<string> {
+  try {
+    const db = await getDb();
+    const guide: any = await db.findGlobal({ slug: "brand-guide" });
+    const rules = rulesSummary(lawFrom(guide?.markdown));
+    return rules ? `${INSTRUCTIONS}\n\nThe rules:\n${rules}` : INSTRUCTIONS;
+  } catch (e) {
+    // Never fail a connection over this. The server still enforces the rules.
+    console.error("[mcp] could not attach rules to instructions:", e);
+    return INSTRUCTIONS;
+  }
+}
+
 export async function POST(request: NextRequest) {
   const tier = tierFor(request.nextUrl.searchParams.get("k") || "");
   if (!tier) return new Response("Unauthorized", { status: 401 });
@@ -53,7 +73,7 @@ export async function POST(request: NextRequest) {
         protocolVersion: PROTO.includes(want) ? want : PROTO[1],
         capabilities: { tools: { listChanged: false } },
         serverInfo: { name: "camp-cedar-creek", version: "1.0.0", title: `Camp Cedar Creek (${tier})` },
-        instructions: INSTRUCTIONS,
+        instructions: await instructionsWithRules(),
       });
     }
     if (method === "ping") return ok(id, {});

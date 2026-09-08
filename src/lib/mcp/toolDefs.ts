@@ -236,7 +236,7 @@ export const INSTRUCTIONS = `This connector runs Camp Cedar Creek: the homepage 
 How it works:
 - Homepage wording STAGES. Your edits save as a draft and go live only when an admin publishes. Nothing you write reaches the public page by itself.
 - Everything operational is LIVE the moment you do it: rates, blocked dates, add-ons, site descriptions, settings. A block that waits for approval is a double booking.
-- Read read_brand_guide before changing wording. Its rules are enforced by the server, not by you: a rejected edit comes back with the rule it broke. Fix the edit, not the rule.
+- The Brand Guide's rules are listed at the end of these instructions, so you already have them. They are enforced by the server, not by you: a rejected edit comes back with the rule it broke. Fix the edit, not the rule. read_brand_guide has the full guide (voice, palette, type) if you need more than the rules.
 
 How to work:
 - Small steps. Make one change, confirm it, then make the next. Do not batch a dozen edits into one turn.

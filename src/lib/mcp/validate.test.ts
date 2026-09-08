@@ -3,7 +3,7 @@
  * the Brand Guide:  npx tsx src/lib/mcp/validate.test.ts
  */
 import { readFileSync } from "node:fs";
-import { lawFrom, locateText, sectionsOf, validatePage, validateText, decodeEntities } from "./validate";
+import { lawFrom, locateText, sectionsOf, validatePage, validateText, decodeEntities, rulesSummary } from "./validate";
 
 let pass = 0;
 let fail = 0;
@@ -78,6 +78,15 @@ t("text rule catches an em dash", validateText(law, "Great site — right on the
 t("text rule allows normal copy", validateText(law, "Right on the creek, with a big fire ring.").length === 0);
 t("text rule blocks scripts", validateText(law, '<script>x()</script>').length > 0);
 t("entities decode", decodeEntities("&quot;Best&quot; &amp; &#x27;fine&#x27;") === "\"Best\" & 'fine'");
+
+// --- rulesSummary: what a connecting client is handed ---
+const summary = rulesSummary(law);
+t("summary lists every banned pattern", summary.split("\n- ").length - 1 === law.banned_patterns.length, summary);
+t("summary carries the em dash rule", /em dashes/i.test(summary));
+t("summary carries the acreage fact", /37 acres/.test(summary));
+t("summary is prose, not regexes", !summary.includes("\\b") && !summary.includes("[^.]"));
+t("summary is empty without a law", rulesSummary(null) === "");
+t("summary is empty when there are no patterns", rulesSummary({ ...law, banned_patterns: [] }) === "");
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
