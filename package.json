@@ -14,7 +14,10 @@
     "build:vercel": "payload migrate && next build",
     "generate:types": "payload generate:types",
     "generate:importmap": "payload generate:importmap",
-    "seed:content": "tsx scripts/seed-content.ts"
+    "seed:content": "tsx scripts/seed-content.ts",
+    "test": "tsx src/lib/mcp/validate.test.ts",
+    "test:booking": "node scripts/booking-smoketest.mjs",
+    "test:connector": "node scripts/mcp-smoketest.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",

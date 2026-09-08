@@ -38,6 +38,7 @@ function mapBooking(doc: any): Booking {
     stripePaymentIntent: doc.stripePaymentIntent ?? undefined,
     cancelledAt: doc.cancelledAt ?? undefined,
     cancellationReason: doc.cancellationReason ?? undefined,
+    notifications: doc.notifications ?? undefined,
     refundAmount: doc.refundAmount ?? undefined,
     createdAt: doc.createdAt,
   };

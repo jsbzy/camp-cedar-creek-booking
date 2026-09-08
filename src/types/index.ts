@@ -85,6 +85,12 @@ export interface Booking {
   stripePaymentIntent?: string;
   cancelledAt?: string;
   cancellationReason?: string;
+  notifications?: {
+    confirmationSentAt?: string;
+    preArrivalSentAt?: string;
+    dayBeforeSentAt?: string;
+    postStaySentAt?: string;
+  };
   refundAmount?: number;
   createdAt: string;
 }

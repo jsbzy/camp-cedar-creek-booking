@@ -17,5 +17,11 @@ export async function GET(request: NextRequest) {
   if (!booking) {
     return NextResponse.json({ error: "Booking not found" }, { status: 404 });
   }
-  return NextResponse.json({ id: booking.id, status: booking.status });
+  return NextResponse.json({
+    id: booking.id,
+    status: booking.status,
+    // Behind the guest's own secret token: lets the confirmation page say
+    // whether the email is on its way, and lets the smoketest assert it.
+    confirmationSentAt: booking.notifications?.confirmationSentAt ?? null,
+  });
 }

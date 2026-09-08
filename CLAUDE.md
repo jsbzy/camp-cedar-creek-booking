@@ -29,10 +29,15 @@ Dev server on http://localhost:3000, admin at /admin. Seed the DB: `npm run seed
 ## How we build here
 
 Incremental and tested, always. One change at a time, verified before the
-next. Every change to the connector or the Brand Guide runs
-`npx tsx src/lib/mcp/validate.test.ts` (pure, fast) and
-`node scripts/mcp-smoketest.mjs <base> <admin_key> <editor_key>` (end to end,
-self-cleaning) before it ships. Do not add a feature without a test that
+next. Three suites, all self-cleaning and safe against production:
+
+```
+npm test                                          # validator, pure, ~1s
+npm run test:booking  -- <base> [resend_key]      # the whole guest journey
+npm run test:connector -- <base> <admin> <editor> # both connector tiers
+```
+
+Run the relevant ones before every push, and all three after a deploy. Do not add a feature without a test that
 would catch it breaking. If a request needs new machinery, file it in the
 Requests collection rather than half-building it: the site staying small is
 a feature.
