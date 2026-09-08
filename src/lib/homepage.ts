@@ -3,7 +3,9 @@
 // so it stays diffable against the original; these are the adjustments made
 // at render time to serve it from this domain.
 
-const ASSET_BASE = () => (process.env.MARKETING_ASSET_BASE || "https://campcedarcreek.bzy.design").replace(/\/$/, "");
+// Assets live in this app now (public/site-assets), recompressed from the
+// Webflow originals. The old marketing project is no longer in the path.
+const ASSET_BASE = "/site-assets/";
 
 // Hipcamp links become our own booking pages. The reviews link stays: those
 // reviews live on Hipcamp.
@@ -17,12 +19,13 @@ const LABELS: [RegExp, string][] = [
 ];
 
 export function adaptHomepage(html: string, opts: { ribbon?: string } = {}): string {
-  const abs = `${ASSET_BASE()}/site/assets/`;
+  const abs = ASSET_BASE;
   let out = html
     .replace(/(src|href)="assets\//g, `$1="${abs}`)
     .replace(/srcset="([^"]+)"/g, (_, set: string) => `srcset="${set.replace(/(^|,\s*)assets\//g, `$1${abs}`)}"`)
     .replace(/url\((["']?)assets\//g, `url($1${abs}`)
-    .replace(/action="\/api\/form"/g, `action="${ASSET_BASE()}/api/form"`);
+    // The forms post here now.
+    .replace(/action="[^"]*\/api\/form"/g, 'action="/api/form"');
   for (const [re, to] of LINKS) out = out.replace(re, to);
   for (const [re, to] of LABELS) out = out.replace(re, to);
 
