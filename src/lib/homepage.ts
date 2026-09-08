@@ -18,7 +18,16 @@ const LABELS: [RegExp, string][] = [
   [/Book on Hipcamp/g, "Book online"],
 ];
 
-export function adaptHomepage(html: string, opts: { ribbon?: string } = {}): string {
+export interface HomepageExtras {
+  /** The live sites grid, injected at <!--CCC:SITES-->. */
+  sites?: string;
+  /** "8 of 21 sites open this weekend", injected after the hero button. */
+  availability?: string;
+  /** Our design tweaks, added to <head>. */
+  css?: string;
+}
+
+export function adaptHomepage(html: string, opts: { ribbon?: string; extras?: HomepageExtras } = {}): string {
   const abs = ASSET_BASE;
   let out = html
     .replace(/(src|href)="assets\//g, `$1="${abs}`)
@@ -28,6 +37,13 @@ export function adaptHomepage(html: string, opts: { ribbon?: string } = {}): str
     .replace(/action="[^"]*\/api\/form"/g, 'action="/api/form"');
   for (const [re, to] of LINKS) out = out.replace(re, to);
   for (const [re, to] of LABELS) out = out.replace(re, to);
+
+  // Live pieces and design tweaks are injected here rather than stored in the
+  // page, so the owners' copy stays theirs and this stays ours.
+  const x = opts.extras ?? {};
+  if (x.css) out = out.replace(/<\/head>/i, `${x.css}</head>`);
+  out = out.replace("<!--CCC:SITES-->", x.sites ?? "");
+  out = out.replace("<!--CCC:AVAILABILITY-->", x.availability ?? "");
 
   if (opts.ribbon) {
     const bar =

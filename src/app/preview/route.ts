@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/lib/data/db";
 import { adaptHomepage } from "@/lib/homepage";
+import { HOMEPAGE_CSS, sitesGridHtml, availabilityLineHtml } from "@/lib/homepage-extras";
 
 // The staged homepage, under an amber ribbon so nobody mistakes it for live.
 // This is the link the connector hands back after an edit.
@@ -14,9 +15,11 @@ export async function GET() {
   if (!page?.html) return new NextResponse("No homepage found.", { status: 404 });
 
   const staged = page._status === "draft";
+  const [sites, availability] = await Promise.all([sitesGridHtml(), availabilityLineHtml()]);
   return new NextResponse(
     adaptHomepage(page.html, {
       ribbon: staged ? "Staged edit · not live · an admin publishes it" : "This matches what is published",
+      extras: { css: HOMEPAGE_CSS, sites, availability },
     }),
     {
       status: 200,
