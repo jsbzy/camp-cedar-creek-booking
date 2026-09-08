@@ -11,7 +11,7 @@ export const Sites: CollectionConfig = {
   admin: {
     useAsTitle: "name",
     defaultColumns: ["name", "type", "basePrice", "weekendPrice", "status", "sortOrder"],
-    group: "Property",
+    group: "The property",
     description: "Bookable campsites, van spots, and glamping units shown on the website.",
     listSearchableFields: ["name", "slug"],
   },

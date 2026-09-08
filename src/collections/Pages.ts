@@ -10,11 +10,11 @@ import type { CollectionConfig } from "payload";
 // whole staging model. Payload keeps every version, so the Record is free.
 export const Pages: CollectionConfig = {
   slug: "pages",
-  labels: { singular: "Page", plural: "Pages" },
+  labels: { singular: "Page", plural: "Website pages" },
   admin: {
     useAsTitle: "title",
     defaultColumns: ["title", "slug", "_status", "updatedAt"],
-    group: "Content",
+    group: "The website",
     description: "The marketing pages. Saving makes a draft; publishing puts it live.",
   },
   versions: {

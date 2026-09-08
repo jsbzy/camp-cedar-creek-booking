@@ -3,7 +3,7 @@ import type { CollectionConfig } from "payload";
 export const Media: CollectionConfig = {
   slug: "media",
   admin: {
-    group: "Content",
+    group: "Setup",
     description: "Uploaded photos. (Site photos currently use hosted URLs — uploads move to R2 at launch.)",
   },
   access: {

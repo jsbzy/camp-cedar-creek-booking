@@ -2,11 +2,11 @@ import type { CollectionConfig } from "payload";
 
 export const EventInquiries: CollectionConfig = {
   slug: "event-inquiries",
-  labels: { singular: "Event Inquiry", plural: "Event Inquiries" },
+  labels: { singular: "Event Inquiry", plural: "Inquiries" },
   admin: {
     useAsTitle: "guestName",
     defaultColumns: ["guestName", "eventType", "preferredDates", "partySize", "status"],
-    group: "Bookings",
+    group: "Daily",
     description: "Requests for The Loft & grounds — review and approve or decline.",
   },
   defaultSort: "-createdAt",

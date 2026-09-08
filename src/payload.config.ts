@@ -60,12 +60,13 @@ export default buildConfig({
       },
       // Month-at-a-glance of every site's bookings and blocks, linked from the sidebar.
       views: {
+        // The morning view, in place of Payload's list of collections.
+        dashboard: { Component: "/components/admin/Today#Today" },
         calendar: {
           Component: "/components/admin/CalendarView#CalendarView",
           path: "/calendar",
         },
       },
-      afterNavLinks: ["/components/admin/CalendarNavLink#CalendarNavLink"],
     },
   },
   // Payload's REST API lives at /payload-api so it never collides with the
