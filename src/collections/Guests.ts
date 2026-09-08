@@ -9,7 +9,7 @@ export const Guests: CollectionConfig = {
   admin: {
     useAsTitle: "displayName",
     defaultColumns: ["displayName", "stayCount", "lastStay", "primaryEmail", "needsReview"],
-    group: "Daily",
+    group: "Manage",
     description: "Everyone who has stayed. Built from bookings; add your own notes.",
     listSearchableFields: ["displayName", "primaryEmail", "primaryPhone"],
   },

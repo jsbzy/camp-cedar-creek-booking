@@ -10,7 +10,7 @@ export const Bookings: CollectionConfig = {
   admin: {
     useAsTitle: "confirmationCode",
     defaultColumns: ["confirmationCode", "siteName", "checkIn", "checkOut", "status", "total"],
-    group: "Daily",
+    group: "Manage",
     description: "Guest reservations. Never delete a booking — change its status instead.",
     listSearchableFields: ["confirmationCode", "siteName", "guest.lastName", "guest.email"],
   },

@@ -8,7 +8,7 @@ export const BrandGuide: GlobalConfig = {
   slug: "brand-guide",
   label: "Brand Guide",
   admin: {
-    group: "The website",
+    group: "Website",
     description:
       "What the site may say and how it may say it. The LAW block at the bottom is enforced on every edit made through the connector.",
   },

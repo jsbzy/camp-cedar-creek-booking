@@ -6,7 +6,7 @@ export const EventInquiries: CollectionConfig = {
   admin: {
     useAsTitle: "guestName",
     defaultColumns: ["guestName", "eventType", "preferredDates", "partySize", "status"],
-    group: "Daily",
+    group: "Manage",
     description: "Requests for The Loft & grounds — review and approve or decline.",
   },
   defaultSort: "-createdAt",

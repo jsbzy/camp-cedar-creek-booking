@@ -54,6 +54,8 @@ export default buildConfig({
     importMap: { baseDir: path.resolve(dirname) },
     components: {
       // Their logo, not Payload's, on the login screen and in the chrome.
+      // "Today" and "Calendar" pinned above the collection groups.
+      beforeNavLinks: ["/components/admin/NavHome#NavHome"],
       graphics: {
         Logo: "/components/admin/Logo#Logo",
         Icon: "/components/admin/Logo#Icon",
@@ -74,7 +76,9 @@ export default buildConfig({
   routes: {
     api: "/payload-api",
   },
-  collections: [Sites, Bookings, Guests, BlockedDates, EventInquiries, Addons, Reviews, Pages, Requests, Media, Users],
+  // Order matters: the admin nav follows it, so the daily work comes first
+  // and everything you configure once sits underneath.
+  collections: [Bookings, Guests, EventInquiries, BlockedDates, Sites, Addons, Pages, Reviews, Requests, Media, Users],
   globals: [Settings, BrandGuide],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || "ccc-dev-secret-change-before-prod",

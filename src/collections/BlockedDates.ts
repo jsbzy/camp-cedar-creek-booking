@@ -10,7 +10,7 @@ export const BlockedDates: CollectionConfig = {
   admin: {
     useAsTitle: "siteSlug",
     defaultColumns: ["siteSlug", "startDate", "endDate", "reason", "source"],
-    group: "The property",
+    group: "Manage",
     description:
       "Date ranges a site can't be booked — maintenance, closures, or bookings from Hipcamp/Airbnb. End date works like a checkout date (not blocked itself).",
   },

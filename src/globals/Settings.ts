@@ -3,7 +3,7 @@ import type { GlobalConfig } from "payload";
 export const Settings: GlobalConfig = {
   slug: "settings",
   admin: {
-    group: "The property",
+    group: "Set up",
     description: "Property-wide info shown across the website.",
   },
   access: {

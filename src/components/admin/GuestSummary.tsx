@@ -57,6 +57,11 @@ export async function GuestSummary({ data, payload }: UIFieldServerProps) {
     sub: { fontSize: 12.5, color: "#777" },
     h: { fontSize: 11, letterSpacing: ".08em", textTransform: "uppercase", color: "#888", margin: "20px 0 6px", paddingTop: 16, borderTop: "1px solid #eee" },
     row: { display: "flex", alignItems: "center", gap: 12, padding: "9px 0", borderBottom: "1px solid #f2f1ee", fontSize: 14, textDecoration: "none", color: "#1f1f1d" },
+    stay: { display: "block", padding: "12px 14px", margin: "0 0 8px", border: "1px solid #eeece8", borderRadius: 7, textDecoration: "none", color: "#1f1f1d", background: "#fdfcfb" },
+    stayTop: { display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" },
+    stayMeta: { fontSize: 13, color: "#6f6c67", marginTop: 4 },
+    stayAddOns: { display: "flex", gap: 6, flexWrap: "wrap", marginTop: 7 },
+    addOn: { fontSize: 12.5, background: "#f1efec", borderRadius: 5, padding: "3px 8px", color: "#4a4741" },
     pill: { fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 999, whiteSpace: "nowrap" },
     flag: { marginTop: 14, padding: "10px 14px", borderRadius: 6, background: "#fff4d6", color: "#7a5a00", fontSize: 13.5 },
   };
@@ -95,14 +100,39 @@ export async function GuestSummary({ data, payload }: UIFieldServerProps) {
       {bookings.length ? (
         bookings.map((b) => {
           const st = STATUS[b.status] ?? STATUS.completed;
+          const addOns: any[] = Array.isArray(b.addOns) ? b.addOns : [];
           return (
-            <a key={b.id} href={`/admin/collections/bookings/${b.id}`} style={s.row}>
-              <span style={{ flex: "0 0 150px", color: "#666" }}>{longDate(b.checkIn)}</span>
-              <span style={{ flex: 1, fontWeight: 500 }}>{b.siteName}</span>
-              <span style={{ flex: "0 0 70px", color: "#666" }}>{b.nights}n</span>
-              <span style={{ flex: "0 0 70px", textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{money(b.total)}</span>
-              <span style={{ ...s.pill, background: st.bg, color: st.fg }}>{b.status}</span>
-              {b.isTest ? <span style={{ ...s.pill, background: "#eee", color: "#777" }}>test</span> : null}
+            <a key={b.id} href={`/admin/collections/bookings/${b.id}`} style={s.stay}>
+              <div style={s.stayTop}>
+                <span style={{ fontWeight: 600, fontSize: 15 }}>{b.siteName}</span>
+                <span style={{ ...s.pill, background: st.bg, color: st.fg }}>{b.status}</span>
+                {b.source && b.source !== "direct" ? (
+                  <span style={{ ...s.pill, background: "#eef1f6", color: "#3c4a63" }}>{b.source}</span>
+                ) : null}
+                {b.isTest ? <span style={{ ...s.pill, background: "#eee", color: "#777" }}>test</span> : null}
+                <span style={{ marginLeft: "auto", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>{money(b.total)}</span>
+              </div>
+              <div style={s.stayMeta}>
+                {longDate(b.checkIn)} to {longDate(b.checkOut)} · {b.nights} night{b.nights === 1 ? "" : "s"} ·{" "}
+                {b.guests} guest{b.guests === 1 ? "" : "s"} · {b.confirmationCode}
+              </div>
+              {addOns.length ? (
+                <div style={s.stayAddOns}>
+                  {addOns.map((a, i) => (
+                    <span key={i} style={s.addOn}>
+                      {a.name} ×{a.quantity}
+                      {a.perNight ? "/night" : ""}
+                      {typeof a.unitPrice === "number" ? ` ${money(a.unitPrice * a.quantity * (a.perNight ? b.nights || 1 : 1))}` : ""}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+              {b.guest?.specialRequests ? (
+                <div style={{ ...s.stayMeta, fontStyle: "italic" }}>“{b.guest.specialRequests}”</div>
+              ) : null}
+              {b.cancellationReason ? (
+                <div style={{ ...s.stayMeta, color: "#8a2b2b" }}>Cancelled: {b.cancellationReason}</div>
+              ) : null}
             </a>
           );
         })

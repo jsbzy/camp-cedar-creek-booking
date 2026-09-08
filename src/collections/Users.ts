@@ -5,7 +5,7 @@ export const Users: CollectionConfig = {
   auth: true,
   admin: {
     useAsTitle: "email",
-    group: "Setup",
+    group: "Advanced",
     description: "People who can log in to this admin panel.",
   },
   fields: [

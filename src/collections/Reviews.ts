@@ -5,7 +5,7 @@ export const Reviews: CollectionConfig = {
   admin: {
     useAsTitle: "author",
     defaultColumns: ["author", "siteSlug", "rating", "date", "published"],
-    group: "The website",
+    group: "Website",
     description: "Guest reviews shown on site pages. Unpublish to hide one.",
   },
   defaultSort: "-date",

@@ -6,7 +6,7 @@ export const Addons: CollectionConfig = {
   admin: {
     useAsTitle: "name",
     defaultColumns: ["name", "price", "perNight", "active", "sortOrder"],
-    group: "The property",
+    group: "Set up",
     description: "Optional extras guests can add during booking (firewood, rentals, etc.).",
   },
   defaultSort: "sortOrder",
