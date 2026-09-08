@@ -81,10 +81,18 @@ export default buildConfig({
   sharp,
   plugins: [
     // Uploads go to Vercel Blob in production so images survive deploys and
-    // can be added through the connector. Without a token (local dev) Payload
-    // keeps writing to the filesystem, so nothing here breaks offline work.
-    ...(process.env.BLOB_READ_WRITE_TOKEN
-      ? [vercelBlobStorage({ enabled: true, collections: { media: true }, token: process.env.BLOB_READ_WRITE_TOKEN })]
-      : []),
+    // can be added through the connector; without a token (local dev) it is
+    // disabled and Payload writes to the filesystem instead.
+    //
+    // The plugin is ALWAYS in the config, never conditionally added: it
+    // registers an admin client component, and a config that differs between
+    // the machine that generates the import map and the one that serves the
+    // admin produces a blank admin panel with only a server-side log line to
+    // explain it. Toggle behaviour with `enabled`, never by presence.
+    vercelBlobStorage({
+      enabled: !!process.env.BLOB_READ_WRITE_TOKEN,
+      collections: { media: true },
+      token: process.env.BLOB_READ_WRITE_TOKEN ?? "",
+    }),
   ],
 });
