@@ -169,6 +169,7 @@ const rateBefore = (await siteJson()).basePrice;
 ok("read the starting weekday rate", Number.isFinite(rateBefore), String(rateBefore));
 const bumped = await call(EDITOR, "set_rates", { slug: SITE, weekday: rateBefore + 7 });
 ok("a rate change goes straight through", !bumped.isError, bumped.text);
+ok("it hands back where to look", /See it:\s+https?:\/\/\S+\/sites\//.test(bumped.text) && /Edit it:\s+https?:\/\/\S+\/admin\//.test(bumped.text), bumped.text);
 ok("the new rate is live", (await siteJson()).basePrice === rateBefore + 7, `expected ${rateBefore + 7}`);
 
 // Find this site's own versions: the newest is what we just wrote, the one

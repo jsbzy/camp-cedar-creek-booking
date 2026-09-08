@@ -3,6 +3,7 @@ import { getAvailability, checkDateRange } from "@/lib/data/availability";
 import { getSiteBySlug } from "@/lib/data/sites";
 import { slugProblem, wrapInShell } from "@/lib/page-shell";
 import { linksAsText } from "@/lib/links";
+import { syncSiteFeeds, describeSync } from "@/lib/data/ical-import";
 import {
   lawFrom,
   locateText,
@@ -64,6 +65,24 @@ async function savePage(id: string | number, html: string, notes: string): Promi
   const db = await getDb();
   await db.update({ collection: "pages", id, data: { html, notes, _status: "published" } });
 }
+
+/**
+ * Where to go and look at what just changed.
+ *
+ * An edit that reports "done" and nothing else asks the owner to take it on
+ * trust, then go hunting for the page. Every write hands back the public
+ * address and the admin one, so checking the work is a click.
+ */
+function whereToLook(opts: { public?: string; admin?: string }): string {
+  const rows = [
+    opts.public ? `  See it:  ${appUrl()}${opts.public}` : null,
+    opts.admin ? `  Edit it: ${appUrl()}${opts.admin}` : null,
+  ].filter(Boolean);
+  return rows.length ? `\n\n${rows.join("\n")}` : "";
+}
+
+const siteLinks = (site: any) =>
+  whereToLook({ public: `/sites/${site.type}/${site.slug}`, admin: `/admin/collections/sites/${site.id}` });
 
 const savedNote = (notes: string) =>
   `Live now at ${appUrl()}/\nNote saved: ${notes}\nEvery version is kept: homepage_history lists them, restore_homepage_version puts one back.`;
@@ -248,7 +267,7 @@ export async function callTool(name: string, args: any): Promise<ToolResult> {
 
       const notes = args.note || "Edit via connector";
       await savePage(page.id, next, notes);
-      return ok(`Done.${fuzzy}\n${savedNote(notes)}`);
+      return ok(`Done.${fuzzy}\n${savedNote(notes)}` + whereToLook({ public: "/", admin: `/admin/collections/pages/${page.id}` }));
     }
 
     case "publish_homepage": {
@@ -326,8 +345,9 @@ export async function callTool(name: string, args: any): Promise<ToolResult> {
         data: { title: args.title, slug, html: args.html, notes: args.note || "Created through the connector", _status: "published" },
       });
       return ok(
-        `Created "${doc.title}" at ${appUrl()}/${slug}, live now, inside the site's own header and footer.\n\n` +
-          "Nothing links to it yet. Say where it should appear in the navigation and that can be added to the homepage."
+        `Created "${doc.title}", live now, inside the site's own header and footer.\n\n` +
+          "Nothing links to it yet. Say where it should appear in the navigation and that can be added to the homepage." +
+          whereToLook({ public: `/${slug}`, admin: `/admin/collections/pages/${doc.id}` })
       );
     }
 
@@ -345,7 +365,7 @@ export async function callTool(name: string, args: any): Promise<ToolResult> {
       const problems = validateText(L, next);
       if (problems.length) return err(`REFUSED (${problems.length}):\n- ${problems.join("\n- ")}`);
       await db.update({ collection: "pages", id: p.id, data: { html: next, notes: args.note || "Edited through the connector", _status: "published" } });
-      return ok(`Done. ${appUrl()}/${p.slug} is live with the change. Every version is kept.`);
+      return ok(`Done. Every version is kept.` + whereToLook({ public: `/${p.slug}`, admin: `/admin/collections/pages/${p.id}` }));
     }
 
     case "create_site": {
@@ -389,7 +409,63 @@ export async function callTool(name: string, args: any): Promise<ToolResult> {
       return ok(
         `Created "${doc.name}" (${slug}) at ${money(rate)} weekday, ${money(weekend)} weekend, up to ${guests} guests.\n\n` +
           "It is HIDDEN, so it is not bookable and not on the website yet. Add photos and wording with update_site and upload_image, " +
-          "then list it by setting its status to active."
+          "then list it by setting its status to active." +
+          whereToLook({ admin: `/admin/collections/sites/${doc.id}` })
+      );
+    }
+
+    /* ---------------- outside calendars ---------------- */
+    case "read_ical_feeds": {
+      const site = await rawSite(args.slug);
+      if (!site) return err(`No site "${args.slug}". Use list_sites.`);
+      const feeds = (site.icalImportUrls ?? []) as any[];
+      const out = feeds.length
+        ? feeds.map((f, i) => `  ${i + 1}. ${f.platform ?? "other"}  ${f.url}`).join("\n")
+        : "  (none)";
+      return ok(
+        `Calendars being imported into ${site.name}:\n${out}\n\n` +
+          `Last read: ${site.icalLastSynced ?? "never"}\n` +
+          `Last result: ${site.icalLastError || "nothing reported"}\n\n` +
+          `Our own feed, for pasting into Hipcamp or Airbnb:\n  ${appUrl()}/api/ical/${site.slug}.ics`
+      );
+    }
+
+    case "set_ical_feeds": {
+      const site = await rawSite(args.slug);
+      if (!site) return err(`No site "${args.slug}". Use list_sites.`);
+      const raw = Array.isArray(args.feeds) ? args.feeds : [];
+      const feeds: { platform: "hipcamp" | "airbnb" | "other"; url: string }[] = [];
+      for (const f of raw) {
+        const url = String(f?.url ?? "").trim();
+        if (!url) continue;
+        // webcal:// is what Apple and Google hand out; the importer normalises it.
+        if (!/^(https?|webcal):\/\/\S+$/i.test(url)) return err(`"${url}" is not a calendar address. It should start with https:// or webcal:// and usually ends in .ics.`);
+        const platform = (["hipcamp", "airbnb", "other"].includes(f?.platform) ? f.platform : "other") as "hipcamp" | "airbnb" | "other";
+        feeds.push({ platform, url });
+      }
+
+      // Replacing with nothing is how you disconnect, so it is allowed, but it
+      // should be a decision rather than an empty argument slipping through.
+      if (!feeds.length && args.disconnect !== true)
+        return err("No calendar addresses given. To disconnect the ones already there, pass disconnect: true.");
+
+      await db.update({ collection: "sites", id: site.id, data: { icalImportUrls: feeds } });
+      if (!feeds.length) return ok(`Disconnected every outside calendar from ${site.name}. Nothing from Hipcamp or Airbnb will block its dates now.` + siteLinks(site));
+
+      // Saving triggers the same import the cron runs, but that happens after
+      // the response. Run it here too so the answer says what actually landed.
+      let report = "";
+      try {
+        const sync = await syncSiteFeeds({ slug: site.slug, icalImportUrls: feeds });
+        report = describeSync(sync) || "no dates to block yet";
+      } catch (e: any) {
+        report = `could not read it just now: ${e?.message ?? e}`;
+      }
+      return ok(
+        `${site.name} is now importing ${feeds.length} calendar${feeds.length === 1 ? "" : "s"}.\n` +
+          `First read: ${report}\n\n` +
+          `It refreshes every 15 minutes from now on. Only dates from today forward are imported, and they arrive as blocked dates: ` +
+          `nights nobody can book here. Guest names, emails and amounts do not travel over a calendar feed, so past stays are not backfilled.`
       );
     }
 
@@ -465,7 +541,7 @@ export async function callTool(name: string, args: any): Promise<ToolResult> {
         if (problems.length) return err(`REJECTED (${problems.length}):\n- ${problems.join("\n- ")}`);
       }
       await db.update({ collection: "sites", id: raw.id, data });
-      return ok(`${site.name} updated: ${Object.keys(data).join(", ")}. Live now at ${appUrl()}/sites/${site.type}/${site.slug}`);
+      return ok(`${site.name} updated: ${Object.keys(data).join(", ")}. Live now.` + siteLinks(site));
     }
 
     case "set_rates": {
@@ -482,7 +558,8 @@ export async function callTool(name: string, args: any): Promise<ToolResult> {
       await db.update({ collection: "sites", id: rawRate.id, data });
       const after: any = await rawSite(args.slug);
       return ok(
-        `${site.name}: weekday ${money(after.basePrice)}, weekend ${money(after.weekendPrice)}. Live now. Existing bookings keep the price they were made at.`
+        `${site.name}: weekday ${money(after.basePrice)}, weekend ${money(after.weekendPrice)}. Live now. Existing bookings keep the price they were made at.` +
+          siteLinks(after)
       );
     }
 
@@ -505,7 +582,7 @@ export async function callTool(name: string, args: any): Promise<ToolResult> {
           note: args.note,
         },
       });
-      return ok(`${site.name} is blocked ${args.start} to ${args.end} (checkout morning). Off the public calendar now.`);
+      return ok(`${site.name} is blocked ${args.start} to ${args.end} (checkout morning). Off the public calendar now.` + siteLinks(site));
     }
 
     case "unblock_dates": {
@@ -526,7 +603,7 @@ export async function callTool(name: string, args: any): Promise<ToolResult> {
       });
       if (!res.docs.length) return err("No manual block overlaps those dates. Blocks imported from Hipcamp are removed on Hipcamp.");
       for (const d of res.docs as any[]) await db.delete({ collection: "blocked-dates", id: d.id });
-      return ok(`Removed ${res.docs.length} block${res.docs.length === 1 ? "" : "s"} on ${site.name}. Those dates are bookable again.`);
+      return ok(`Removed ${res.docs.length} block${res.docs.length === 1 ? "" : "s"} on ${site.name}. Those dates are bookable again.` + siteLinks(site));
     }
 
     case "update_addon": {
@@ -558,7 +635,7 @@ export async function callTool(name: string, args: any): Promise<ToolResult> {
         if (problems.length) return err(`REJECTED:\n- ${problems.join("\n- ")}`);
       }
       await db.updateGlobal({ slug: "settings", data });
-      return ok(`Settings updated: ${Object.keys(data).join(", ")}. Live now.`);
+      return ok(`Settings updated: ${Object.keys(data).join(", ")}. Live now.` + whereToLook({ admin: "/admin/globals/settings" }));
     }
 
     case "upload_image": {
@@ -622,7 +699,7 @@ export async function callTool(name: string, args: any): Promise<ToolResult> {
         id: b.id,
         data: { status: args.status, cancellationReason: args.reason ?? b.cancellationReason },
       });
-      return ok(`${args.code} is now ${args.status}. The booking itself is kept; nothing is deleted.`);
+      return ok(`${args.code} is now ${args.status}. The booking itself is kept; nothing is deleted.` + whereToLook({ admin: `/admin/collections/bookings/${b.id}` }));
     }
 
     case "update_request": {
@@ -647,7 +724,7 @@ export async function callTool(name: string, args: any): Promise<ToolResult> {
           sortOrder: args.sortOrder ?? 99,
         },
       });
-      return ok(`Created add-on "${doc.name}" at ${money(doc.price)}${doc.perNight ? "/night" : " per stay"}. Live now.`);
+      return ok(`Created add-on "${doc.name}" at ${money(doc.price)}${doc.perNight ? "/night" : " per stay"}. Live now.` + whereToLook({ admin: `/admin/collections/addons/${doc.id}` }));
     }
 
     default:

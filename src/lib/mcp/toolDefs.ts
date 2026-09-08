@@ -13,6 +13,12 @@ const bool = (description: string) => ({ type: "boolean", description });
 
 export const READ_TOOLS = [
   {
+    name: "read_ical_feeds",
+    description:
+      "Which outside calendars (Hipcamp, Airbnb, Google) a site is importing, when they were last read, and our own feed address to paste into those platforms.",
+    inputSchema: { type: "object", properties: { slug: { type: "string" } }, required: ["slug"] },
+  },
+  {
     name: "links",
     description:
       "Every Camp Cedar Creek link: the homepage, the booking pages, the admin, the staged preview, the guides, and the pattern for the calendar feeds Hipcamp and Airbnb read. Use this whenever someone asks where something is, how to get to the admin, or where a guide lives. There is also a bookmarkable page with all of them at /portal.",
@@ -82,6 +88,28 @@ export const READ_TOOLS = [
 ];
 
 export const WRITE_TOOLS = [
+  {
+    name: "set_ical_feeds",
+    description:
+      "Connect a site to its Hipcamp, Airbnb or Google calendar so their bookings block dates here and cannot be double booked. Replaces whatever was there, reads the calendar straight away, and says what it found. Only dates from today forward are imported, as blocked dates: a calendar feed carries no guest names, emails or amounts, so it does not backfill past stays.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        slug: { type: "string", description: "Which site. Use list_sites." },
+        feeds: {
+          type: "array",
+          description: "The calendars to import. Each is a platform (hipcamp, airbnb, other) and a url ending in .ics.",
+          items: {
+            type: "object",
+            properties: { platform: { type: "string" }, url: { type: "string" } },
+            required: ["url"],
+          },
+        },
+        disconnect: { type: "boolean", description: "Pass true with no feeds to remove every outside calendar from this site." },
+      },
+      required: ["slug"],
+    },
+  },
   {
     name: "edit_homepage_text",
     description:
