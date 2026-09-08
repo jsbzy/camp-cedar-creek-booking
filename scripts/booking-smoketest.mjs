@@ -156,10 +156,18 @@ ok("the booking is kept, not deleted", status?.status === "cancelled", JSON.stri
 /* ---------------- 9. emails, if a Resend key was given ---------------- */
 if (RESEND_KEY) {
   step("email delivery");
-  await new Promise((r) => setTimeout(r, 4000));
-  const res = await fetch("https://api.resend.com/emails?limit=12", { headers: { authorization: `Bearer ${RESEND_KEY}` } });
-  const rows = res.ok ? (await res.json()).data || [] : [];
-  const mine = rows.filter((e) => (e.subject || "").includes(b.id));
+  // The provider's list lags a few seconds behind the send, and by more when
+  // it is busy. Poll until both of the guest's emails show up rather than
+  // sleeping a fixed interval and calling a slow provider a failure.
+  let rows = [];
+  let mine = [];
+  for (let i = 0; i < 15; i++) {
+    await new Promise((r) => setTimeout(r, 2000));
+    const res = await fetch("https://api.resend.com/emails?limit=20", { headers: { authorization: `Bearer ${RESEND_KEY}` } });
+    rows = res.ok ? (await res.json()).data || [] : [];
+    mine = rows.filter((e) => (e.subject || "").includes(b.id));
+    if (mine.filter((e) => e.last_event === "delivered").length >= 2) break;
+  }
   ok("guest confirmation delivered", mine.some((e) => /confirmed/i.test(e.subject) && e.last_event === "delivered"), mine.map((e) => e.subject).join(" | "));
   ok("guest cancellation delivered", mine.some((e) => /cancelled/i.test(e.subject) && e.last_event === "delivered"));
   const owner = rows.filter((e) => (e.to || []).some((a) => a.includes("campcedarcreek.com")));
