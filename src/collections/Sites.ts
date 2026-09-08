@@ -24,13 +24,20 @@ export const Sites: CollectionConfig = {
     read: () => true,
   },
   hooks: {
-    beforeChange: [
-      ({ data }) => {
-        // The URL Hipcamp/Airbnb should import from, shown read-only so the
-        // owner can copy it straight out of the site record.
-        const base = (process.env.NEXT_PUBLIC_APP_URL || "").replace(/\/$/, "");
-        if (data?.slug) data.icalExportUrl = `${base}/api/ical/${data.slug}.ics`;
-        return data;
+    afterRead: [
+      ({ doc }) => {
+        // The address Hipcamp and Airbnb import from. Worked out when the record
+        // is read, not when it is written.
+        //
+        // It used to be computed on save from NEXT_PUBLIC_APP_URL, which meant
+        // whatever environment last touched a site decided what the owners
+        // would paste into Hipcamp. A maintenance script run against production
+        // with a local .env stamped a private LAN address onto twenty of the
+        // twenty-one sites, and nothing noticed, because the value looked like
+        // a URL and only fails at the moment someone actually uses it.
+        const base = (process.env.NEXT_PUBLIC_APP_URL || "https://ccc.bzy.design").replace(/\/$/, "");
+        if (doc?.slug) doc.icalExportUrl = `${base}/api/ical/${doc.slug}.ics`;
+        return doc;
       },
     ],
     afterChange: [
@@ -180,6 +187,10 @@ export const Sites: CollectionConfig = {
       name: "icalExportUrl",
       label: "This site's calendar (give this to Hipcamp / Airbnb)",
       type: "text",
+      // The column still exists, but the afterRead hook above overwrites it on
+      // every read, so whatever is stored is ignored rather than trusted.
+      // Left as a real column deliberately: making it virtual means dropping it,
+      // and a destructive migration is a poor trade for a value nobody reads.
       admin: {
         readOnly: true,
         description:

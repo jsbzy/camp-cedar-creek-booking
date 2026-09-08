@@ -9,6 +9,7 @@
  */
 import { getPayload } from "payload";
 import config from "../src/payload.config";
+import { guardProductionEnv } from "./_guard";
 import { sectionsOf, validatePage, lawFrom } from "../src/lib/mcp/validate";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -146,6 +147,7 @@ function tidy(input: string): string {
 }
 
 (async () => {
+  guardProductionEnv();
   const dry = process.argv.includes("--dry");
   const payload = await getPayload({ config });
 

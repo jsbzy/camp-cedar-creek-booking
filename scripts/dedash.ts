@@ -7,6 +7,7 @@
  */
 import { getPayload } from "payload";
 import config from "../src/payload.config";
+import { guardProductionEnv } from "./_guard";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -38,6 +39,7 @@ function scrub(doc: any, path = ""): [any, string[]] {
 }
 
 (async () => {
+  guardProductionEnv();
   const dry = process.argv.includes("--dry");
   const payload = await getPayload({ config });
   let total = 0;

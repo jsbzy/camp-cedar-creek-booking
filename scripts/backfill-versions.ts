@@ -14,12 +14,14 @@
  */
 import { getPayload } from "payload";
 import config from "../src/payload.config";
+import { guardProductionEnv } from "./_guard";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 const COLLECTIONS = ["sites", "addons", "blocked-dates"] as const;
 
 (async () => {
+  guardProductionEnv();
   const dry = process.argv.includes("--dry");
   const payload = await getPayload({ config });
   let made = 0;
