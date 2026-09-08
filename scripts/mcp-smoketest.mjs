@@ -53,9 +53,12 @@ ok("initialize answers", /Camp Cedar Creek/.test(init.result?.serverInfo?.title 
 // The name is a setting now, so assert the label and the instructions agree
 // rather than asserting one particular name.
 const who = (init.result?.serverInfo?.title || "").split("\u00b7")[0].trim();
-ok("it has a name", !!who, JSON.stringify(init.result?.serverInfo));
-ok("the name in the label matches the one it introduces itself by", new RegExp(`You are ${who},`).test(init.result?.instructions || ""), who);
-ok("it does not pretend not to be Claude", /you are Claude/i.test(init.result?.instructions || ""));
+ok("the connector has a name", !!who, JSON.stringify(init.result?.serverInfo));
+ok("the label and the instructions agree on it", new RegExp(`This connector is called ${who}\\.`).test(init.result?.instructions || ""), who);
+// A connector must not try to tell the model who it is. Claude refuses that,
+// correctly, and a guide written on the assumption that it works is a guide
+// that is wrong in front of the owners.
+ok("it does not claim an identity", !/You are /.test(init.result?.instructions || ""), (init.result?.instructions || "").slice(0, 90));
 const eTools = (await rpc(EDITOR, "tools/list")).result.tools.map((t) => t.name);
 const aTools = (await rpc(ADMIN, "tools/list")).result.tools.map((t) => t.name);
 ok("both keys get the same tools", eTools.length === aTools.length && eTools.every((t) => aTools.includes(t)));
