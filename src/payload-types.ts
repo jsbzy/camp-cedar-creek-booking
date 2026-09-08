@@ -142,7 +142,7 @@ export interface UserAuthOperations {
   };
 }
 /**
- * Guest reservations. Never delete a booking — change its status instead.
+ * Guest reservations. Never delete a booking. Change its status instead.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "bookings".
@@ -155,7 +155,7 @@ export interface Booking {
   siteSlug: string;
   siteName: string;
   /**
-   * To move a booking, cancel and rebook — this does not re-check availability.
+   * To move a booking, cancel and rebook. This does not re-check availability.
    */
   checkIn: string;
   checkOut: string;
@@ -232,7 +232,7 @@ export interface Site {
   id: number;
   name: string;
   /**
-   * Used in the site URL — don't change after launch.
+   * Used in the site URL. Don't change after launch.
    */
   slug: string;
   type: 'tent' | 'van_solar' | 'van_power' | 'glamping';
@@ -300,7 +300,7 @@ export interface Site {
     | {
         platform?: ('hipcamp' | 'airbnb' | 'other') | null;
         /**
-         * Ends in .ics — webcal:// links are fine too.
+         * Ends in .ics. webcal:// links are fine too.
          */
         url?: string | null;
         id?: string | null;
@@ -368,7 +368,7 @@ export interface Guest {
   createdAt: string;
 }
 /**
- * Requests for The Loft & grounds — review and approve or decline.
+ * Requests for The Loft & grounds. Review and approve or decline.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "event-inquiries".
@@ -384,7 +384,7 @@ export interface EventInquiry {
   preferredDates?: string | null;
   message?: string | null;
   /**
-   * Internal — guests never see this.
+   * Internal. Guests never see this.
    */
   adminNotes?: string | null;
   /**
@@ -395,7 +395,7 @@ export interface EventInquiry {
   createdAt: string;
 }
 /**
- * Date ranges a site can't be booked — maintenance, closures, or bookings from Hipcamp/Airbnb. End date works like a checkout date (not blocked itself).
+ * Date ranges a site can't be booked: maintenance, closures, or bookings from Hipcamp/Airbnb. End date works like a checkout date (not blocked itself).
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "blocked-dates".
@@ -527,7 +527,7 @@ export interface Request {
   createdAt: string;
 }
 /**
- * Uploaded photos. (Site photos currently use hosted URLs — uploads move to R2 at launch.)
+ * Uploaded photos. (Site photos currently use hosted URLs. Uploads move to R2 at launch.)
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media".
@@ -1063,7 +1063,7 @@ export interface Setting {
     email?: string | null;
   };
   /**
-   * Rating displayed on the website. Demo values — replace with real Hipcamp numbers before launch.
+   * Rating displayed on the website. Demo values, replace with real Hipcamp numbers before launch.
    */
   rating?: {
     average?: number | null;
