@@ -2,6 +2,7 @@ import { getDb } from "@/lib/data/db";
 import { getAvailability, checkDateRange } from "@/lib/data/availability";
 import { getSiteBySlug } from "@/lib/data/sites";
 import { slugProblem, wrapInShell } from "@/lib/page-shell";
+import { linksAsText } from "@/lib/links";
 import {
   lawFrom,
   locateText,
@@ -79,6 +80,11 @@ export async function callTool(name: string, args: any): Promise<ToolResult> {
     case "read_brand_guide": {
       const g: any = await db.findGlobal({ slug: "brand-guide" });
       return g?.markdown ? ok(g.markdown) : err("The Brand Guide is empty.");
+    }
+
+    case "links": {
+      // Same list the portal renders, so the two cannot drift apart.
+      return ok(linksAsText());
     }
 
     case "list_homepage_sections": {

@@ -13,6 +13,12 @@ const bool = (description: string) => ({ type: "boolean", description });
 
 export const READ_TOOLS = [
   {
+    name: "links",
+    description:
+      "Every Camp Cedar Creek link: the homepage, the booking pages, the admin, the staged preview, the guides, and the pattern for the calendar feeds Hipcamp and Airbnb read. Use this whenever someone asks where something is, how to get to the admin, or where a guide lives. There is also a bookmarkable page with all of them at /portal.",
+    inputSchema: { type: "object", properties: {} },
+  },
+  {
     name: "read_brand_guide",
     description:
       "The Brand Guide: how Camp Cedar Creek looks and sounds, the facts that are true, and the rules enforced on every edit. Read this before changing any wording.",

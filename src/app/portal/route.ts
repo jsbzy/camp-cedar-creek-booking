@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { LINK_GROUPS, absolute } from "@/lib/links";
 
 // Every Camp Cedar Creek link in one place, on our own domain so it can be
 // bookmarked and shared without a Claude account. No secrets here: the admin
@@ -6,36 +7,19 @@ import { NextResponse } from "next/server";
 
 export const dynamic = "force-static";
 
-const LINKS: { heading: string; items: { label: string; href: string; note?: string }[] }[] = [
-  {
-    heading: "Site",
-    items: [
-      { label: "Homepage", href: "/" },
-      { label: "Booking", href: "/sites" },
-      { label: "Booking Admin", href: "/admin" },
-      { label: "Staged homepage", href: "/preview", note: "unpublished edits" },
-    ],
-  },
-  {
-    heading: "Guides",
-    items: [
-      { label: "Styleguide", href: "https://claude.ai/code/artifact/4c156c06-d1b3-41eb-a456-651990a2c244" },
-      { label: "Homepage Guide", href: "https://claude.ai/code/artifact/4eaaadb8-c1b8-4366-8389-74c367056850" },
-      { label: "Booking Guide", href: "https://claude.ai/code/artifact/b16d3383-997d-4fef-9cc6-97d5e5329e98" },
-      { label: "Walkthrough", href: "https://claude.ai/code/artifact/d1aa2fe9-21bc-43e0-b00a-287a9f1e06c5" },
-    ],
-  },
-];
-
 export async function GET() {
-  const groups = LINKS.map(
+  const esc = (v: string) => v.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
+  // The page is one of the links, and a page that links to itself is clutter.
+  const groups = LINK_GROUPS.map((g) => ({ ...g, items: g.items.filter((i) => i.href !== "/portal") }))
+    .filter((g) => g.items.length)
+    .map(
     (g) =>
-      `<h2>${g.heading}</h2>` +
+      `<h2>${esc(g.heading)}</h2>` +
       g.items
-        .map(
-          (i) =>
-            `<a class="l" href="${i.href}"><b>${i.label}</b>${i.note ? `<span>${i.note}</span>` : ""}</a>`
-        )
+        .map((i) => {
+          const note = [i.note, i.gated ? "login needed" : null].filter(Boolean).join(" · ");
+          return `<a class="l" href="${esc(absolute(i.href))}"><b>${esc(i.label)}</b>${note ? `<span>${esc(note)}</span>` : ""}</a>`;
+        })
         .join("")
   ).join("");
 

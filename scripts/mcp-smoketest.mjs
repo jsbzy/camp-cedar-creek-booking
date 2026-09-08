@@ -76,6 +76,17 @@ const sites = await call(EDITOR, "list_sites");
 ok("21 sites listed", sites.text.split("\n").filter((l) => /^[a-z]/.test(l)).length >= 21);
 ok("bookings readable", !(await call(EDITOR, "list_bookings", { from: "2020-01-01" })).isError);
 ok("settings readable", !(await call(EDITOR, "read_settings")).isError);
+const links = await call(EDITOR, "links");
+ok("links answers", !links.isError && /portal/.test(links.text), links.text.slice(0, 120));
+ok("links covers the admin, the guides and the feeds", ["/admin", "/sites", "claude.ai/code/artifact", "/api/ical/"].every((x) => links.text.includes(x)), links.text.slice(0, 300));
+// The portal and the tool read one list, so a link in one must be in the other.
+const portal = await fetch(`${BASE}/portal`).then((r) => r.text());
+const inTool = (links.text.match(/https?:\/\/[^\s]+/g) || [])
+  .map((u) => u.replace(/[.,]$/, ""))
+  // The feed pattern is not a URL, and the portal does not link to itself.
+  .filter((u) => !u.includes("<site-slug>") && !u.endsWith("/portal"));
+const offPortal = inTool.filter((u) => !portal.includes(u));
+ok("every link the tool gives is on the portal too", offPortal.length === 0, offPortal.join(" "));
 
 // --- rejections ---
 const priced = await call(EDITOR, "edit_homepage_text", { find: "Personal Fire Rings + Firewood for Purchase", replace: "Firewood $10/night", note: MARK });
