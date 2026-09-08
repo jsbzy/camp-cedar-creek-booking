@@ -14,11 +14,27 @@
  * site, labels the guest TEST, and cancels itself at the end. Pass a Resend
  * key to also assert both emails were delivered.
  */
-const [, , BASE, RESEND_KEY] = process.argv;
+const [, , BASE, ...rest] = process.argv;
+const RESEND_KEY = rest.find((a) => a.startsWith("re_"));
+const CRON_SECRET = rest.find((a) => !a.startsWith("re_") && !a.startsWith("--"));
+const WANT_EMAILS = rest.includes("--emails");
 if (!BASE) {
-  console.error("usage: booking-smoketest.mjs <base-url> [resend-api-key]");
+  console.error(`usage: booking-smoketest.mjs <base-url> [cron-secret] [resend-key] [--emails]
+
+  cron-secret  marks the bookings as tests, so the OWNERS ARE NEVER EMAILED.
+               Without it the run books as a normal guest and everyone gets mail.
+  --emails     also send the guest's own emails, so delivery can be checked.
+               Off by default: routine runs are silent.
+  resend-key   with --emails, assert both guest emails were delivered.`);
   process.exit(2);
 }
+// Identify the run to the server. Without a secret we cannot mark the booking
+// as a test, so say so loudly rather than quietly spamming the owners.
+const testHeaders = CRON_SECRET
+  ? { "x-smoketest": CRON_SECRET, ...(WANT_EMAILS ? { "x-smoketest-emails": "send" } : {}) }
+  : {};
+if (!CRON_SECRET) console.log("!! no cron secret given: this run books as a real guest and WILL email the owners\n");
+else console.log(WANT_EMAILS ? "emails: guest only (owners never)\n" : "emails: none (pass --emails to exercise them)\n");
 
 let n = 0;
 let fails = 0;
@@ -53,8 +69,24 @@ const j = async (path, init) => {
 const availability = async (start, end) =>
   (await j(`/api/bookings/availability?slug=${SITE}&start=${start}&end=${end}`)).body.availability || [];
 
-/* ---------------- 0. the site is bookable to begin with ---------------- */
+/* ---------------- 0. clear anything a killed run left behind ---------------- */
+// A previous run that was interrupted (piped through `head`, Ctrl-C) can leave
+// its booking in place and block the window forever. Cancel leftovers first so
+// the suite heals itself instead of needing a human.
 step("before");
+{
+  const stale = (await j(`/api/bookings/availability?slug=${SITE}&start=${IN}&end=${NEXT}`)).body.availability || [];
+  if (stale.some((d) => !d.available) && CRON_SECRET) {
+    const res = await fetch(`${BASE}/api/bookings/cleanup-tests?slug=${SITE}&from=${IN}&to=${NEXT}`, {
+      method: "POST",
+      headers: { "x-smoketest": CRON_SECRET },
+    });
+    if (res.ok) {
+      const { cancelled } = await res.json();
+      if (cancelled) console.log(`     (cleared ${cancelled} leftover test booking${cancelled === 1 ? "" : "s"})`);
+    }
+  }
+}
 const before = await availability(IN, NEXT);
 ok("availability answers for the test window", before.length === 4, JSON.stringify(before).slice(0, 160));
 ok("the test nights start open", before.every((d) => d.available), JSON.stringify(before.filter((d) => !d.available)));
@@ -79,7 +111,7 @@ step("book");
 const addOns = [{ addOnId: "1", name: "Firewood Bundle", quantity: 2, unitPrice: 12, perNight: true }];
 const created = await j("/api/bookings/create", {
   method: "POST",
-  headers: { "content-type": "application/json" },
+  headers: { "content-type": "application/json", ...testHeaders },
   body: JSON.stringify({
     siteSlug: SITE,
     siteName: "Amanita",
@@ -105,12 +137,16 @@ ok("the guest gets a magic link token", !!b.magicLinkToken);
 step("email");
 // confirmationSentAt is stamped only when the mail provider accepted the
 // message, so this is a real signal rather than a hopeful one.
-let sentAt = null;
-for (let i = 0; i < 12 && !sentAt; i++) {
-  await new Promise((r) => setTimeout(r, 1500));
-  sentAt = (await j(`/api/bookings/status?token=${b.magicLinkToken}`)).body?.confirmationSentAt ?? null;
+if (WANT_EMAILS || !CRON_SECRET) {
+  let sentAt = null;
+  for (let i = 0; i < 12 && !sentAt; i++) {
+    await new Promise((r) => setTimeout(r, 1500));
+    sentAt = (await j(`/api/bookings/status?token=${b.magicLinkToken}`)).body?.confirmationSentAt ?? null;
+  }
+  ok("confirmation email was accepted by the mail provider", !!sentAt, sentAt ? `at ${sentAt}` : "confirmationSentAt never appeared within 18s");
+} else {
+  console.log("     (skipped: emails off for this run)");
 }
-ok("confirmation email was accepted by the mail provider", !!sentAt, sentAt ? `at ${sentAt}` : "confirmationSentAt never appeared within 18s");
 
 /* ---------------- 4. the calendar closed ---------------- */
 step("calendar");
@@ -138,7 +174,7 @@ ok("it offers to cancel", /cancel/i.test(manage));
 step("cancel");
 const cancelled = await j("/api/bookings/cancel", {
   method: "POST",
-  headers: { "content-type": "application/json" },
+  headers: { "content-type": "application/json", ...testHeaders },
   body: JSON.stringify({ token: b.magicLinkToken, reason: `Automated smoketest ${MARK}` }),
 });
 ok("cancellation accepted", cancelled.status === 200 && cancelled.body.booking?.status === "cancelled", JSON.stringify(cancelled.body).slice(0, 160));
@@ -154,7 +190,7 @@ const status = (await j(`/api/bookings/status?token=${b.magicLinkToken}`)).body;
 ok("the booking is kept, not deleted", status?.status === "cancelled", JSON.stringify(status));
 
 /* ---------------- 9. emails, if a Resend key was given ---------------- */
-if (RESEND_KEY) {
+if (RESEND_KEY && (WANT_EMAILS || !CRON_SECRET)) {
   step("email delivery");
   // The provider's list lags a few seconds behind the send, and by more when
   // it is busy. Poll until both of the guest's emails show up rather than
@@ -171,7 +207,11 @@ if (RESEND_KEY) {
   ok("guest confirmation delivered", mine.some((e) => /confirmed/i.test(e.subject) && e.last_event === "delivered"), mine.map((e) => e.subject).join(" | "));
   ok("guest cancellation delivered", mine.some((e) => /cancelled/i.test(e.subject) && e.last_event === "delivered"));
   const owner = rows.filter((e) => (e.to || []).some((a) => a.includes("campcedarcreek.com")));
-  ok("owners were notified", owner.some((e) => (e.subject || "").includes(b.id)), owner.map((e) => e.subject).slice(0, 3).join(" | "));
+  ok(
+    "the OWNERS were not emailed about a test booking",
+    !owner.some((e) => (e.subject || "").includes(b.id)),
+    owner.filter((e) => (e.subject || "").includes(b.id)).map((e) => e.subject).join(" | ")
+  );
 }
 
 console.log(`\n${n - fails}/${n} passed` + (fails ? "  <-- booking flow is broken, do not ship" : ""));

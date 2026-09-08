@@ -115,6 +115,15 @@ export const Bookings: CollectionConfig = {
       admin: { hidden: true },
     },
     {
+      name: "isTest",
+      type: "checkbox",
+      defaultValue: false,
+      admin: {
+        position: "sidebar",
+        description: "Made by the automated test suite. Never emails the owners; excluded from reports.",
+      },
+    },
+    {
       name: "source",
       type: "select",
       defaultValue: "direct",

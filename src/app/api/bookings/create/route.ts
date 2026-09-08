@@ -13,6 +13,12 @@ import { getStripe, isStripeEnabled } from "@/lib/stripe";
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
+  // The automated suite books and cancels for real, so it identifies itself
+  // with the cron secret. Test bookings NEVER email the owners, and only
+  // email the guest when the run explicitly asks (see scripts/booking-smoketest.mjs).
+  const testHeader = request.headers.get("x-smoketest");
+  const isTest = !!process.env.CRON_SECRET && testHeader === process.env.CRON_SECRET;
+  const testWantsEmail = isTest && request.headers.get("x-smoketest-emails") === "send";
   const {
     siteSlug,
     siteName,
@@ -72,12 +78,12 @@ export async function POST(request: NextRequest) {
       waiverSignature,
     },
     // Stripe flow: hold as pending, webhook confirms after payment.
-    { status: stripeMode ? "pending" : "confirmed" }
+    { status: stripeMode ? "pending" : "confirmed", isTest }
   );
 
   if (!stripeMode) {
     // Demo flow (no Stripe keys): booking is confirmed immediately.
-    await sendBookingConfirmation(booking);
+    if (!isTest || testWantsEmail) await sendBookingConfirmation(booking, { skipOwner: isTest });
     return NextResponse.json({ booking }, { status: 201 });
   }
 

@@ -37,6 +37,7 @@ function mapBooking(doc: any): Booking {
     magicLinkToken: doc.magicLinkToken ?? undefined,
     stripePaymentIntent: doc.stripePaymentIntent ?? undefined,
     cancelledAt: doc.cancelledAt ?? undefined,
+    isTest: Boolean(doc.isTest),
     cancellationReason: doc.cancellationReason ?? undefined,
     notifications: doc.notifications ?? undefined,
     refundAmount: doc.refundAmount ?? undefined,
@@ -46,7 +47,7 @@ function mapBooking(doc: any): Booking {
 
 export async function createBooking(
   input: Omit<Booking, "id" | "createdAt" | "status">,
-  options: { status?: "pending" | "confirmed" } = {}
+  options: { status?: "pending" | "confirmed"; isTest?: boolean } = {}
 ): Promise<Booking> {
   const db = await getDb();
   const siteRes = await db.find({
@@ -75,6 +76,7 @@ export async function createBooking(
       total: input.total,
       waiverSigned: input.waiverSigned,
       waiverSignature: input.waiverSignature,
+      isTest: options.isTest ?? false,
       // Stripe flow creates as "pending" and confirms via webhook; the
       // no-keys demo flow confirms immediately.
       status: options.status ?? "confirmed",

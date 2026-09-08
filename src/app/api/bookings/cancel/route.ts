@@ -8,6 +8,10 @@ import { getStripe, isStripeEnabled } from "@/lib/stripe";
 export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => ({}));
   const { token, reason } = body as { token?: string; reason?: string };
+  // Same contract as create: the automated suite identifies itself with the
+  // cron secret, and its cancellations never email the owners.
+  const isTest = !!process.env.CRON_SECRET && request.headers.get("x-smoketest") === process.env.CRON_SECRET;
+  const testWantsEmail = isTest && request.headers.get("x-smoketest-emails") === "send";
 
   if (!token) {
     return NextResponse.json({ error: "Missing token" }, { status: 400 });
@@ -59,7 +63,7 @@ export async function POST(request: NextRequest) {
   });
 
   if (updated) {
-    await sendCancellationConfirmation(updated, refund);
+    if (!isTest || testWantsEmail) await sendCancellationConfirmation(updated, refund, { skipOwner: isTest });
   }
 
   return NextResponse.json({

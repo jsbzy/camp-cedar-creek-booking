@@ -97,9 +97,13 @@ export async function sendOwnerBookingNotice(
   });
 }
 
-export async function sendBookingConfirmation(booking: Booking): Promise<string | null> {
+export async function sendBookingConfirmation(
+  booking: Booking,
+  opts: { skipOwner?: boolean } = {}
+): Promise<string | null> {
   const info = await getPropertyInfo();
-  void sendOwnerBookingNotice(booking, "new");
+  // Test bookings never reach the owners' inbox.
+  if (!opts.skipOwner) void sendOwnerBookingNotice(booking, "new");
   const id = await sendEmail({
     to: booking.guest.email,
     subject: `Booking confirmed — ${booking.siteName}, ${booking.checkIn} (${booking.id})`,
@@ -163,12 +167,14 @@ export async function sendPostStay(booking: Booking): Promise<string | null> {
 
 export async function sendCancellationConfirmation(
   booking: Booking,
-  refund: { amount: number; percent: number }
+  refund: { amount: number; percent: number },
+  opts: { skipOwner?: boolean } = {}
 ): Promise<string | null> {
-  void sendOwnerBookingNotice(booking, "cancelled", {
-    refundAmount: refund.amount,
-    cancellationReason: booking.cancellationReason,
-  });
+  if (!opts.skipOwner)
+    void sendOwnerBookingNotice(booking, "cancelled", {
+      refundAmount: refund.amount,
+      cancellationReason: booking.cancellationReason,
+    });
   return sendEmail({
     to: booking.guest.email,
     subject: `Booking cancelled — ${booking.siteName} (${booking.id})`,

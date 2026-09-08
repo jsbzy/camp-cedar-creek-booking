@@ -285,6 +285,10 @@ export interface Booking {
   total?: number | null;
   waiverSigned?: boolean | null;
   waiverSignature?: string | null;
+  /**
+   * Made by the automated test suite. Never emails the owners; excluded from reports.
+   */
+  isTest?: boolean | null;
   source?: ('direct' | 'hipcamp' | 'airbnb') | null;
   magicLinkToken?: string | null;
   stripeSessionId?: string | null;
@@ -711,6 +715,7 @@ export interface BookingsSelect<T extends boolean = true> {
   total?: T;
   waiverSigned?: T;
   waiverSignature?: T;
+  isTest?: T;
   source?: T;
   magicLinkToken?: T;
   stripeSessionId?: T;

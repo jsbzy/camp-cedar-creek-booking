@@ -83,6 +83,7 @@ export interface Booking {
   status: "pending" | "confirmed" | "cancelled" | "completed" | "refunded";
   magicLinkToken?: string;
   stripePaymentIntent?: string;
+  isTest?: boolean;
   cancelledAt?: string;
   cancellationReason?: string;
   notifications?: {

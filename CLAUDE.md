@@ -33,7 +33,8 @@ next. Three suites, all self-cleaning and safe against production:
 
 ```
 npm test                                          # validator, pure, ~1s
-npm run test:booking  -- <base> [resend_key]      # the whole guest journey
+npm run test:booking  -- <base> <cron_secret>     # the whole guest journey, silent
+npm run test:booking  -- <base> <cron_secret> <resend_key> --emails   # + real emails
 npm run test:connector -- <base> <admin> <editor> # both connector tiers
 ```
 
