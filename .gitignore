@@ -44,3 +44,4 @@ next-env.d.ts
 ccc-booking.db*
 /media
 ADMIN.local.md
+KEYS.local.md
