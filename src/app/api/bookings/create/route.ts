@@ -9,6 +9,7 @@ import {
   sanitizeAddOns,
 } from "@/lib/data";
 import { sendBookingConfirmation } from "@/lib/email";
+import { sendBookingSmsLater } from "@/lib/sms";
 import { getStripe, isStripeEnabled } from "@/lib/stripe";
 
 export async function POST(request: NextRequest) {
@@ -84,6 +85,9 @@ export async function POST(request: NextRequest) {
   if (!stripeMode) {
     // Demo flow (no Stripe keys): booking is confirmed immediately.
     if (!isTest || testWantsEmail) await sendBookingConfirmation(booking, { skipOwner: isTest });
+    // Texts follow the same rule as email: a test run never reaches the owners.
+    // Sent after the response so a slow carrier cannot hold up a booking.
+    if (!isTest || testWantsEmail) sendBookingSmsLater(booking as any, { skipOwner: isTest });
     return NextResponse.json({ booking }, { status: 201 });
   }
 

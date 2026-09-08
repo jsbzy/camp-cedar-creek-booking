@@ -3,6 +3,7 @@ import { cancelBooking, getBookingByToken } from "@/lib/data/bookings";
 import { getCancellationTerms } from "@/lib/data/property";
 import { computeRefund, todayPacific } from "@/lib/cancellation";
 import { sendCancellationConfirmation } from "@/lib/email";
+import { sendCancellationSms } from "@/lib/sms";
 import { getStripe, isStripeEnabled } from "@/lib/stripe";
 
 export async function POST(request: NextRequest) {
@@ -64,6 +65,8 @@ export async function POST(request: NextRequest) {
 
   if (updated) {
     if (!isTest || testWantsEmail) await sendCancellationConfirmation(updated, refund, { skipOwner: isTest });
+    // Owners only. Someone who has just cancelled does not need a text saying so.
+    if (!isTest) void sendCancellationSms(updated as any, { skipOwner: isTest });
   }
 
   return NextResponse.json({
