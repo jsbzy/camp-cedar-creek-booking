@@ -9,7 +9,7 @@ export function Logo() {
       <img
         src="/site-assets/img/White-20Black-20Transparent-20Cropped-4d2f21.png"
         alt="Camp Cedar Creek"
-        style={{ width: 230, filter: "invert(1)" }}
+        style={{ width: 230, height: "auto", objectFit: "contain", filter: "invert(1)" }}
       />
       <span
         style={{
@@ -31,7 +31,9 @@ export function Icon() {
     <img
       src="/site-assets/img/No-20Words-20Cropped-20Square-5c6cba.png"
       alt="Camp Cedar Creek"
-      style={{ width: 26, height: 26, filter: "invert(1)" }}
+      // object-fit and flex-shrink matter here: the admin header is a flex row
+      // and squashes a plain img into an oval.
+      style={{ width: 26, height: 26, objectFit: "contain", flexShrink: 0, display: "block", filter: "invert(1)" }}
     />
   );
 }
