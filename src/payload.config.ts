@@ -4,6 +4,7 @@ import { buildConfig } from "payload";
 import { postgresAdapter } from "@payloadcms/db-postgres";
 import { sqliteAdapter } from "@payloadcms/db-sqlite";
 import { lexicalEditor } from "@payloadcms/richtext-lexical";
+import { vercelBlobStorage } from "@payloadcms/storage-vercel-blob";
 import sharp from "sharp";
 
 import { Users } from "./collections/Users";
@@ -15,6 +16,9 @@ import { Addons } from "./collections/Addons";
 import { EventInquiries } from "./collections/EventInquiries";
 import { Reviews } from "./collections/Reviews";
 import { Settings } from "./globals/Settings";
+import { Pages } from "./collections/Pages";
+import { Requests } from "./collections/Requests";
+import { BrandGuide } from "./globals/BrandGuide";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -63,8 +67,8 @@ export default buildConfig({
   routes: {
     api: "/payload-api",
   },
-  collections: [Sites, Bookings, BlockedDates, EventInquiries, Addons, Reviews, Media, Users],
-  globals: [Settings],
+  collections: [Sites, Bookings, BlockedDates, EventInquiries, Addons, Reviews, Pages, Requests, Media, Users],
+  globals: [Settings, BrandGuide],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || "ccc-dev-secret-change-before-prod",
   typescript: {
@@ -75,4 +79,12 @@ export default buildConfig({
     disable: true,
   },
   sharp,
+  plugins: [
+    // Uploads go to Vercel Blob in production so images survive deploys and
+    // can be added through the connector. Without a token (local dev) Payload
+    // keeps writing to the filesystem, so nothing here breaks offline work.
+    ...(process.env.BLOB_READ_WRITE_TOKEN
+      ? [vercelBlobStorage({ enabled: true, collections: { media: true }, token: process.env.BLOB_READ_WRITE_TOKEN })]
+      : []),
+  ],
 });
