@@ -15,6 +15,24 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const { searchParams } = request.nextUrl;
+
+  // The connector suite creates a page and a site each run to prove that adding
+  // things works. Both are named with a smoke prefix and swept here, so the
+  // suite is safe to run against production without leaving litter behind.
+  if (searchParams.get("what") === "connector") {
+    const db = await getDb();
+    let removed = 0;
+    for (const [collection, prefix] of [["pages", "smoke-"], ["sites", "smokesite-"]] as const) {
+      const res = await db.find({ collection, pagination: false, depth: 0, where: { slug: { like: prefix } } });
+      for (const doc of res.docs as { id: number | string; slug?: string }[]) {
+        if (!doc.slug?.startsWith(prefix)) continue; // `like` is loose; the prefix is the rule
+        await db.delete({ collection, id: doc.id });
+        removed++;
+      }
+    }
+    return NextResponse.json({ removed });
+  }
+
   const slug = searchParams.get("slug");
   const from = searchParams.get("from");
   const to = searchParams.get("to");

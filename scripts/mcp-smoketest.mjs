@@ -7,9 +7,12 @@
  * Self-cleaning: it discards what it stages and removes what it blocks, then
  * checks the site is back where it started.
  */
-const [, , BASE, ADMIN, EDITOR] = process.argv;
+const [, , BASE, ADMIN, EDITOR, SECRET] = process.argv;
 if (!BASE || !ADMIN || !EDITOR) {
-  console.error("usage: mcp-smoketest.mjs <base-url> <admin-key> <editor-key>");
+  console.error(`usage: mcp-smoketest.mjs <base-url> <admin-key> <editor-key> [cron-secret]
+
+  cron-secret  lets the run sweep the page and site it creates. Without it they
+               are left behind, which is fine locally and litter on production.`);
   process.exit(2);
 }
 
@@ -55,6 +58,7 @@ ok("both keys get the same tools", eTools.length === aTools.length && eTools.eve
 ok("everything is on both keys", ["set_rates", "block_dates", "update_site", "add_request", "publish_homepage", "set_booking_status", "update_brand_guide"].every((t) => eTools.includes(t)));
 ok("the undo tools are offered", eTools.includes("recent_changes") && eTools.includes("restore_version"));
 ok("the rules travel with the connection", /no em dashes/.test(init.result?.instructions || ""), (init.result?.instructions || "").slice(-120));
+ok("the four kinds of request are spelled out", ["ASKING", "CHANGING", "ADDING", "NEW MACHINERY"].every((k) => (init.result?.instructions || "").includes(k)));
 
 // --- reading ---
 const guide = await call(EDITOR, "read_brand_guide");
@@ -88,6 +92,50 @@ ok("the change can be edited back out", !undo.isError, undo.text);
 const live3 = await fetch(`${BASE}/`).then((r) => r.text());
 ok("the homepage is back to where it started", !live3.includes(MARK));
 ok("history records it", /notes|smoketest/.test((await call(EDITOR, "homepage_history")).text));
+
+// --- adding things: a page, and a site ---
+// Sweep anything an interrupted run left behind, and again at the end, so this
+// suite is safe to point at production.
+const sweep = async () => {
+  if (!SECRET) return null;
+  const r = await fetch(`${BASE}/api/bookings/cleanup-tests?what=connector`, { method: "POST", headers: { "x-smoketest": SECRET } });
+  return r.ok ? (await r.json()).removed : null;
+};
+await sweep();
+const PSLUG = "smoke-" + Date.now().toString(36);
+const badSlug = await call(EDITOR, "create_page", { title: "X", slug: "sites", html: "<p>x</p>" });
+ok("a page cannot take a slug the app uses", badSlug.isError && /already/i.test(badSlug.text), badSlug.text);
+const wholeDoc = await call(EDITOR, "create_page", { title: "X", slug: PSLUG, html: "<html><body>x</body></html>" });
+ok("a whole document is refused", wholeDoc.isError && /body content only/i.test(wholeDoc.text));
+const dashedPage = await call(EDITOR, "create_page", { title: "X", slug: PSLUG, html: "<p>Creekside \u2014 lovely</p>" });
+ok("a page breaking the rules is refused", dashedPage.isError && /em dash/i.test(dashedPage.text), dashedPage.text);
+const made = await call(EDITOR, "create_page", { title: "Smoke Page", slug: PSLUG, html: `<section><h1>Smoke Page</h1><p>${MARK}</p></section>` });
+ok("a page is created", !made.isError, made.text);
+const served = await fetch(`${BASE}/${PSLUG}`).then((r) => r.text());
+ok("the new page serves", served.includes(MARK), served.slice(0, 160));
+ok("it is inside the site header and footer", /navbar2_component/.test(served) && /<footer/.test(served));
+ok("it has its own title", /<title>Smoke Page<\/title>/.test(served));
+const pedit = await call(EDITOR, "edit_page_text", { slug: PSLUG, find: MARK, replace: MARK + " edited" });
+ok("the page can be edited", !pedit.isError, pedit.text);
+ok("the edit is live", (await fetch(`${BASE}/${PSLUG}`).then((r) => r.text())).includes(MARK + " edited"));
+ok("the homepage keeps its own tools", (await call(EDITOR, "edit_page_text", { slug: "home", find: "a", replace: "b" })).isError);
+ok("a missing page 404s", (await fetch(`${BASE}/no-such-page-${MARK}`)).status === 404);
+
+const SSLUG = "smokesite-" + Date.now().toString(36);
+const badType = await call(EDITOR, "create_site", { name: "X", slug: SSLUG, type: "treehouse", weekday: 50 });
+ok("an unknown site type is refused", badType.isError && /tent/.test(badType.text));
+const badPrice = await call(EDITOR, "create_site", { name: "X", slug: SSLUG, type: "tent", weekday: 99999 });
+ok("an absurd new rate is refused", badPrice.isError);
+const site = await call(EDITOR, "create_site", { name: "Smoke Site", slug: SSLUG, type: "tent", weekday: 55, weekend: 70, maxGuests: 5 });
+ok("a site is created", !site.isError, site.text);
+ok("it is created hidden", /HIDDEN/.test(site.text));
+const sJson = JSON.parse((await call(EDITOR, "read_site", { slug: SSLUG })).text);
+ok("its rates are what we asked for", sJson.basePrice === 55 && sJson.weekendPrice === 70, JSON.stringify(sJson).slice(0, 120));
+ok("a hidden site is not on the public browse page", !(await fetch(`${BASE}/sites`).then((r) => r.text())).includes("Smoke Site"));
+ok("creating the same slug twice is refused", (await call(EDITOR, "create_site", { name: "X", slug: SSLUG, type: "tent", weekday: 50 })).isError);
+ok("a hidden site can still be configured", !(await call(EDITOR, "update_site", { slug: SSLUG, shortDescription: "A quiet spot by the water." })).isError);
+const hiddenBook = await fetch(`${BASE}/api/bookings/availability?siteId=${SSLUG}&start=2028-11-13&end=2028-11-15`).then((r) => r.status);
+ok("a hidden site is not bookable", hiddenBook === 404 || hiddenBook === 400, "availability returned " + hiddenBook);
 
 // --- the safety net the open permissions rest on ---
 const changes = await call(EDITOR, "recent_changes", { days: 1 });
@@ -138,6 +186,9 @@ if (reqId) {
   const close = await call(ADMIN, "update_request", { id: Number(reqId), status: "declined", response: "Smoketest artifact." });
   ok("admin can close a request", !close.isError);
 }
+
+const swept = await sweep();
+if (swept === null && SECRET) console.log("\n!! could not sweep the page and site this run created");
 
 console.log(`\n${n - fails}/${n} passed` + (fails ? "  <-- do not hand this build to anyone" : ""));
 process.exit(fails ? 1 : 0);

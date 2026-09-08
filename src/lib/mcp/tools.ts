@@ -1,6 +1,7 @@
 import { getDb } from "@/lib/data/db";
 import { getAvailability, checkDateRange } from "@/lib/data/availability";
 import { getSiteBySlug } from "@/lib/data/sites";
+import { slugProblem, wrapInShell } from "@/lib/page-shell";
 import {
   lawFrom,
   locateText,
@@ -31,9 +32,14 @@ async function law(): Promise<Law | null> {
 }
 
 /**
- * The raw Payload document for a site. getSiteBySlug maps ids to strings for
- * the front end; relationships and updates need the real one, and passing the
- * string fails with "The following field is invalid: Site".
+ * The raw Payload document for a site, whatever its status.
+ *
+ * Two reasons the connector uses this rather than getSiteBySlug. That one maps
+ * ids to strings for the front end, and relationships and updates need the real
+ * one. It also filters to active sites, which is right for the website and
+ * wrong here: a site is created hidden, so the tools that configure it have to
+ * be able to see it. canBook still uses the public lookup, because a hidden
+ * site must never be bookable.
  */
 async function rawSite(slug: string): Promise<any | null> {
   const db = await getDb();
@@ -47,7 +53,6 @@ async function homepage(draft = true): Promise<any | null> {
   return res.docs[0] ?? null;
 }
 
-/** Save the page as a draft. Publishing is a separate, admin-only act. */
 /**
  * Homepage edits take effect. Nothing about this site is public yet, so an
  * approval step in front of the wording was ceremony: it gated the one thing
@@ -112,13 +117,13 @@ export async function callTool(name: string, args: any): Promise<ToolResult> {
     }
 
     case "read_site": {
-      const site: any = await getSiteBySlug(args.slug);
+      const site: any = await rawSite(args.slug);
       if (!site) return err(`No site "${args.slug}". Use list_sites.`);
       return ok(JSON.stringify(site, null, 2));
     }
 
     case "check_availability": {
-      const site: any = await getSiteBySlug(args.slug);
+      const site: any = await rawSite(args.slug);
       if (!site) return err(`No site "${args.slug}".`);
       const days = await getAvailability(site, args.start, args.end);
       return ok(days.map((d: any) => `${d.date}  ${d.available ? "open" : "BOOKED/BLOCKED"}  ${money(d.price)}`).join("\n"));
@@ -273,6 +278,115 @@ export async function callTool(name: string, args: any): Promise<ToolResult> {
       return ok(`Restored version ${args.version}. ${appUrl()}/ serves it now. The version you replaced is still in the history.`);
     }
 
+    /* ---------------- adding things ---------------- */
+    case "list_pages": {
+      const res = await db.find({ collection: "pages", pagination: false, depth: 0, sort: "slug" });
+      const rows = (res.docs as any[]).map(
+        (p) => `${String(p.slug).padEnd(20)} ${String(p._status ?? "").padEnd(10)} ${p.slug === "home" ? appUrl() + "/" : appUrl() + "/" + p.slug}`
+      );
+      return ok(rows.join("\n") + "\n\nThe homepage has its own tools. Others: read_page, edit_page_text, create_page.");
+    }
+
+    case "read_page": {
+      const res = await db.find({ collection: "pages", where: { slug: { equals: args.slug } }, limit: 1, depth: 0 });
+      const p: any = res.docs[0];
+      if (!p) return err(`No page "${args.slug}". Use list_pages.`);
+      return ok(p.html);
+    }
+
+    case "create_page": {
+      const L = await law();
+      if (!L) return err("The Brand Guide is missing or its LAW block is unreadable; refusing all writes.");
+      const slug = String(args.slug || "").trim().toLowerCase();
+      const bad = slugProblem(slug);
+      if (bad) return err(bad);
+      const clash = await db.find({ collection: "pages", where: { slug: { equals: slug } }, limit: 1, depth: 0 });
+      if (clash.docs.length) return err(`There is already a page at /${slug}. Edit it with edit_page_text.`);
+      if (!args.title) return err("A page needs a title: it goes in the browser tab and the search result.");
+      if (!args.html) return err("A page needs its content, as HTML for the body: headings, paragraphs, images.");
+
+      // Body content only, so it can sit inside the homepage's nav and footer.
+      if (/<(html|head|body|script|iframe)\b/i.test(args.html))
+        return err("Give the body content only: headings, paragraphs, images, links. The page is placed inside the site's own header and footer, so it must not carry its own.");
+      const problems = validateText(L, args.html);
+      if (problems.length) return err(`REFUSED (${problems.length}):\n- ${problems.join("\n- ")}`);
+
+      const home = await homepage(false);
+      if (!home?.html || !wrapInShell(home.html, args.html, args.title))
+        return err("The homepage is not readable, so there is no header and footer to put this page inside. Nothing was created.");
+
+      const doc: any = await db.create({
+        collection: "pages",
+        data: { title: args.title, slug, html: args.html, notes: args.note || "Created through the connector", _status: "published" },
+      });
+      return ok(
+        `Created "${doc.title}" at ${appUrl()}/${slug}, live now, inside the site's own header and footer.\n\n` +
+          "Nothing links to it yet. Say where it should appear in the navigation and that can be added to the homepage."
+      );
+    }
+
+    case "edit_page_text": {
+      const L = await law();
+      if (!L) return err("The Brand Guide is missing or its LAW block is unreadable; refusing all writes.");
+      const res = await db.find({ collection: "pages", where: { slug: { equals: args.slug } }, limit: 1, depth: 0 });
+      const p: any = res.docs[0];
+      if (!p) return err(`No page "${args.slug}". Use list_pages.`);
+      if (p.slug === "home") return err("The homepage has its own tools: edit_homepage_text.");
+      const hit = locateText(p.html, args.find);
+      if (hit.count === 0) return err(`"${args.find}" is not on that page. Read it with read_page and copy the wording exactly.`);
+      if (hit.count > 1) return err(`"${args.find}" appears ${hit.count} times. Include enough of the sentence to be unique.`);
+      const next = p.html.slice(0, hit.start!) + args.replace + p.html.slice(hit.end!);
+      const problems = validateText(L, next);
+      if (problems.length) return err(`REFUSED (${problems.length}):\n- ${problems.join("\n- ")}`);
+      await db.update({ collection: "pages", id: p.id, data: { html: next, notes: args.note || "Edited through the connector", _status: "published" } });
+      return ok(`Done. ${appUrl()}/${p.slug} is live with the change. Every version is kept.`);
+    }
+
+    case "create_site": {
+      const L = await law();
+      if (!L) return err("The Brand Guide is missing or its LAW block is unreadable; refusing all writes.");
+      const slug = String(args.slug || "").trim().toLowerCase();
+      if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) return err("A slug is lower case letters, numbers and hyphens, like beaver-pond.");
+      const types = ["tent", "van_solar", "van_power", "glamping"];
+      if (!types.includes(args.type)) return err(`type must be one of: ${types.join(", ")}.`);
+      if (await rawSite(slug)) return err(`There is already a site "${slug}". Change it with update_site.`);
+      if (!args.name) return err("A site needs a name.");
+      const rate = Number(args.weekday);
+      if (!Number.isFinite(rate) || rate < 0 || rate > 2000) return err("weekday must be a nightly rate in whole dollars, 0 to 2000.");
+      const weekend = args.weekend === undefined ? rate : Number(args.weekend);
+      if (!Number.isFinite(weekend) || weekend < 0 || weekend > 2000) return err("weekend must be a nightly rate in whole dollars, 0 to 2000.");
+      const guests = Number(args.maxGuests ?? 4);
+      if (!Number.isFinite(guests) || guests < 1 || guests > 50) return err("maxGuests must be between 1 and 50.");
+      for (const [f, v] of [["shortDescription", args.shortDescription], ["description", args.description]] as const) {
+        if (!v) continue;
+        const problems = validateText(L, String(v));
+        if (problems.length) return err(`REFUSED, ${f} (${problems.length}):\n- ${problems.join("\n- ")}`);
+      }
+
+      // Created hidden on purpose. A new site has no photos and no wording
+      // yet, and a half-finished one on the booking page is worse than none.
+      const doc: any = await db.create({
+        collection: "sites",
+        data: {
+          slug,
+          name: args.name,
+          type: args.type,
+          status: "inactive",
+          shortDescription: args.shortDescription || "",
+          description: args.description || "",
+          basePrice: rate,
+          weekendPrice: weekend,
+          maxGuests: guests,
+          sortOrder: args.sortOrder ?? 99,
+        },
+      });
+      return ok(
+        `Created "${doc.name}" (${slug}) at ${money(rate)} weekday, ${money(weekend)} weekend, up to ${guests} guests.\n\n` +
+          "It is HIDDEN, so it is not bookable and not on the website yet. Add photos and wording with update_site and upload_image, " +
+          "then list it by setting its status to active."
+      );
+    }
+
     /* ---------------- history and undo ---------------- */
     // Everything anyone changes is recorded. These two turn that record into
     // something usable in a sentence: "what changed this week", "put it back".
@@ -326,7 +440,7 @@ export async function callTool(name: string, args: any): Promise<ToolResult> {
     /* ---------------- site + operations (instant) ---------------- */
     case "update_site": {
       const L = await law();
-      const site: any = await getSiteBySlug(args.slug);
+      const site: any = await rawSite(args.slug);
       if (!site) return err(`No site "${args.slug}". Use list_sites.`);
       const data: any = {};
       for (const f of ["name", "shortDescription", "description"]) if (args[f] !== undefined) data[f] = args[f];
@@ -349,7 +463,7 @@ export async function callTool(name: string, args: any): Promise<ToolResult> {
     }
 
     case "set_rates": {
-      const site: any = await getSiteBySlug(args.slug);
+      const site: any = await rawSite(args.slug);
       if (!site) return err(`No site "${args.slug}".`);
       const data: any = {};
       if (args.weekday !== undefined) data.basePrice = args.weekday;
@@ -360,14 +474,14 @@ export async function callTool(name: string, args: any): Promise<ToolResult> {
       const rawRate = await rawSite(args.slug);
       if (!rawRate) return err(`No site "${args.slug}".`);
       await db.update({ collection: "sites", id: rawRate.id, data });
-      const after: any = await getSiteBySlug(args.slug);
+      const after: any = await rawSite(args.slug);
       return ok(
         `${site.name}: weekday ${money(after.basePrice)}, weekend ${money(after.weekendPrice)}. Live now. Existing bookings keep the price they were made at.`
       );
     }
 
     case "block_dates": {
-      const site: any = await getSiteBySlug(args.slug);
+      const site: any = await rawSite(args.slug);
       if (!site) return err(`No site "${args.slug}".`);
       if (!/^\d{4}-\d{2}-\d{2}$/.test(args.start) || !/^\d{4}-\d{2}-\d{2}$/.test(args.end))
         return err("Dates are YYYY-MM-DD. End is the morning the block lifts, like a checkout date.");
@@ -389,7 +503,7 @@ export async function callTool(name: string, args: any): Promise<ToolResult> {
     }
 
     case "unblock_dates": {
-      const site: any = await getSiteBySlug(args.slug);
+      const site: any = await rawSite(args.slug);
       if (!site) return err(`No site "${args.slug}".`);
       const res = await db.find({
         collection: "blocked-dates",

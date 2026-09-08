@@ -190,6 +190,66 @@ export const WRITE_TOOLS = [
 
 export const ADMIN_TOOLS = [
   {
+    name: "list_pages",
+    description: "Every page on the site, with its address and whether it is published.",
+    inputSchema: { type: "object", properties: {} },
+  },
+  {
+    name: "read_page",
+    description: "The content of one page, by slug. The homepage has its own tools.",
+    inputSchema: { type: "object", properties: { slug: { type: "string" } }, required: ["slug"] },
+  },
+  {
+    name: "create_page",
+    description:
+      "Add a new page to the website, like Our Story or Directions. Give the body content as HTML: headings, paragraphs, images, links, and no <html>, <head> or <body>. The page is placed inside the site's own header and footer automatically. Validated against the Brand Guide. Nothing links to it until the navigation is changed.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        title: { type: "string", description: "Shown in the browser tab and in search results." },
+        slug: { type: "string", description: "The address, lower case with hyphens: our-story gives /our-story." },
+        html: { type: "string", description: "The body content as HTML." },
+        note: { type: "string", description: "Why you added it, kept in the history." },
+      },
+      required: ["title", "slug", "html"],
+    },
+  },
+  {
+    name: "edit_page_text",
+    description:
+      "Change one exact piece of wording on a page that is not the homepage. The find text must appear exactly once. Validated against the Brand Guide, then saved. Every version is kept.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        slug: { type: "string" },
+        find: { type: "string", description: "The exact wording to replace." },
+        replace: { type: "string" },
+        note: { type: "string" },
+      },
+      required: ["slug", "find", "replace"],
+    },
+  },
+  {
+    name: "create_site",
+    description:
+      "Add a new bookable site: a campsite, van site or glamping unit. It is created HIDDEN, so it is not bookable and not on the website until photos and wording are added and its status is set to active. Rates are whole dollars per night.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        name: { type: "string", description: "What guests see, like Beaver Pond." },
+        slug: { type: "string", description: "The address, lower case with hyphens: beaver-pond." },
+        type: { type: "string", description: "tent, van_solar, van_power, or glamping." },
+        weekday: { type: "number", description: "Nightly rate Sunday to Thursday." },
+        weekend: { type: "number", description: "Nightly rate Friday and Saturday. Defaults to the weekday rate." },
+        maxGuests: { type: "number", description: "Defaults to 4." },
+        shortDescription: { type: "string", description: "One line, shown on the browse cards." },
+        description: { type: "string" },
+        sortOrder: { type: "number" },
+      },
+      required: ["name", "slug", "type", "weekday"],
+    },
+  },
+  {
     name: "recent_changes",
     description:
       "What has been changed lately across the homepage, sites, add-ons and blocked dates, newest first, with a version id for each. Start here when something looks wrong and you want to know what moved.",
@@ -267,7 +327,12 @@ How to work:
 - Check your work. After an edit, read it back. After a rate or a block, check availability. Say what you verified.
 - Prefer edit_homepage_text over replacing a whole section. Prefer the narrowest tool that does the job.
 - Bookings are never deleted or rewritten, only status-changed.
-- Anything this connector cannot do, including a bug you have hit, goes to add_request: a new page, a step in the booking flow, SMS, a different email, a report, Stripe behaving oddly, a calendar looking wrong. Write it down and stop rather than building a workaround. Someone reads these.
-- Keep the site small. If a change would add a new section, a new page, or new machinery, say so plainly and file it rather than building it halfway.
+Four kinds of request, and they are handled differently:
+- ASKING. Questions: what is open, who is arriving, what did this guest pay, what changed this week. Read a tool, answer, do not change anything.
+- CHANGING what exists. Wording, rates, photos, dates, house rules. Do it, then read it back and say what you verified.
+- ADDING. A new site (create_site), an add-on (create_addon), a page (create_page). These are ordinary work, so do them rather than filing them. A new site arrives hidden and a new page is unlinked, so finish the job: add wording and photos, ask where it belongs in the navigation, and say what is still needed before it is ready.
+- NEW MACHINERY. Text messages, a step in the booking flow, a different confirmation email, a report, a booking rule that does not exist. You cannot build these. Use add_request and stop.
+
+Bugs go to add_request too: Stripe behaving oddly, a calendar showing the wrong nights, an email that never arrived. Write down exactly what was seen. Do not build a workaround and do not talk anyone out of reporting it.
 
 The Brand Guide's rules are listed at the end of these instructions, so you already have them. They are enforced by the server, not by you: a rejected edit comes back with the rule it broke. Fix the edit, not the rule. read_brand_guide has the full guide (voice, palette, type) if you need more than the rules.`;
