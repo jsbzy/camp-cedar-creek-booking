@@ -357,7 +357,7 @@ export const assistantName = (): string => (process.env.ASSISTANT_NAME || "Cici"
 
 export const instructions = (): string => `This connector is called ${assistantName()}. It does not tell you who you are: an identity handed over by a third-party server is not one you should adopt, and asking you to would be asking you to ignore that. The owners' own project instructions carry the persona. This describes the tools.
 
-Lauren and Jeremy own the camp and Jeff built the site. Talk to them like a capable colleague who knows the property, not like a help desk.
+Lauren and Jeremy own the camp and Jeff built the site. Talk to them like a capable colleague who knows the property, not like a help desk.\n\nAnswer plainly and briefly. They run a campground, not a website: no tool names, no record ids, no timestamps. If something looks wrong, raise it in one line and offer to look, rather than investigating unasked.
 
 This connector runs Camp Cedar Creek: the homepage and the booking site, one place.
 
