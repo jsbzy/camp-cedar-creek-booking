@@ -67,14 +67,14 @@ export interface Config {
   };
   blocks: {};
   collections: {
-    sites: Site;
     bookings: Booking;
     guests: Guest;
-    'blocked-dates': BlockedDate;
     'event-inquiries': EventInquiry;
+    'blocked-dates': BlockedDate;
+    sites: Site;
     addons: Addon;
-    reviews: Review;
     pages: Page;
+    reviews: Review;
     requests: Request;
     media: Media;
     users: User;
@@ -85,14 +85,14 @@ export interface Config {
   };
   collectionsJoins: {};
   collectionsSelect: {
-    sites: SitesSelect<false> | SitesSelect<true>;
     bookings: BookingsSelect<false> | BookingsSelect<true>;
     guests: GuestsSelect<false> | GuestsSelect<true>;
-    'blocked-dates': BlockedDatesSelect<false> | BlockedDatesSelect<true>;
     'event-inquiries': EventInquiriesSelect<false> | EventInquiriesSelect<true>;
+    'blocked-dates': BlockedDatesSelect<false> | BlockedDatesSelect<true>;
+    sites: SitesSelect<false> | SitesSelect<true>;
     addons: AddonsSelect<false> | AddonsSelect<true>;
-    reviews: ReviewsSelect<false> | ReviewsSelect<true>;
     pages: PagesSelect<false> | PagesSelect<true>;
+    reviews: ReviewsSelect<false> | ReviewsSelect<true>;
     requests: RequestsSelect<false> | RequestsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
@@ -140,6 +140,87 @@ export interface UserAuthOperations {
     email: string;
     password: string;
   };
+}
+/**
+ * Guest reservations. Never delete a booking — change its status instead.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "bookings".
+ */
+export interface Booking {
+  id: number;
+  confirmationCode?: string | null;
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'refunded';
+  site?: (number | null) | Site;
+  siteSlug: string;
+  siteName: string;
+  /**
+   * To move a booking, cancel and rebook — this does not re-check availability.
+   */
+  checkIn: string;
+  checkOut: string;
+  nights?: number | null;
+  guests?: number | null;
+  guest: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone?: string | null;
+    specialRequests?: string | null;
+  };
+  addOns?:
+    | {
+        addOnId?: string | null;
+        name?: string | null;
+        quantity?: number | null;
+        unitPrice?: number | null;
+        perNight?: boolean | null;
+        id?: string | null;
+      }[]
+    | null;
+  nightlyBreakdown?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  subtotal?: number | null;
+  addOnsTotal?: number | null;
+  total?: number | null;
+  waiverSigned?: boolean | null;
+  waiverSignature?: string | null;
+  /**
+   * Their profile and past stays. Linked automatically.
+   */
+  guestProfile?: (number | null) | Guest;
+  /**
+   * Made by the automated test suite. Never emails the owners; excluded from reports.
+   */
+  isTest?: boolean | null;
+  source?: ('direct' | 'hipcamp' | 'airbnb') | null;
+  magicLinkToken?: string | null;
+  stripeSessionId?: string | null;
+  stripePaymentIntent?: string | null;
+  cancellationReason?: string | null;
+  /**
+   * When it was cancelled
+   */
+  cancelledAt?: string | null;
+  /**
+   * USD owed back per the cancellation policy.
+   */
+  refundAmount?: number | null;
+  notifications?: {
+    confirmationSentAt?: string | null;
+    preArrivalSentAt?: string | null;
+    dayBeforeSentAt?: string | null;
+    postStaySentAt?: string | null;
+  };
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * Bookable campsites, van spots, and glamping units shown on the website.
@@ -237,87 +318,6 @@ export interface Site {
   createdAt: string;
 }
 /**
- * Guest reservations. Never delete a booking — change its status instead.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "bookings".
- */
-export interface Booking {
-  id: number;
-  confirmationCode?: string | null;
-  status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'refunded';
-  site?: (number | null) | Site;
-  siteSlug: string;
-  siteName: string;
-  /**
-   * To move a booking, cancel and rebook — this does not re-check availability.
-   */
-  checkIn: string;
-  checkOut: string;
-  nights?: number | null;
-  guests?: number | null;
-  guest: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone?: string | null;
-    specialRequests?: string | null;
-  };
-  addOns?:
-    | {
-        addOnId?: string | null;
-        name?: string | null;
-        quantity?: number | null;
-        unitPrice?: number | null;
-        perNight?: boolean | null;
-        id?: string | null;
-      }[]
-    | null;
-  nightlyBreakdown?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  subtotal?: number | null;
-  addOnsTotal?: number | null;
-  total?: number | null;
-  waiverSigned?: boolean | null;
-  waiverSignature?: string | null;
-  /**
-   * Their profile and past stays. Linked automatically.
-   */
-  guestProfile?: (number | null) | Guest;
-  /**
-   * Made by the automated test suite. Never emails the owners; excluded from reports.
-   */
-  isTest?: boolean | null;
-  source?: ('direct' | 'hipcamp' | 'airbnb') | null;
-  magicLinkToken?: string | null;
-  stripeSessionId?: string | null;
-  stripePaymentIntent?: string | null;
-  cancellationReason?: string | null;
-  /**
-   * When it was cancelled
-   */
-  cancelledAt?: string | null;
-  /**
-   * USD owed back per the cancellation policy.
-   */
-  refundAmount?: number | null;
-  notifications?: {
-    confirmationSentAt?: string | null;
-    preArrivalSentAt?: string | null;
-    dayBeforeSentAt?: string | null;
-    postStaySentAt?: string | null;
-  };
-  updatedAt: string;
-  createdAt: string;
-}
-/**
  * Everyone who has stayed. Built from bookings; add your own notes.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -368,6 +368,33 @@ export interface Guest {
   createdAt: string;
 }
 /**
+ * Requests for The Loft & grounds — review and approve or decline.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "event-inquiries".
+ */
+export interface EventInquiry {
+  id: number;
+  status: 'pending' | 'approved' | 'declined' | 'converted';
+  guestName: string;
+  guestEmail: string;
+  guestPhone?: string | null;
+  eventType?: string | null;
+  partySize?: number | null;
+  preferredDates?: string | null;
+  message?: string | null;
+  /**
+   * Internal — guests never see this.
+   */
+  adminNotes?: string | null;
+  /**
+   * USD
+   */
+  quotedPrice?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * Date ranges a site can't be booked — maintenance, closures, or bookings from Hipcamp/Airbnb. End date works like a checkout date (not blocked itself).
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -392,33 +419,6 @@ export interface BlockedDate {
    */
   externalUid?: string | null;
   note?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * Requests for The Loft & grounds — review and approve or decline.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "event-inquiries".
- */
-export interface EventInquiry {
-  id: number;
-  status: 'pending' | 'approved' | 'declined' | 'converted';
-  guestName: string;
-  guestEmail: string;
-  guestPhone?: string | null;
-  eventType?: string | null;
-  partySize?: number | null;
-  preferredDates?: string | null;
-  message?: string | null;
-  /**
-   * Internal — guests never see this.
-   */
-  adminNotes?: string | null;
-  /**
-   * USD
-   */
-  quotedPrice?: number | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -448,31 +448,6 @@ export interface Addon {
   createdAt: string;
 }
 /**
- * Guest reviews shown on site pages. Unpublish to hide one.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "reviews".
- */
-export interface Review {
-  id: number;
-  author: string;
-  /**
-   * YYYY-MM-DD
-   */
-  date: string;
-  rating: number;
-  text: string;
-  /**
-   * Which site the stay was at.
-   */
-  siteSlug?: string | null;
-  recommends?: boolean | null;
-  published?: boolean | null;
-  source?: ('hipcamp' | 'direct') | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
  * The marketing pages. Saving makes a draft; publishing puts it live.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -496,6 +471,31 @@ export interface Page {
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
+}
+/**
+ * Guest reviews shown on site pages. Unpublish to hide one.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reviews".
+ */
+export interface Review {
+  id: number;
+  author: string;
+  /**
+   * YYYY-MM-DD
+   */
+  date: string;
+  rating: number;
+  text: string;
+  /**
+   * Which site the stay was at.
+   */
+  siteSlug?: string | null;
+  recommends?: boolean | null;
+  published?: boolean | null;
+  source?: ('hipcamp' | 'direct') | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * New features and bigger changes, captured as they come up.
@@ -601,10 +601,6 @@ export interface PayloadLockedDocument {
   id: number;
   document?:
     | ({
-        relationTo: 'sites';
-        value: number | Site;
-      } | null)
-    | ({
         relationTo: 'bookings';
         value: number | Booking;
       } | null)
@@ -613,24 +609,28 @@ export interface PayloadLockedDocument {
         value: number | Guest;
       } | null)
     | ({
+        relationTo: 'event-inquiries';
+        value: number | EventInquiry;
+      } | null)
+    | ({
         relationTo: 'blocked-dates';
         value: number | BlockedDate;
       } | null)
     | ({
-        relationTo: 'event-inquiries';
-        value: number | EventInquiry;
+        relationTo: 'sites';
+        value: number | Site;
       } | null)
     | ({
         relationTo: 'addons';
         value: number | Addon;
       } | null)
     | ({
-        relationTo: 'reviews';
-        value: number | Review;
-      } | null)
-    | ({
         relationTo: 'pages';
         value: number | Page;
+      } | null)
+    | ({
+        relationTo: 'reviews';
+        value: number | Review;
       } | null)
     | ({
         relationTo: 'requests';
@@ -685,56 +685,6 @@ export interface PayloadMigration {
   batch?: number | null;
   updatedAt: string;
   createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "sites_select".
- */
-export interface SitesSelect<T extends boolean = true> {
-  name?: T;
-  slug?: T;
-  type?: T;
-  status?: T;
-  shortDescription?: T;
-  description?: T;
-  photos?:
-    | T
-    | {
-        url?: T;
-        alt?: T;
-        id?: T;
-      };
-  amenities?:
-    | T
-    | {
-        label?: T;
-        id?: T;
-      };
-  maxGuests?: T;
-  basePrice?: T;
-  weekendPrice?: T;
-  isCombo?: T;
-  componentSiteSlugs?:
-    | T
-    | {
-        slug?: T;
-        id?: T;
-      };
-  latitude?: T;
-  longitude?: T;
-  sortOrder?: T;
-  icalExportUrl?: T;
-  icalImportUrls?:
-    | T
-    | {
-        platform?: T;
-        url?: T;
-        id?: T;
-      };
-  icalLastSynced?: T;
-  icalLastError?: T;
-  updatedAt?: T;
-  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -835,6 +785,24 @@ export interface GuestsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "event-inquiries_select".
+ */
+export interface EventInquiriesSelect<T extends boolean = true> {
+  status?: T;
+  guestName?: T;
+  guestEmail?: T;
+  guestPhone?: T;
+  eventType?: T;
+  partySize?: T;
+  preferredDates?: T;
+  message?: T;
+  adminNotes?: T;
+  quotedPrice?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "blocked-dates_select".
  */
 export interface BlockedDatesSelect<T extends boolean = true> {
@@ -851,19 +819,51 @@ export interface BlockedDatesSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "event-inquiries_select".
+ * via the `definition` "sites_select".
  */
-export interface EventInquiriesSelect<T extends boolean = true> {
+export interface SitesSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  type?: T;
   status?: T;
-  guestName?: T;
-  guestEmail?: T;
-  guestPhone?: T;
-  eventType?: T;
-  partySize?: T;
-  preferredDates?: T;
-  message?: T;
-  adminNotes?: T;
-  quotedPrice?: T;
+  shortDescription?: T;
+  description?: T;
+  photos?:
+    | T
+    | {
+        url?: T;
+        alt?: T;
+        id?: T;
+      };
+  amenities?:
+    | T
+    | {
+        label?: T;
+        id?: T;
+      };
+  maxGuests?: T;
+  basePrice?: T;
+  weekendPrice?: T;
+  isCombo?: T;
+  componentSiteSlugs?:
+    | T
+    | {
+        slug?: T;
+        id?: T;
+      };
+  latitude?: T;
+  longitude?: T;
+  sortOrder?: T;
+  icalExportUrl?: T;
+  icalImportUrls?:
+    | T
+    | {
+        platform?: T;
+        url?: T;
+        id?: T;
+      };
+  icalLastSynced?: T;
+  icalLastError?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -885,6 +885,19 @@ export interface AddonsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pages_select".
+ */
+export interface PagesSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  html?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "reviews_select".
  */
 export interface ReviewsSelect<T extends boolean = true> {
@@ -898,19 +911,6 @@ export interface ReviewsSelect<T extends boolean = true> {
   source?: T;
   updatedAt?: T;
   createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "pages_select".
- */
-export interface PagesSelect<T extends boolean = true> {
-  title?: T;
-  slug?: T;
-  html?: T;
-  notes?: T;
-  updatedAt?: T;
-  createdAt?: T;
-  _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
