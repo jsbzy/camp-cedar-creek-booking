@@ -17,7 +17,11 @@ export async function GET() {
     if (page?.html) {
       return new NextResponse(adaptHomepage(page.html), {
         status: 200,
-        headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" },
+        // Not cached at the edge: when an owner publishes, they reload and see
+        // it. A minute of CDN caching made "I published it and nothing
+        // changed" the normal experience, which is worse than one Postgres
+        // read per visit at this traffic.
+        headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" },
       });
     }
   } catch (err) {
