@@ -11,7 +11,7 @@ export const Bookings: CollectionConfig = {
     useAsTitle: "confirmationCode",
     defaultColumns: ["confirmationCode", "siteName", "checkIn", "checkOut", "status", "total"],
     group: "Manage",
-    description: "Guest reservations. Never delete a booking — change its status instead.",
+    description: "Guest reservations. Never delete a booking. Change its status instead.",
     listSearchableFields: ["confirmationCode", "siteName", "guest.lastName", "guest.email"],
   },
   defaultSort: "-createdAt",
@@ -60,7 +60,7 @@ export const Bookings: CollectionConfig = {
     {
       type: "row",
       fields: [
-        { name: "checkIn", type: "text", required: true, validate: dateValidate, admin: { readOnly: true, description: "To move a booking, cancel and rebook — this does not re-check availability." } },
+        { name: "checkIn", type: "text", required: true, validate: dateValidate, admin: { readOnly: true, description: "To move a booking, cancel and rebook. This does not re-check availability." } },
         { name: "checkOut", type: "text", required: true, validate: dateValidate, admin: { readOnly: true } },
         { name: "nights", type: "number", min: 1, admin: { readOnly: true } },
         { name: "guests", type: "number", min: 1 },

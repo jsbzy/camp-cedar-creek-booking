@@ -7,7 +7,7 @@ export const EventInquiries: CollectionConfig = {
     useAsTitle: "guestName",
     defaultColumns: ["guestName", "eventType", "preferredDates", "partySize", "status"],
     group: "Manage",
-    description: "Requests for The Loft & grounds — review and approve or decline.",
+    description: "Requests for The Loft & grounds. Review and approve or decline.",
   },
   defaultSort: "-createdAt",
   fields: [
@@ -40,7 +40,7 @@ export const EventInquiries: CollectionConfig = {
       ],
     },
     { name: "message", type: "textarea" },
-    { name: "adminNotes", type: "textarea", admin: { description: "Internal — guests never see this." } },
+    { name: "adminNotes", type: "textarea", admin: { description: "Internal. Guests never see this." } },
     { name: "quotedPrice", type: "number", admin: { description: "USD" } },
   ],
 };

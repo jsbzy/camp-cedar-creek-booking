@@ -32,7 +32,7 @@ export async function GET(
   const events = await getIcalExportEvents(site);
 
   const cal = ical({
-    name: `Camp Cedar Creek — ${site.name}`,
+    name: `Camp Cedar Creek: ${site.name}`,
     prodId: { company: "Camp Cedar Creek", product: "booking" },
   });
 

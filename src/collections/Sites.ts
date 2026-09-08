@@ -80,7 +80,7 @@ export const Sites: CollectionConfig = {
       required: true,
       unique: true,
       index: true,
-      admin: { description: "Used in the site URL — don't change after launch." },
+      admin: { description: "Used in the site URL. Don't change after launch." },
     },
     {
       name: "type",
@@ -201,7 +201,7 @@ export const Sites: CollectionConfig = {
             { label: "Other (Google Calendar, etc.)", value: "other" },
           ],
         },
-        { name: "url", type: "text", admin: { description: "Ends in .ics — webcal:// links are fine too." } },
+        { name: "url", type: "text", admin: { description: "Ends in .ics. webcal:// links are fine too." } },
       ],
     },
     {

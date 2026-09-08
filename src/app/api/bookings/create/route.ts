@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
         currency: "usd",
         unit_amount: Math.round(pricing.subtotal * 100),
         product_data: {
-          name: `${booking.siteName} — ${pricing.nights} night${pricing.nights !== 1 ? "s" : ""}`,
+          name: `${booking.siteName}, ${pricing.nights} night${pricing.nights !== 1 ? "s" : ""}`,
           description: `${checkIn} to ${checkOut} · ${guests} guest${guests !== 1 ? "s" : ""}`,
         },
       },

@@ -84,7 +84,7 @@ export default function ConfirmationPage() {
       </h1>
       <p className="mt-2 text-muted-foreground">
         {isPending
-          ? "Hang tight — we're confirming your payment. This page will update automatically."
+          ? "Hang tight, we're confirming your payment. This page will update automatically."
           : "We can't wait to see you at Camp Cedar Creek. A confirmation email is on its way."}
       </p>
 

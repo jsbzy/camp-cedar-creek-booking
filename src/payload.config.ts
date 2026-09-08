@@ -48,7 +48,7 @@ export default buildConfig({
     // Owners use the admin — keep it simple and consistent: always light.
     theme: "light",
     meta: {
-      titleSuffix: " — Camp Cedar Creek",
+      titleSuffix: " · Camp Cedar Creek",
     },
     // Component paths in this config ("/components/admin/…") resolve from src/.
     importMap: { baseDir: path.resolve(dirname) },

@@ -83,8 +83,8 @@ export async function sendOwnerBookingNotice(
     replyTo: g.email,
     subject:
       kind === "new"
-        ? `New booking: ${booking.siteName}, ${booking.checkIn} — ${name} (${booking.id})`
-        : `Cancelled: ${booking.siteName}, ${booking.checkIn} — ${name} (${booking.id})`,
+        ? `New booking: ${booking.siteName}, ${booking.checkIn}, ${name} (${booking.id})`
+        : `Cancelled: ${booking.siteName}, ${booking.checkIn}, ${name} (${booking.id})`,
     react: (
       <BookingOwnerNoticeEmail
         booking={booking}
@@ -106,7 +106,7 @@ export async function sendBookingConfirmation(
   if (!opts.skipOwner) void sendOwnerBookingNotice(booking, "new");
   const id = await sendEmail({
     to: booking.guest.email,
-    subject: `Booking confirmed — ${booking.siteName}, ${booking.checkIn} (${booking.id})`,
+    subject: `Booking confirmed: ${booking.siteName}, ${booking.checkIn} (${booking.id})`,
     react: (
       <BookingConfirmationEmail
         booking={booking}
@@ -124,7 +124,7 @@ export async function sendPreArrival(booking: Booking): Promise<string | null> {
   const info = await getPropertyInfo();
   const id = await sendEmail({
     to: booking.guest.email,
-    subject: `One week to go — your stay at ${booking.siteName}`,
+    subject: `One week to go: your stay at ${booking.siteName}`,
     react: (
       <PreArrivalEmail
         booking={booking}
@@ -177,7 +177,7 @@ export async function sendCancellationConfirmation(
     });
   return sendEmail({
     to: booking.guest.email,
-    subject: `Booking cancelled — ${booking.siteName} (${booking.id})`,
+    subject: `Booking cancelled: ${booking.siteName} (${booking.id})`,
     react: (
       <CancellationConfirmationEmail
         booking={booking}
@@ -207,7 +207,7 @@ export async function sendEventInquiryEmails(inquiry: EventInquiryEmailInput): P
   await Promise.all([
     sendEmail({
       to: inquiry.guestEmail,
-      subject: "We got your event inquiry — Camp Cedar Creek",
+      subject: "We got your event inquiry · Camp Cedar Creek",
       react: (
         <EventInquiryReceivedEmail guestName={inquiry.guestName} eventType={inquiry.eventType} />
       ),

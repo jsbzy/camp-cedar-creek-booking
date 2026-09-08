@@ -107,7 +107,7 @@ export const Settings: GlobalConfig = {
       type: "group",
       admin: {
         description:
-          "Rating displayed on the website. Demo values — replace with real Hipcamp numbers before launch.",
+          "Rating displayed on the website. Demo values, replace with real Hipcamp numbers before launch.",
       },
       fields: [
         {

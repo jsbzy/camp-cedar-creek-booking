@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
   const today = todayPacific();
   if (booking.checkIn <= today) {
     return NextResponse.json(
-      { error: "This stay has already started — contact us directly to make changes." },
+      { error: "This stay has already started. Contact us directly to make changes." },
       { status: 409 }
     );
   }

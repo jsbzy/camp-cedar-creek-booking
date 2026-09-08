@@ -27,7 +27,7 @@ export function BookingConfirmationEmail({
 }: BookingConfirmationProps) {
   return (
     <EmailLayout
-      preview={`You're booked at ${booking.siteName} — ${formatDate(booking.checkIn)}`}
+      preview={`You're booked at ${booking.siteName}, ${formatDate(booking.checkIn)}`}
       heading="Your booking is confirmed!"
     >
       <Text style={styles.text}>

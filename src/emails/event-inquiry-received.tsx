@@ -9,7 +9,7 @@ export interface EventInquiryReceivedProps {
 export function EventInquiryReceivedEmail({ guestName, eventType }: EventInquiryReceivedProps) {
   return (
     <EmailLayout
-      preview="We got your event inquiry — Camp Cedar Creek"
+      preview="We got your event inquiry · Camp Cedar Creek"
       heading="We got your inquiry!"
     >
       <Text style={styles.text}>
@@ -22,7 +22,7 @@ export function EventInquiryReceivedEmail({ guestName, eventType }: EventInquiry
         with any extra details — dates you&apos;re flexible on, headcount, or what you&apos;re
         dreaming up.
       </Text>
-      <Text style={styles.text}>— Lauren &amp; Jeremy, Camp Cedar Creek</Text>
+      <Text style={styles.text}>Lauren &amp; Jeremy, Camp Cedar Creek</Text>
     </EmailLayout>
   );
 }

@@ -48,7 +48,7 @@ export function EventInquiryForm() {
           if (!res.ok) throw new Error("Request failed");
           setSubmitted(true);
         } catch {
-          setError("Something went wrong — please try again or email us directly.");
+          setError("Something went wrong. Please try again or email us directly.");
         } finally {
           setSubmitting(false);
         }

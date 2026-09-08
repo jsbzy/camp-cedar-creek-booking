@@ -19,7 +19,7 @@ const roboto = Roboto({
 });
 
 export const metadata: Metadata = {
-  title: "Camp Cedar Creek — Sandy, Oregon",
+  title: "Camp Cedar Creek · Sandy, Oregon",
   description:
     "Book your stay at Camp Cedar Creek, a 37-acre campground in Sandy, Oregon with tent sites, van spots, glamping, and a cottage.",
 };

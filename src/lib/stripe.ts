@@ -11,7 +11,7 @@ let stripe: Stripe | null = null;
 
 export function getStripe(): Stripe {
   if (!process.env.STRIPE_SECRET_KEY) {
-    throw new Error("STRIPE_SECRET_KEY is not set — check isStripeEnabled() first");
+    throw new Error("STRIPE_SECRET_KEY is not set. Check isStripeEnabled() first");
   }
   if (!stripe) stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
   return stripe;
