@@ -28,12 +28,29 @@ if (!BASE) {
   resend-key   with --emails, assert both guest emails were delivered.`);
   process.exit(2);
 }
-// Identify the run to the server. Without a secret we cannot mark the booking
-// as a test, so say so loudly rather than quietly spamming the owners.
+// Identify the run to the server. Without a secret the server has no way to
+// know this is a test: the booking counts as real, it lands in the owners'
+// inbox, and it spawns a guest record that will claim the tester's email as a
+// matching key. A warning was not enough, because the cost of missing it lands
+// on the client and not on whoever typed the command. So: against anything
+// that is not localhost, no secret is a hard stop.
+const LOCAL = /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:|\/|$)/.test(BASE);
+if (!CRON_SECRET && !LOCAL) {
+  console.error(`refusing to run against ${BASE} without a cron secret.
+
+  Without it the server treats this as a real booking: the owners get mail and
+  a guest record is created. Pass the secret as the second argument:
+
+      npm run test:booking -- ${BASE} "$CRON_SECRET"
+
+  It is CRON_SECRET in .env.local. To test against a local server instead, use
+  http://localhost:3000, where no secret is required.`);
+  process.exit(2);
+}
 const testHeaders = CRON_SECRET
   ? { "x-smoketest": CRON_SECRET, ...(WANT_EMAILS ? { "x-smoketest-emails": "send" } : {}) }
   : {};
-if (!CRON_SECRET) console.log("!! no cron secret given: this run books as a real guest and WILL email the owners\n");
+if (!CRON_SECRET) console.log("!! no cron secret: booking as a real guest against a local server\n");
 else console.log(WANT_EMAILS ? "emails: guest only (owners never)\n" : "emails: none (pass --emails to exercise them)\n");
 
 let n = 0;
