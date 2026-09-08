@@ -6,31 +6,44 @@ that. The page the owners actually get is the artifact linked at the bottom.
 Endpoint: `https://ccc.bzy.design/api/mcp?k=<key>` (streamable HTTP, stateless
 JSON-RPC). `camp-cedar-creek-booking.bzy.design` is the same app.
 
-## Tiers
+## Access
 
-The key in the query string picks the tier. There is no other auth.
+One level. The key in the query string is checked against `MCP_ADMIN_KEY` and
+`MCP_EDITOR_KEY`; both grant the full 32 tools. Two names are kept only so
+nobody has to reconnect, and so you can revoke one group without the other.
 
-| Env var | Tier | Gets |
-| --- | --- | --- |
-| `MCP_EDITOR_KEY` | Editor (Lauren, Jeremy) | 13 read tools, 10 write tools |
-| `MCP_ADMIN_KEY` | Admin (Jeff) | the above plus 7 admin tools |
-
-Admin adds: `publish_homepage`, `discard_homepage_draft`,
-`restore_homepage_version`, `update_brand_guide`, `set_booking_status`,
-`update_request`, `create_addon`.
+There was an editor/admin split. It gated homepage wording, which had a full
+version history and could already be reverted in one call, while rates, the
+cancellation policy and site descriptions went straight through with no
+history at all. It was guarding the cheap thing, and guarding it against a
+production that does not exist yet.
 
 Definitions live in `src/lib/mcp/toolDefs.ts`; dispatch in `src/lib/mcp/tools.ts`;
 the route in `src/app/api/mcp/route.ts`.
 
-## Staged versus live
+## History, which is what open access rests on
 
-The split is the whole design, and it is not "words stage, numbers do not".
+`versions` is on for `pages`, `sites`, `addons`, `blocked-dates` and the
+`settings` global. Saves take effect immediately and keep every previous state.
+`recent_changes` lists what moved with a version id; `restore_version` puts it
+back, and because the restore is itself a save, it is undoable too.
 
-- **Staged**: the homepage only (`edit_homepage_text`, `update_homepage_section`).
-  Writes a Payload draft. Visible at `/preview` under an amber ribbon. An admin
-  publishes. Versions are kept, `maxPerDoc: 100`, so anything is restorable.
-- **Live immediately**: rates, blocked dates, add-ons, settings, and individual
-  site pages. A blocked date that waited for review would be a double booking.
+Bookings are deliberately outside this: never rewritten, only status-changed.
+
+**Turning `versions` on does not backfill.** Recording starts at the next save,
+so a document that already existed has nothing behind its first change. Run
+`scripts/backfill-versions.ts` once after enabling history on a collection; it
+writes each document back unchanged so the first history entry is the state
+before anyone touched it, skips anything that already has history, and takes
+`--dry`. This was caught by the connector suite's restore round trip, not by
+inspection, which is the argument for that test existing.
+
+## No second environment
+
+A staged booking site is not a booking site. The data is the point, so a second
+one means two sets of real bookings, two iCal feeds Hipcamp reads, and two lots
+of guest email. The whole site is staging until it replaces campcedarcreek.com;
+that is the environment split.
 
 ## The validator
 
