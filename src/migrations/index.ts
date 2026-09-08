@@ -3,6 +3,7 @@ import * as migration_20260907_190206_ical_status_fields from './20260907_190206
 import * as migration_20260908_022125_pages_requests_brandguide from './20260908_022125_pages_requests_brandguide';
 import * as migration_20260908_033826_booking_is_test from './20260908_033826_booking_is_test';
 import * as migration_20260908_043743_guests from './20260908_043743_guests';
+import * as migration_20260908_063100_versions_for_sites_addons_blocks_settings from './20260908_063100_versions_for_sites_addons_blocks_settings';
 
 export const migrations = [
   {
@@ -28,6 +29,11 @@ export const migrations = [
   {
     up: migration_20260908_043743_guests.up,
     down: migration_20260908_043743_guests.down,
-    name: '20260908_043743_guests'
+    name: '20260908_043743_guests',
+  },
+  {
+    up: migration_20260908_063100_versions_for_sites_addons_blocks_settings.up,
+    down: migration_20260908_063100_versions_for_sites_addons_blocks_settings.down,
+    name: '20260908_063100_versions_for_sites_addons_blocks_settings'
   },
 ];

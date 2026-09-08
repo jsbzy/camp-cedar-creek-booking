@@ -41,6 +41,7 @@ const call = async (key, name, args) => {
 
 const MARK = "smoketest-" + Date.now().toString(36);
 const SITE = "king-bolete";
+const SITE_NAME = "King Bolete";
 
 // --- auth and discovery ---
 ok("a bad key is refused", (await rpc("nope", "initialize", {})).unauthorized === true);
@@ -48,9 +49,10 @@ const init = await rpc(EDITOR, "initialize", { protocolVersion: "2025-06-18" });
 ok("initialize answers", /Camp Cedar Creek/.test(init.result?.serverInfo?.title || ""), JSON.stringify(init).slice(0, 200));
 const eTools = (await rpc(EDITOR, "tools/list")).result.tools.map((t) => t.name);
 const aTools = (await rpc(ADMIN, "tools/list")).result.tools.map((t) => t.name);
-ok("editor cannot see admin tools", !eTools.includes("publish_homepage") && !eTools.includes("update_brand_guide"));
-ok("admin sees admin tools", aTools.includes("publish_homepage") && aTools.includes("set_booking_status"));
-ok("editor can set rates and block dates", ["set_rates", "block_dates", "update_site", "add_request"].every((t) => eTools.includes(t)));
+ok("both keys get the same tools", eTools.length === aTools.length && eTools.every((t) => aTools.includes(t)));
+ok("everything is on both keys", ["set_rates", "block_dates", "update_site", "add_request", "publish_homepage", "set_booking_status", "update_brand_guide"].every((t) => eTools.includes(t)));
+ok("the undo tools are offered", eTools.includes("recent_changes") && eTools.includes("restore_version"));
+ok("the rules travel with the connection", /no em dashes/.test(init.result?.instructions || ""), (init.result?.instructions || "").slice(-120));
 
 // --- reading ---
 const guide = await call(EDITOR, "read_brand_guide");
@@ -69,33 +71,52 @@ const dashed = await call(EDITOR, "edit_homepage_text", { find: "2+ Miles of Pri
 ok("an em dash is rejected", dashed.isError && /em dash/i.test(dashed.text), dashed.text);
 const missing = await call(EDITOR, "edit_homepage_text", { find: "zzz not on the page zzz", replace: "x" });
 ok("absent text is refused helpfully", missing.isError && /non-breaking spaces/.test(missing.text));
-const noPub = await call(EDITOR, "publish_homepage");
-ok("editor cannot publish", noPub.isError && /admin/.test(noPub.text));
 const badRate = await call(EDITOR, "set_rates", { slug: SITE, weekday: 99999 });
 ok("an absurd rate is refused", badRate.isError, badRate.text);
 
-// --- a real staged homepage edit ---
+// --- a homepage edit takes effect, and can be put back ---
 const edit = await call(EDITOR, "edit_homepage_text", { find: "All rights reserved.", replace: `All rights reserved. ${MARK}`, note: MARK });
-ok("benign edit is accepted and staged", !edit.isError && /Staged, not live/.test(edit.text), edit.text);
+ok("edit is accepted and live", !edit.isError && /Live now/.test(edit.text), edit.text);
 const after = await call(EDITOR, "read_homepage");
-ok("the draft reads back with the change", after.text.includes(MARK));
+ok("it reads back with the change", after.text.includes(MARK));
 const live = await fetch(`${BASE}/`).then((r) => r.text());
-ok("the public homepage does NOT have it", !live.includes(MARK));
-const preview = await fetch(`${BASE}/preview`).then((r) => r.text());
-ok("the preview does, under a ribbon", preview.includes(MARK) && /Staged edit/.test(preview));
-
-// --- admin publishes, then restores ---
-const pub = await call(ADMIN, "publish_homepage");
-ok("admin publishes", !pub.isError, pub.text);
-const live2 = await fetch(`${BASE}/`).then((r) => r.text());
-ok("the public homepage now has it", live2.includes(MARK));
+ok("the public homepage has it, with no publish step", live.includes(MARK), "marker missing from the live page");
 const undo = await call(EDITOR, "edit_homepage_text", { find: `All rights reserved. ${MARK}`, replace: "All rights reserved.", note: "undo " + MARK });
 ok("the change can be edited back out", !undo.isError, undo.text);
-const pub2 = await call(ADMIN, "publish_homepage");
-ok("admin publishes the undo", !pub2.isError);
 const live3 = await fetch(`${BASE}/`).then((r) => r.text());
 ok("the homepage is back to where it started", !live3.includes(MARK));
 ok("history records it", /notes|smoketest/.test((await call(EDITOR, "homepage_history")).text));
+
+// --- the safety net the open permissions rest on ---
+const changes = await call(EDITOR, "recent_changes", { days: 1 });
+ok("recent_changes lists the edit just made", !changes.isError && /pages/.test(changes.text), changes.text.slice(0, 200));
+
+// The whole point of dropping the permission tiers is that a mistake is
+// recoverable. Prove it on the thing that actually costs money: a rate.
+const siteJson = async () => JSON.parse((await call(EDITOR, "read_site", { slug: SITE })).text);
+const rateBefore = (await siteJson()).basePrice;
+ok("read the starting weekday rate", Number.isFinite(rateBefore), String(rateBefore));
+const bumped = await call(EDITOR, "set_rates", { slug: SITE, weekday: rateBefore + 7 });
+ok("a rate change goes straight through", !bumped.isError, bumped.text);
+ok("the new rate is live", (await siteJson()).basePrice === rateBefore + 7, `expected ${rateBefore + 7}`);
+
+// Find this site's own versions: the newest is what we just wrote, the one
+// behind it is what to go back to.
+const rows = (await call(EDITOR, "recent_changes", { days: 1 })).text
+  .split("\n")
+  .filter((l) => /\bsites\b/.test(l) && l.includes(SITE_NAME));
+ok("the rate change shows in recent_changes", rows.length >= 2, rows.slice(0, 3).join(" | ") || "no rows for " + SITE_NAME);
+const priorId = rows[1]?.trim().split(/\s+/).pop();
+const restored = await call(EDITOR, "restore_version", { collection: "sites", version: priorId });
+ok("restore_version accepts it", !restored.isError, restored.text);
+const rateBack = (await siteJson()).basePrice;
+ok("the rate is back where it started", rateBack === rateBefore, `${rateBefore} -> ${rateBefore + 7} -> ${rateBack}`);
+if (rateBack !== rateBefore) await call(EDITOR, "set_rates", { slug: SITE, weekday: rateBefore });
+
+const badRestore = await call(EDITOR, "restore_version", { collection: "bookings", version: "1" });
+ok("restore refuses collections it must not rewrite", badRestore.isError && /Bookings are never rewritten/.test(badRestore.text));
+const badId = await call(EDITOR, "restore_version", { collection: "sites", version: "999999" });
+ok("restore fails loudly on a bad id", badId.isError, badId.text.slice(0, 120));
 
 // --- operations are instant ---
 const block = await call(EDITOR, "block_dates", { slug: SITE, start: "2027-03-01", end: "2027-03-03", reason: "maintenance", note: MARK });

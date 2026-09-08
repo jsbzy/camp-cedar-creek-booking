@@ -6,6 +6,10 @@ import { describeSync, syncSiteFeeds } from "@/lib/data/ical-import";
 const INTERNAL = "icalStatusWrite";
 
 export const Sites: CollectionConfig = {
+  // History without drafts: a save takes effect at once, and every previous
+  // state is kept so it can be put back. Rates, rules and dates cannot wait
+  // for an approval step, but they should never be unrecoverable either.
+  versions: { maxPerDoc: 100 },
   slug: "sites",
   labels: { singular: "Site", plural: "Sites" },
   admin: {

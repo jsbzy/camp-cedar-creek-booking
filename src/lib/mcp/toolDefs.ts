@@ -92,7 +92,7 @@ export const WRITE_TOOLS = [
   {
     name: "update_homepage_section",
     description:
-      "Replace a whole homepage section with new HTML. Use only when the change is structural; prefer edit_homepage_text. Validated and staged.",
+      "Replace a whole homepage section with new HTML. Use only when the change is structural; prefer edit_homepage_text. Validated, then saved. Every version is kept.",
     inputSchema: S(
       { section: num("Section number"), html: str("The complete replacement <section>...</section>"), note: str("What changed") },
       ["section", "html"]
@@ -190,40 +190,62 @@ export const WRITE_TOOLS = [
 
 export const ADMIN_TOOLS = [
   {
+    name: "recent_changes",
+    description:
+      "What has been changed lately across the homepage, sites, add-ons and blocked dates, newest first, with a version id for each. Start here when something looks wrong and you want to know what moved.",
+    inputSchema: {
+      type: "object",
+      properties: { days: { type: "number", description: "How far back to look. Default 7, maximum 90." } },
+    },
+  },
+  {
+    name: "restore_version",
+    description:
+      "Put a document back to an earlier version: a site's rates and wording, an add-on, a blocked date range, or the homepage. Find the version id with recent_changes. The state you replace is kept too, so a restore is itself undoable.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        collection: { type: "string", description: "pages, sites, addons, or blocked-dates" },
+        version: { type: "string", description: "The version id from recent_changes." },
+      },
+      required: ["collection", "version"],
+    },
+  },
+  {
     name: "publish_homepage",
-    description: "ADMIN: put the staged homepage edits live. Look at the preview first.",
+    description: "republish the homepage as it stands. Edits already take effect when you make them, so this is rarely needed.",
     inputSchema: S({}),
   },
   {
     name: "discard_homepage_draft",
-    description: "ADMIN: throw away staged homepage edits without publishing.",
+    description: "throw away staged homepage edits without publishing.",
     inputSchema: S({}),
   },
   {
     name: "restore_homepage_version",
-    description: "ADMIN: bring back an earlier homepage version as a draft, to review and publish.",
+    description: "put an earlier homepage version back. Use homepage_history to find it.",
     inputSchema: S({ version: str("Version id from homepage_history") }, ["version"]),
   },
   {
     name: "update_brand_guide",
     description:
-      "ADMIN: replace the Brand Guide. Its LAW block is what the validator enforces, so changing it changes what is allowed, immediately.",
+      "replace the Brand Guide. Its LAW block is what the validator enforces, so changing it changes what is allowed, immediately.",
     inputSchema: S({ markdown: str("The complete guide, including its ```json LAW block") }, ["markdown"]),
   },
   {
     name: "set_booking_status",
     description:
-      "ADMIN: change a booking's status (confirmed, cancelled, completed, refunded). Bookings are never deleted. This does not move money; refunds are issued in Stripe.",
+      "change a booking's status (confirmed, cancelled, completed, refunded). Bookings are never deleted. This does not move money; refunds are issued in Stripe.",
     inputSchema: S({ code: str("Confirmation code"), status: str("New status"), reason: str("Why") }, ["code", "status"]),
   },
   {
     name: "update_request",
-    description: "ADMIN: set a request's status, size, or response.",
+    description: "set a request's status, size, or response.",
     inputSchema: S({ id: num("Request id"), status: str("new, planned, building, done, declined"), size: str("small or big"), response: str("What was decided") }, ["id"]),
   },
   {
     name: "create_addon",
-    description: "ADMIN: add a new add-on.",
+    description: "add a new add-on.",
     inputSchema: S(
       { name: str("Name"), price: num("USD"), description: str("What the guest reads"), perNight: bool("Per night rather than per stay"), maxQuantity: num("Limit"), siteTypes: { type: "array", items: { type: "string" } }, sortOrder: num("Order") },
       ["name", "price"]
@@ -233,14 +255,17 @@ export const ADMIN_TOOLS = [
 
 export const INSTRUCTIONS = `This connector runs Camp Cedar Creek: the homepage and the booking site, one place.
 
-How it works:
-- Homepage wording STAGES. Your edits save as a draft and go live only when an admin publishes. Nothing you write reaches the public page by itself.
-- Everything operational is LIVE the moment you do it: rates, blocked dates, add-ons, site descriptions, settings. A block that waits for approval is a double booking.
-- The Brand Guide's rules are listed at the end of these instructions, so you already have them. They are enforced by the server, not by you: a rejected edit comes back with the rule it broke. Fix the edit, not the rule. read_brand_guide has the full guide (voice, palette, type) if you need more than the rules.
+Where things stand:
+- Nothing here is public yet. This is the site the owners are building before it replaces campcedarcreek.com, so changes are for trying things out, not for a live audience.
+- Everything you change takes effect at once. There is no approval step and no second environment.
+- Everything you change is recorded. recent_changes shows what moved and when; restore_version puts any of it back, and the restore is itself undoable. That is the safety net, so use it rather than being timid.
 
 How to work:
 - Small steps. Make one change, confirm it, then make the next. Do not batch a dozen edits into one turn.
-- Check your work. After an edit, read it back. After a rate or block, check availability. Say what you verified.
+- Check your work. After an edit, read it back. After a rate or a block, check availability. Say what you verified.
 - Prefer edit_homepage_text over replacing a whole section. Prefer the narrowest tool that does the job.
-- Never invent structure. The homepage layout, scripts, and forms are protected; if something needs a new page or new functionality, use add_request and stop.
-- Keep the site small. If a change would add a new section, a new page, or new machinery, say so plainly and file it with add_request rather than building it halfway.`;
+- Bookings are never deleted or rewritten, only status-changed.
+- Anything this connector cannot do, including a bug you have hit, goes to add_request: a new page, a step in the booking flow, SMS, a different email, a report, Stripe behaving oddly, a calendar looking wrong. Write it down and stop rather than building a workaround. Someone reads these.
+- Keep the site small. If a change would add a new section, a new page, or new machinery, say so plainly and file it rather than building it halfway.
+
+The Brand Guide's rules are listed at the end of these instructions, so you already have them. They are enforced by the server, not by you: a rejected edit comes back with the rule it broke. Fix the edit, not the rule. read_brand_guide has the full guide (voice, palette, type) if you need more than the rules.`;

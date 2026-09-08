@@ -81,7 +81,7 @@ t("entities decode", decodeEntities("&quot;Best&quot; &amp; &#x27;fine&#x27;") =
 
 // --- rulesSummary: what a connecting client is handed ---
 const summary = rulesSummary(law);
-t("summary lists every banned pattern", summary.split("\n- ").length - 1 === law.banned_patterns.length, summary);
+t("summary lists every banned pattern", summary.split("\n- ").length - 1 === (law.banned_patterns ?? []).length, summary);
 t("summary carries the em dash rule", /em dashes/i.test(summary));
 t("summary carries the acreage fact", /37 acres/.test(summary));
 t("summary is prose, not regexes", !summary.includes("\\b") && !summary.includes("[^.]"));

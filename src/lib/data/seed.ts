@@ -65,7 +65,7 @@ export const sites: Site[] = [
     shortDescription:
       "Large creekside campsite next to the parking area and hiking trails.",
     description:
-      "Large campsite lining the north side of the creek. Right next to the parking area making it convenient to tent camp next to your cars. This site is close to a pond and a couple trails up the forest hills. It\u2019s also the closest to one of the porta-potties during the peak season (end of May through September). Great for tent camping \u2014 no vehicles on the grass please.",
+      "Large campsite lining the north side of the creek. Right next to the parking area making it convenient to tent camp next to your cars. This site is close to a pond and a couple trails up the forest hills. It\u2019s also the closest to one of the porta-potties during the peak season (end of May through September). Great for tent camping, no vehicles on the grass please.",
     photos: [
       hipcamp("v1684192861/campsite-photos/lmofwgiyivkypsabdehk"),
       hipcamp("v1684192865/campsite-photos/zhewenari5ynt3izjja3"),
@@ -95,7 +95,7 @@ export const sites: Site[] = [
     shortDescription:
       "Private western campsite along the creek with its own trailhead.",
     description:
-      "Another larger campsite on the north side of the creek, at the most western point of the campground offering a good amount of privacy and an almost personal trailhead. This site lines the creek, has a couple big trees offering shade, and a lot of space for dogs and humans to run and play. Tent camping only \u2014 dedicated parking area. Very private, along the creek.",
+      "Another larger campsite on the north side of the creek, at the most western point of the campground offering a good amount of privacy and an almost personal trailhead. This site lines the creek, has a couple big trees offering shade, and a lot of space for dogs and humans to run and play. Tent camping only, dedicated parking area. Very private, along the creek.",
     photos: [
       hipcamp("v1684192739/campsite-photos/nrponkrototadd2w99so"),
       hipcamp("v1684192745/campsite-photos/mfqospsyopztirknndcp"),
@@ -124,7 +124,7 @@ export const sites: Site[] = [
     type: "tent",
     shortDescription: "Secluded hideaway with its own private pond.",
     description:
-      "This site isn\u2019t right along the creek, but basically has its own private pond, and is located in an area that\u2019s almost easy to miss when you drive in, making it feel like a little hideaway. Tent camping only \u2014 please do not drive past the big tree. Decent privacy and a lot of shade. Not on the creek.",
+      "This site isn\u2019t right along the creek, but basically has its own private pond, and is located in an area that\u2019s almost easy to miss when you drive in, making it feel like a little hideaway. Tent camping only, please do not drive past the big tree. Decent privacy and a lot of shade. Not on the creek.",
     photos: [
       hipcamp("v1684192644/campsite-photos/sb3ysmdpcncfhyp29ai2"),
       hipcamp("v1684192645/campsite-photos/upcjr07etlsf7lpaztbg"),
@@ -214,7 +214,7 @@ export const sites: Site[] = [
     shortDescription:
       "One of the largest campsites with prime creek access and a beach pond.",
     description:
-      "This is one of our largest campsites, and one of our least private. That being said, it\u2019s one of our most popular as you have prime creek access, a lot of sun, and are close to our largest pond with a beach. It\u2019s also close \u2014 just over the bridge \u2014 to the porta-potty during peak season. Great for all camping types \u2014 tents on the grass, camper vehicles in the shaded parking area near the fire ring.",
+      "This is one of our largest campsites, and one of our least private. That being said, it\u2019s one of our most popular as you have prime creek access, a lot of sun, and are close to our largest pond with a beach. It\u2019s also close, just over the bridge, to the porta-potty during peak season. Great for all camping types, tents on the grass, camper vehicles in the shaded parking area near the fire ring.",
     photos: [
       hipcamp("v1684193783/campsite-photos/y7zfzielhmgtmy3kybkk"),
       hipcamp("v1657074966/campsite-photos/vjiueyj3v219bvatoiek"),
@@ -271,7 +271,7 @@ export const sites: Site[] = [
     name: "Chanterelle",
     type: "tent",
     shortDescription:
-      "Best for group camping \u2014 spacious, private, with creek access and a climbing tree.",
+      "Best for group camping, spacious, private, with creek access and a climbing tree.",
     description:
       "One of our most popular sites due to its size, location, and privacy, the Chanterelle Campsite is perfect for a larger group to enjoy. There\u2019s space for tents and vehicles, has its own creek and pond access point, a giant climbing tree, and large fire pit. During peak season, there is a porta-potty right outside. Please note: while this site is more secluded, it still has neighboring campsites.",
     photos: [
@@ -365,7 +365,7 @@ export const sites: Site[] = [
     name: "Fairy Ring + Candy Cap",
     type: "tent",
     shortDescription:
-      "Both Fairy Ring and Candy Cap sites combined \u2014 perfect for larger groups.",
+      "Both Fairy Ring and Candy Cap sites combined, perfect for larger groups.",
     description:
       "Another great option for bigger groups! Fairy Ring and Candy Cap sites sit along the north side of creek, over the bridge and separated from the other eight campsites. Close proximity to the porta-potties, best entry point to the deepest part of the creek for swimming, and closest to the hiking trails, this is a prime location and a beautiful area to spread out however you\u2019d like.",
     photos: [
@@ -401,7 +401,7 @@ export const sites: Site[] = [
     shortDescription:
       "Upper lot solar spot with all-day sun and open field views.",
     description:
-      "Located on the upper lot just before the Blue Barn. This spot gets sunshine all day so it\u2019s perfect for a vehicle with solar panels. It\u2019s very quiet, with just one neighboring spot, is great for dogs to roam with an open field in front, and still convenient \u2014 just a 2 minute walk to the barn\u2019s amenities and about a 5 minute walk down to the creek.",
+      "Located on the upper lot just before the Blue Barn. This spot gets sunshine all day so it\u2019s perfect for a vehicle with solar panels. It\u2019s very quiet, with just one neighboring spot, is great for dogs to roam with an open field in front, and still convenient, just a 2 minute walk to the barn\u2019s amenities and about a 5 minute walk down to the creek.",
     photos: [
       hipcamp("v1721086972/dev-campground-photos/ciuyjsdjagxeh18qysgx"),
       hipcamp("v1721086975/dev-campground-photos/viutv8vrr517nbkgweai"),
@@ -568,7 +568,7 @@ export const sites: Site[] = [
     shortDescription:
       "Renovated 19\u2019 trailer with queen bed, BBQ, fire pit, and Blue Barn access.",
     description:
-      "If you\u2019re looking for comfort, privacy, and beautiful forest and creek views, you\u2019ve found the perfect spot! Our newest glampsite is a spacious 19\u2019 renovated camper, complete with a queen size bed, dining area, mini fridge and lots of space. Your site includes a picnic table, BBQ, and fire pit with two Adirondack chairs. Located up on the hill in close proximity to the Blue Barn with access to full kitchen, flush toilets and hot showers, fast WiFi, game room and rec area. Note: bathroom inside the trailer is not available \u2014 use the Barn\u2019s facilities (less than one minute walk).",
+      "If you\u2019re looking for comfort, privacy, and beautiful forest and creek views, you\u2019ve found the perfect spot! Our newest glampsite is a spacious 19\u2019 renovated camper, complete with a queen size bed, dining area, mini fridge and lots of space. Your site includes a picnic table, BBQ, and fire pit with two Adirondack chairs. Located up on the hill in close proximity to the Blue Barn with access to full kitchen, flush toilets and hot showers, fast WiFi, game room and rec area. Note: bathroom inside the trailer is not available, use the Barn\u2019s facilities (less than one minute walk).",
     photos: [
       hipcamp("v1749517296/dev-campground-photos/kqmlmvnj1ck0yesiupr0"),
       hipcamp("v1749517322/dev-campground-photos/erccjfhwdypwnd6lokku"),

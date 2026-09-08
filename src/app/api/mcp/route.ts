@@ -1,12 +1,11 @@
 import { NextRequest } from "next/server";
-import { callTool, type Tier } from "@/lib/mcp/tools";
+import { callTool } from "@/lib/mcp/tools";
 import { READ_TOOLS, WRITE_TOOLS, ADMIN_TOOLS, INSTRUCTIONS } from "@/lib/mcp/toolDefs";
 import { lawFrom, rulesSummary } from "@/lib/mcp/validate";
 import { getDb } from "@/lib/data/db";
 
 // MCP connector for Camp Cedar Creek. Streamable-HTTP JSON-RPC, stateless.
-// Two tiers: ?k=<MCP_ADMIN_KEY> or ?k=<MCP_EDITOR_KEY>. Editors do the daily
-// work; admins publish the homepage, change the rules, and touch bookings.
+// One access level: ?k=<MCP_ADMIN_KEY> or ?k=<MCP_EDITOR_KEY>, both full.
 //
 // This runs on Node (not edge) because the tools use Payload's local API.
 
@@ -15,10 +14,14 @@ export const maxDuration = 60;
 
 const PROTO = ["2025-06-18", "2025-03-26", "2024-11-05"];
 
-function tierFor(key: string): Tier | null {
-  if (key && key === process.env.MCP_ADMIN_KEY) return "admin";
-  if (key && key === process.env.MCP_EDITOR_KEY) return "editor";
-  return null;
+// One level of access. Everyone who holds a key can do everything, because
+// every change is now recorded and reversible, and because a permission split
+// that gated homepage wording while letting rate changes straight through was
+// guarding the cheap thing. Both key names still work so nobody has to
+// reconnect; they differ only in who you handed them to.
+function authorised(key: string): boolean {
+  const keys = [process.env.MCP_ADMIN_KEY, process.env.MCP_EDITOR_KEY].filter(Boolean);
+  return !!key && keys.includes(key);
 }
 
 const json = (body: unknown, status = 200) =>
@@ -52,8 +55,7 @@ async function instructionsWithRules(): Promise<string> {
 }
 
 export async function POST(request: NextRequest) {
-  const tier = tierFor(request.nextUrl.searchParams.get("k") || "");
-  if (!tier) return new Response("Unauthorized", { status: 401 });
+  if (!authorised(request.nextUrl.searchParams.get("k") || "")) return new Response("Unauthorized", { status: 401 });
 
   let msg: any;
   try {
@@ -72,15 +74,15 @@ export async function POST(request: NextRequest) {
       return ok(id, {
         protocolVersion: PROTO.includes(want) ? want : PROTO[1],
         capabilities: { tools: { listChanged: false } },
-        serverInfo: { name: "camp-cedar-creek", version: "1.0.0", title: `Camp Cedar Creek (${tier})` },
+        serverInfo: { name: "camp-cedar-creek", version: "2.0.0", title: "Camp Cedar Creek" },
         instructions: await instructionsWithRules(),
       });
     }
     if (method === "ping") return ok(id, {});
     if (method === "tools/list")
-      return ok(id, { tools: tier === "admin" ? [...READ_TOOLS, ...WRITE_TOOLS, ...ADMIN_TOOLS] : [...READ_TOOLS, ...WRITE_TOOLS] });
+      return ok(id, { tools: [...READ_TOOLS, ...WRITE_TOOLS, ...ADMIN_TOOLS] });
     if (method === "tools/call") {
-      const r = await callTool(params.name, params.arguments || {}, tier);
+      const r = await callTool(params.name, params.arguments || {});
       return ok(id, { content: [{ type: "text", text: r.text }], isError: !!r.isError });
     }
     if (method === "resources/list") return ok(id, { resources: [] });

@@ -1,6 +1,10 @@
 import type { GlobalConfig } from "payload";
 
 export const Settings: GlobalConfig = {
+  // History without drafts: a save takes effect at once, and every previous
+  // state is kept so it can be put back. Rates, rules and dates cannot wait
+  // for an approval step, but they should never be unrecoverable either.
+  versions: { max: 100 },
   slug: "settings",
   admin: {
     group: "Set up",

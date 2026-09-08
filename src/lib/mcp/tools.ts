@@ -13,7 +13,6 @@ import {
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-export type Tier = "admin" | "editor";
 
 export interface ToolResult {
   text: string;
@@ -49,21 +48,26 @@ async function homepage(draft = true): Promise<any | null> {
 }
 
 /** Save the page as a draft. Publishing is a separate, admin-only act. */
-async function saveDraft(id: string | number, html: string, notes: string): Promise<void> {
+/**
+ * Homepage edits take effect. Nothing about this site is public yet, so an
+ * approval step in front of the wording was ceremony: it gated the one thing
+ * with a full version history while rates and policies went straight through.
+ * Every save is still a version, so any of this can be put back.
+ */
+async function savePage(id: string | number, html: string, notes: string): Promise<void> {
   const db = await getDb();
-  await db.update({ collection: "pages", id, data: { html, notes }, draft: true });
+  await db.update({ collection: "pages", id, data: { html, notes, _status: "published" } });
 }
 
-const stagedNote = (notes: string) =>
-  `Staged, not live.\nPreview: ${appUrl()}/preview\nNote saved: ${notes}\nAn admin publishes it with publish_homepage.`;
+const savedNote = (notes: string) =>
+  `Live now at ${appUrl()}/\nNote saved: ${notes}\nEvery version is kept: homepage_history lists them, restore_homepage_version puts one back.`;
 
 /* ------------------------------------------------------------------ */
 /* the tools                                                           */
 /* ------------------------------------------------------------------ */
 
-export async function callTool(name: string, args: any, tier: Tier): Promise<ToolResult> {
+export async function callTool(name: string, args: any): Promise<ToolResult> {
   const db = await getDb();
-  const adminOnly = () => err(`${name} needs the admin connector. Ask Jeff, or file it with add_request.`);
 
   switch (name) {
     /* ---------------- reading ---------------- */
@@ -195,7 +199,7 @@ export async function callTool(name: string, args: any, tier: Tier): Promise<Too
       );
     }
 
-    /* ---------------- homepage edits (stage) ---------------- */
+    /* ---------------- homepage edits ---------------- */
     case "edit_homepage_text":
     case "update_homepage_section": {
       const L = await law();
@@ -232,12 +236,11 @@ export async function callTool(name: string, args: any, tier: Tier): Promise<Too
       if (next === old) return ok("No change: the page already reads exactly that.");
 
       const notes = args.note || "Edit via connector";
-      await saveDraft(page.id, next, notes);
-      return ok(`Accepted.${fuzzy}\n${stagedNote(notes)}`);
+      await savePage(page.id, next, notes);
+      return ok(`Done.${fuzzy}\n${savedNote(notes)}`);
     }
 
     case "publish_homepage": {
-      if (tier !== "admin") return adminOnly();
       const draft = await homepage(true);
       if (!draft) return err("No homepage found.");
       if (draft._status === "published") return ok("Nothing staged: the homepage is already published as it stands.");
@@ -255,7 +258,6 @@ export async function callTool(name: string, args: any, tier: Tier): Promise<Too
     }
 
     case "discard_homepage_draft": {
-      if (tier !== "admin") return adminOnly();
       const live = await homepage(false);
       if (!live) return err("No published homepage to fall back to.");
       await db.update({ collection: "pages", id: live.id, data: { html: live.html, notes: "Draft discarded" } });
@@ -263,11 +265,62 @@ export async function callTool(name: string, args: any, tier: Tier): Promise<Too
     }
 
     case "restore_homepage_version": {
-      if (tier !== "admin") return adminOnly();
       const page = await homepage();
       if (!page) return err("No homepage found.");
       await db.restoreVersion({ collection: "pages", id: args.version });
-      return ok(`Restored version ${args.version} as a draft. Review it, then publish_homepage.`);
+      const back = await homepage(true);
+      if (back) await db.update({ collection: "pages", id: back.id, data: { _status: "published" } });
+      return ok(`Restored version ${args.version}. ${appUrl()}/ serves it now. The version you replaced is still in the history.`);
+    }
+
+    /* ---------------- history and undo ---------------- */
+    // Everything anyone changes is recorded. These two turn that record into
+    // something usable in a sentence: "what changed this week", "put it back".
+    case "recent_changes": {
+      const days = Math.min(Math.max(Number(args.days) || 7, 1), 90);
+      const since = new Date(Date.now() - days * 86400000).toISOString();
+      const rows: string[] = [];
+      for (const collection of ["pages", "sites", "addons", "blocked-dates"] as const) {
+        const res = await db.findVersions({
+          collection,
+          where: { updatedAt: { greater_than: since } },
+          limit: 40,
+          sort: "-updatedAt",
+          depth: 0,
+        });
+        for (const v of res.docs as any[]) {
+          const d = v.version ?? {};
+          const label = d.name ?? d.title ?? d.slug ?? d.siteSlug ?? String(v.parent);
+          rows.push(
+            `${String(v.updatedAt).slice(0, 16).replace("T", " ")}  ${collection.padEnd(13)} ${String(label).slice(0, 26).padEnd(28)} ${String(v.id)}`
+          );
+        }
+      }
+      rows.sort().reverse();
+      if (!rows.length) return ok(`Nothing changed in the last ${days} days.`);
+      return ok(
+        `Changes in the last ${days} days, newest first.\nDate              What          Which                        Version id\n` +
+          rows.slice(0, 60).join("\n") +
+          `\n\nPut one back with restore_version, passing the collection and the version id.`
+      );
+    }
+
+    case "restore_version": {
+      const collection = String(args.collection || "");
+      const allowed = ["pages", "sites", "addons", "blocked-dates"];
+      if (!allowed.includes(collection))
+        return err(`restore_version works on ${allowed.join(", ")}. Bookings are never rewritten; change their status instead.`);
+      if (!args.version) return err("Which version? Use recent_changes to find its id.");
+      try {
+        await db.restoreVersion({ collection: collection as any, id: args.version });
+      } catch (e: any) {
+        return err(`Could not restore that version: ${e?.message ?? e}. Check the id against recent_changes.`);
+      }
+      if (collection === "pages") {
+        const back = await homepage(true);
+        if (back) await db.update({ collection: "pages", id: back.id, data: { _status: "published" } });
+      }
+      return ok(`Restored. The state you just replaced is still in the history, so this is itself undoable.`);
     }
 
     /* ---------------- site + operations (instant) ---------------- */
@@ -420,7 +473,7 @@ export async function callTool(name: string, args: any, tier: Tier): Promise<Too
         data: {
           title: args.title,
           detail: args.detail,
-          requestedBy: args.requested_by || tier,
+          requestedBy: args.requested_by || "connector",
           size: args.size || "unknown",
           status: "new",
         },
@@ -432,7 +485,6 @@ export async function callTool(name: string, args: any, tier: Tier): Promise<Too
 
     /* ---------------- admin only ---------------- */
     case "update_brand_guide": {
-      if (tier !== "admin") return adminOnly();
       if (!lawFrom(args.markdown))
         return err("REJECTED: the new Brand Guide has no parseable ```json LAW block; the validator would go blind.");
       await db.updateGlobal({ slug: "brand-guide", data: { markdown: args.markdown } });
@@ -440,7 +492,6 @@ export async function callTool(name: string, args: any, tier: Tier): Promise<Too
     }
 
     case "set_booking_status": {
-      if (tier !== "admin") return adminOnly();
       const res = await db.find({ collection: "bookings", where: { confirmationCode: { equals: args.code } }, limit: 1, depth: 0 });
       const b: any = res.docs[0];
       if (!b) return err(`No booking ${args.code}.`);
@@ -455,7 +506,6 @@ export async function callTool(name: string, args: any, tier: Tier): Promise<Too
     }
 
     case "update_request": {
-      if (tier !== "admin") return adminOnly();
       const data: any = {};
       for (const f of ["status", "size", "response"]) if (args[f] !== undefined) data[f] = args[f];
       if (!Object.keys(data).length) return err("Nothing to change.");
@@ -464,7 +514,6 @@ export async function callTool(name: string, args: any, tier: Tier): Promise<Too
     }
 
     case "create_addon": {
-      if (tier !== "admin") return adminOnly();
       const doc: any = await db.create({
         collection: "addons",
         data: {
