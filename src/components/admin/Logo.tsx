@@ -31,9 +31,11 @@ export function Icon() {
     <img
       src="/site-assets/img/No-20Words-20Cropped-20Square-5c6cba.png"
       alt="Camp Cedar Creek"
-      // object-fit and flex-shrink matter here: the admin header is a flex row
-      // and squashes a plain img into an oval.
-      style={{ width: 26, height: 26, objectFit: "contain", flexShrink: 0, display: "block", filter: "invert(1)" }}
+      // Payload drops this into .step-nav__home, an 18px box, and its
+      // max-width:100% then squeezed a fixed 26px-wide image to 18 wide while
+      // the inline height held it at 26: an oval. Fill whatever box it is
+      // given instead, and let object-fit keep it round.
+      style={{ width: "100%", height: "100%", objectFit: "contain", display: "block", filter: "invert(1)" }}
     />
   );
 }
