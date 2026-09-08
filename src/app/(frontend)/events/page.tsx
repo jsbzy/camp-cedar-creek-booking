@@ -27,8 +27,8 @@ export default function EventsPage() {
           <div>
             <h2 className="font-heading text-2xl font-bold">Your Event, Your Way</h2>
             <p className="mt-4 leading-relaxed text-muted-foreground">
-              Camp Cedar Creek offers two stunning event spaces — the Meadow
-              Pavilion and the Cedar Amphitheater — each surrounded by old-growth
+              Camp Cedar Creek offers two stunning event spaces, the Meadow
+              Pavilion and the Cedar Amphitheater, each surrounded by old-growth
               forest and the sounds of Sandy River nearby. Perfect for weddings,
               corporate retreats, family reunions, or creative workshops.
             </p>
