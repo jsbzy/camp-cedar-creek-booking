@@ -11,6 +11,7 @@ Hipcamp-style direct booking system for Camp Cedar Creek (Sandy, OR). 21 bookabl
 - **Launch path:** staging-complete on `camp-cedar-creek-booking.bzy.design` with Stripe TEST mode, then flip with owners (their Stripe live keys, `book.campcedarcreek.com` DNS, Hipcamp iCal URLs, real waiver text, confirmed pricing).
 - **One site.** The marketing homepage is this app's `/`, stored as a Payload `pages` document and edited through the connector. `~/repos/campcedarcreek.com` is retired (see its README); nothing in the serving path touches it.
 - **Guests:** no accounts. Guest checkout + magic-link booking management.
+- **Access + rollback (decided 2026-09-08):** one connector tier, not two. Everyone with a key can do everything; `MCP_ADMIN_KEY` and `MCP_EDITOR_KEY` both grant the full toolset and differ only in who holds them. What makes that safe is history, not permissions: `versions` is on for pages, sites, addons, blocked-dates and settings, `recent_changes` lists what moved, `restore_version` puts it back. Homepage edits publish on save. **No second booking environment** — the data is the point, so a staging copy would mean two sets of real bookings and two iCal feeds Hipcamp reads; the whole site is staging until it replaces campcedarcreek.com. Enabling `versions` does not backfill: run `scripts/backfill-versions.ts` once per collection.
 - **Commercial model (decided 2026-09-07):** no per-booking fee, ever — that is what the owners are leaving Hipcamp to escape. Stripe runs on the owners' own account (their keys; no Stripe Connect / platform fees). Hosting stays on Jeff's Vercel/Neon/Resend and is billed only if it has a real cost; otherwise handed over free. Full transfer (Vercel project, Neon, Resend, GitHub) is available any time.
 - **Reviews:** current seed reviews are fabricated for demo. Must be replaced with real Hipcamp reviews (or removed) before launch.
 
@@ -35,7 +36,7 @@ next. Three suites, all self-cleaning and safe against production:
 npm test                                          # validator, pure, ~1s
 npm run test:booking  -- <base> <cron_secret>     # the whole guest journey, silent
 npm run test:booking  -- <base> <cron_secret> <resend_key> --emails   # + real emails
-npm run test:connector -- <base> <admin> <editor> # both connector tiers
+npm run test:connector -- <base> <admin> <editor> # connector, incl. the undo round trip
 ```
 
 Run the relevant ones before every push, and all three after a deploy. Do not add a feature without a test that
