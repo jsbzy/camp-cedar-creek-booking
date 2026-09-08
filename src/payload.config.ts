@@ -52,6 +52,11 @@ export default buildConfig({
     // Component paths in this config ("/components/admin/…") resolve from src/.
     importMap: { baseDir: path.resolve(dirname) },
     components: {
+      // Their logo, not Payload's, on the login screen and in the chrome.
+      graphics: {
+        Logo: "/components/admin/Logo#Logo",
+        Icon: "/components/admin/Logo#Icon",
+      },
       // Month-at-a-glance of every site's bookings and blocks, linked from the sidebar.
       views: {
         calendar: {
