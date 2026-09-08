@@ -4,6 +4,7 @@ import * as migration_20260908_022125_pages_requests_brandguide from './20260908
 import * as migration_20260908_033826_booking_is_test from './20260908_033826_booking_is_test';
 import * as migration_20260908_043743_guests from './20260908_043743_guests';
 import * as migration_20260908_063100_versions_for_sites_addons_blocks_settings from './20260908_063100_versions_for_sites_addons_blocks_settings';
+import * as migration_20260908_232720_guest_messages from './20260908_232720_guest_messages';
 
 export const migrations = [
   {
@@ -34,6 +35,11 @@ export const migrations = [
   {
     up: migration_20260908_063100_versions_for_sites_addons_blocks_settings.up,
     down: migration_20260908_063100_versions_for_sites_addons_blocks_settings.down,
-    name: '20260908_063100_versions_for_sites_addons_blocks_settings'
+    name: '20260908_063100_versions_for_sites_addons_blocks_settings',
+  },
+  {
+    up: migration_20260908_232720_guest_messages.up,
+    down: migration_20260908_232720_guest_messages.down,
+    name: '20260908_232720_guest_messages'
   },
 ];

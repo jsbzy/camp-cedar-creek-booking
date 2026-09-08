@@ -158,6 +158,26 @@ ok("a hidden site can still be configured", !(await call(EDITOR, "update_site", 
 const hiddenBook = await fetch(`${BASE}/api/bookings/availability?siteId=${SSLUG}&start=2028-11-13&end=2028-11-15`).then((r) => r.status);
 ok("a hidden site is not bookable", hiddenBook === 404 || hiddenBook === 400, "availability returned " + hiddenBook);
 
+// --- answering a guest ---
+// Make a message the way a guest does, then answer it the way an owner does.
+// Cancelled ones count here: the thread outlives the stay, and a cancelled
+// booking is exactly when someone writes to ask what happens next.
+const anyCode = (await call(EDITOR, "list_bookings", { from: "2020-01-01", include_cancelled: true })).text.match(/CCC-[A-Z0-9]{6}/)?.[0];
+ok("found a booking to talk about", !!anyCode, anyCode || "none");
+if (anyCode) {
+  const before = await call(EDITOR, "read_thread", { code: anyCode });
+  ok("a thread reads back", !before.isError, before.text.slice(0, 80));
+  const replied = await call(EDITOR, "reply_to_guest", { code: anyCode, body: `Firewood is by the barn. ${MARK}` });
+  ok("an owner can answer", !replied.isError, replied.text);
+  const after = await call(EDITOR, "read_thread", { code: anyCode });
+  ok("the answer is on the thread", after.text.includes(MARK), after.text.slice(-160));
+  const empty = await call(EDITOR, "reply_to_guest", { code: anyCode, body: "  " });
+  ok("an empty answer is refused", empty.isError);
+  const nobody = await call(EDITOR, "reply_to_guest", { code: "CCC-000000", body: "hello" });
+  ok("answering a booking that does not exist is refused", nobody.isError);
+}
+ok("waiting messages can be listed", !(await call(EDITOR, "list_messages")).isError);
+
 // --- the safety net the open permissions rest on ---
 const changes = await call(EDITOR, "recent_changes", { days: 1 });
 ok("recent_changes lists the edit just made", !changes.isError && /pages/.test(changes.text), changes.text.slice(0, 200));

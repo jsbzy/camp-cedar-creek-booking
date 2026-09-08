@@ -206,6 +206,36 @@ ok("the feed dropped it", !feed2.includes(b.id));
 const status = (await j(`/api/bookings/status?token=${b.magicLinkToken}`)).body;
 ok("the booking is kept, not deleted", status?.status === "cancelled", JSON.stringify(status));
 
+/* ---------------- 8b. the guest asks a question ---------------- */
+step("messages");
+const msgUrl = `${BASE}/api/bookings/messages?token=${b.magicLinkToken}`;
+const empty = await (await fetch(msgUrl)).json();
+ok("the thread starts empty", Array.isArray(empty.messages) && empty.messages.length === 0);
+
+const asked = await fetch(msgUrl, {
+  method: "POST",
+  headers: { "content-type": "application/json" },
+  body: JSON.stringify({ body: `Is there firewood on site? ${MARK}` }),
+});
+ok("a guest can write on their own booking", asked.status === 201, `HTTP ${asked.status}`);
+
+const thread = await (await fetch(msgUrl)).json();
+ok("the message is on the thread", thread.messages?.some((m) => m.body.includes(MARK)));
+ok("it is filed as from the guest", thread.messages?.[0]?.from === "guest");
+
+const blank = await fetch(msgUrl, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ body: "   " }) });
+ok("an empty message is refused", blank.status === 400);
+
+const noToken = await fetch(`${BASE}/api/bookings/messages`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ body: "hello" }) });
+ok("no token is refused", noToken.status === 400);
+const badToken = await fetch(`${BASE}/api/bookings/messages?token=not-a-real-token`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ body: "hello" }) });
+ok("someone else's token is refused", badToken.status === 404);
+
+// The confirmation code is printed on emails and is not a secret, so it must
+// not open the thread.
+const byCode = await fetch(`${BASE}/api/bookings/messages?token=${b.id}`);
+ok("the confirmation code does not open the thread", byCode.status === 404, `HTTP ${byCode.status}`);
+
 /* ---------------- 9. emails, if a Resend key was given ---------------- */
 if (RESEND_KEY && (WANT_EMAILS || !CRON_SECRET)) {
   step("email delivery");

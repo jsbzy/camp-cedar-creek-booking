@@ -5,6 +5,7 @@ import { getBookingByToken } from "@/lib/data/bookings";
 import { getPropertyInfo } from "@/lib/data/property";
 import { computeRefund, todayPacific } from "@/lib/cancellation";
 import { CancelBookingCard } from "@/components/cancel-booking-card";
+import { BookingThread } from "@/components/booking-thread";
 
 export const dynamic = "force-dynamic";
 
@@ -123,6 +124,10 @@ export default async function ManageBookingPage({
           </div>
         </div>
       </div>
+
+      {/* Above cancelling on purpose: most people with a question are not
+          trying to cancel, and putting the cancel card first suggests they are. */}
+      <BookingThread token={token} />
 
       {cancellable && (
         <CancelBookingCard

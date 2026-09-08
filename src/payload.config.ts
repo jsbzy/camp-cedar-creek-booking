@@ -10,6 +10,7 @@ import sharp from "sharp";
 import { Users } from "./collections/Users";
 import { Media } from "./collections/Media";
 import { Sites } from "./collections/Sites";
+import { Messages } from "./collections/Messages";
 import { Bookings } from "./collections/Bookings";
 import { BlockedDates } from "./collections/BlockedDates";
 import { Addons } from "./collections/Addons";
@@ -78,7 +79,7 @@ export default buildConfig({
   },
   // Order matters: the admin nav follows it, so the daily work comes first
   // and everything you configure once sits underneath.
-  collections: [Bookings, Guests, EventInquiries, BlockedDates, Sites, Addons, Pages, Reviews, Requests, Media, Users],
+  collections: [Bookings, Messages, Guests, EventInquiries, BlockedDates, Sites, Addons, Pages, Reviews, Requests, Media, Users],
   globals: [Settings, BrandGuide],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || "ccc-dev-secret-change-before-prod",

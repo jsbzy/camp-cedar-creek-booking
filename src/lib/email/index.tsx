@@ -34,7 +34,10 @@ function getResend(): Resend | null {
 export async function sendEmail(opts: {
   to: string;
   subject: string;
-  react: React.ReactElement;
+  /** A designed email. Use `text` instead for short internal notices. */
+  react?: React.ReactElement;
+  /** Plain text, for the one-paragraph notices that do not want a template. */
+  text?: string;
   replyTo?: string;
 }): Promise<string | null> {
   const client = getResend();
@@ -47,9 +50,9 @@ export async function sendEmail(opts: {
       from: FROM,
       to: opts.to.split(",").map((a) => a.trim()).filter(Boolean),
       subject: opts.subject,
-      react: opts.react,
+      ...(opts.react ? { react: opts.react } : { text: opts.text ?? "" }),
       replyTo: opts.replyTo,
-    });
+    } as Parameters<typeof client.emails.send>[0]);
     if (error) {
       console.error(`[email] Resend error for "${opts.subject}" to ${opts.to}:`, error);
       return null;
@@ -94,6 +97,53 @@ export async function sendOwnerBookingNotice(
         cancellationReason={extra?.cancellationReason}
       />
     ),
+  });
+}
+
+/**
+ * A guest has written on their booking page. Tell the owners, with the message
+ * in the email so they can judge urgency without opening anything, and
+ * reply-to set to the guest so hitting reply reaches a real person.
+ *
+ * The thread itself lives on the site. This is the nudge, which is the part
+ * that decides whether an on-page conversation actually works.
+ */
+export async function sendGuestMessageNotice(booking: Booking, body: string): Promise<string | null> {
+  const info = await getPropertyInfo();
+  const to = process.env.OWNER_NOTIFY_EMAIL || info.host.email;
+  if (!to) return null;
+  const g = booking.guest;
+  const name = `${g.firstName} ${g.lastName}`.trim() || "A guest";
+  const adminUrl = `${appUrl()}/admin/collections/messages?search=${encodeURIComponent(booking.id)}`;
+  const quoted = body.length > 900 ? `${body.slice(0, 900)}…` : body;
+  return sendEmail({
+    to,
+    replyTo: g.email,
+    subject: `${name} sent a message about ${booking.siteName} (${booking.id})`,
+    text:
+      `${name} wrote about their stay at ${booking.siteName}, ${booking.checkIn}:\n\n` +
+      `${quoted}\n\n` +
+      `Reply in the admin: ${adminUrl}\n` +
+      `Or ask Cici: "reply to ${name} about ${booking.id}"\n\n` +
+      `Replying to this email reaches the guest directly, but it will not appear in the thread on their booking page.`,
+  });
+}
+
+/**
+ * The camp has answered. Tell the guest, and give them the way back in.
+ */
+export async function sendHostMessageNotice(booking: Booking, body: string, manageUrl: string): Promise<string | null> {
+  const g = booking.guest;
+  if (!g?.email) return null;
+  const quoted = body.length > 900 ? `${body.slice(0, 900)}…` : body;
+  return sendEmail({
+    to: g.email,
+    subject: `Camp Cedar Creek replied about your stay (${booking.id})`,
+    text:
+      `${g.firstName || "Hello"},\n\n` +
+      `${quoted}\n\n` +
+      `Reply here: ${manageUrl}\n\n` +
+      `Lauren & Jeremy, Camp Cedar Creek`,
   });
 }
 

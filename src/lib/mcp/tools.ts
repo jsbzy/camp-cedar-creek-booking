@@ -4,6 +4,8 @@ import { getSiteBySlug } from "@/lib/data/sites";
 import { slugProblem, wrapInShell } from "@/lib/page-shell";
 import { linksAsText } from "@/lib/links";
 import { syncSiteFeeds, describeSync } from "@/lib/data/ical-import";
+import { threadForBooking, addMessage, unreadForOwners, markThreadRead } from "@/lib/data/messages";
+import { sendHostMessageNotice } from "@/lib/email";
 import {
   lawFrom,
   locateText,
@@ -412,6 +414,66 @@ export async function callTool(name: string, args: any): Promise<ToolResult> {
           "then list it by setting its status to active." +
           whereToLook({ admin: `/admin/collections/sites/${doc.id}` })
       );
+    }
+
+    /* ---------------- guest messages ---------------- */
+    case "list_messages": {
+      const docs = await unreadForOwners(30);
+      if (!docs.length) return ok("Nothing waiting. Every guest message has been read.");
+      const rows = docs.map((m: any) => {
+        const b = m.booking ?? {};
+        const who = [b.guest?.firstName, b.guest?.lastName].filter(Boolean).join(" ") || "A guest";
+        const body = String(m.body ?? "").replace(/\s+/g, " ");
+        return `${who} about ${b.siteName ?? "a stay"} (${b.id ?? "?"}), ${String(m.createdAt).slice(0, 16).replace("T", " ")}\n    ${body.slice(0, 160)}${body.length > 160 ? "…" : ""}`;
+      });
+      return ok(
+        `${docs.length} message${docs.length === 1 ? "" : "s"} waiting:\n\n` +
+          rows.join("\n\n") +
+          `\n\nRead the whole conversation with read_thread, answer with reply_to_guest.`
+      );
+    }
+
+    case "read_thread": {
+      const res = await db.find({ collection: "bookings", where: { confirmationCode: { equals: args.code } }, limit: 1, depth: 0 });
+      const b: any = res.docs[0];
+      if (!b) return err(`No booking ${args.code}. Use list_bookings.`);
+      const thread = await threadForBooking(b.id);
+      if (!thread.length) return ok(`No messages on ${args.code} yet.`);
+      const who = [b.guest?.firstName, b.guest?.lastName].filter(Boolean).join(" ") || "Guest";
+      return ok(
+        `${who}, ${b.siteName}, ${b.checkIn}:\n\n` +
+          thread
+            .map((m) => `  ${m.from === "guest" ? who : "Us"} (${String(m.createdAt).slice(0, 16).replace("T", " ")}):\n    ${m.body}`)
+            .join("\n\n")
+      );
+    }
+
+    case "reply_to_guest": {
+      const body = String(args.body ?? "").trim();
+      if (!body) return err("Nothing to send. What should the guest be told?");
+      const res = await db.find({ collection: "bookings", where: { confirmationCode: { equals: args.code } }, limit: 1, depth: 0 });
+      const b: any = res.docs[0];
+      if (!b) return err(`No booking ${args.code}. Use list_bookings.`);
+
+      await addMessage({
+        bookingId: b.id,
+        guestId: b.guestProfile ?? null,
+        from: "host",
+        body,
+        authorName: args.from || "Camp Cedar Creek",
+        isTest: !!b.isTest,
+      });
+      // Reading a thread you have just answered is the point at which it stops
+      // being unread, so clear it here rather than making anyone tick a box.
+      await markThreadRead(b.id);
+
+      const manageUrl = `${appUrl()}/booking/${b.magicLinkToken}`;
+      let delivered = "";
+      if (!b.isTest) {
+        const id = await sendHostMessageNotice({ ...b, id: b.confirmationCode } as any, body, manageUrl);
+        delivered = id ? " They have been emailed." : " The email did not go out, so they will only see it if they open the page.";
+      }
+      return ok(`Sent to ${b.guest?.firstName || "the guest"}.${delivered}` + whereToLook({ public: `/booking/${b.magicLinkToken}` }));
     }
 
     /* ---------------- outside calendars ---------------- */

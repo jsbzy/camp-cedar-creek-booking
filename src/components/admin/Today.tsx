@@ -32,7 +32,7 @@ export async function Today(props: AdminViewServerProps) {
   const live = { status: { not_in: ["cancelled", "refunded"] } };
   const notTest = { isTest: { not_equals: true } };
 
-  const [arriving, departing, staying, week, inquiries, review, pending] = await Promise.all([
+  const [arriving, departing, staying, week, inquiries, review, pending, unread] = await Promise.all([
     payload.find({ collection: "bookings", where: { and: [live, notTest, { checkIn: { equals: today } }] }, pagination: false, depth: 0, sort: "siteName" }),
     payload.find({ collection: "bookings", where: { and: [live, notTest, { checkOut: { equals: today } }] }, pagination: false, depth: 0, sort: "siteName" }),
     payload.find({ collection: "bookings", where: { and: [live, notTest, { checkIn: { less_than_equal: today } }, { checkOut: { greater_than: today } }] }, pagination: false, depth: 0, sort: "siteName" }),
@@ -40,6 +40,12 @@ export async function Today(props: AdminViewServerProps) {
     payload.find({ collection: "event-inquiries", where: { status: { equals: "pending" } }, limit: 5, depth: 0, sort: "-createdAt" }),
     payload.find({ collection: "guests", where: { needsReview: { equals: true } }, limit: 5, depth: 0 }),
     payload.find({ collection: "bookings", where: { and: [{ status: { equals: "pending" } }, notTest] }, limit: 5, depth: 0 }),
+    payload.find({
+      collection: "messages",
+      where: { and: [{ from: { equals: "guest" } }, { readByOwner: { equals: false } }, notTest] },
+      limit: 5,
+      depth: 0,
+    }),
   ]);
 
   const css = `
@@ -109,8 +115,16 @@ export async function Today(props: AdminViewServerProps) {
           <a href="/admin/collections/sites">Sites and rates</a>
         </div>
 
-        {(inquiries.totalDocs > 0 || review.totalDocs > 0 || pending.totalDocs > 0) && (
+        {(unread.totalDocs > 0 || inquiries.totalDocs > 0 || review.totalDocs > 0 || pending.totalDocs > 0) && (
           <div className="t-alerts">
+            {unread.totalDocs > 0 && (
+              <div className="t-alert">
+                <span>
+                  {unread.totalDocs} guest {unread.totalDocs === 1 ? "message" : "messages"} waiting for an answer
+                </span>
+                <a href="/admin/collections/messages?where[readByOwner][equals]=false">Open</a>
+              </div>
+            )}
             {inquiries.totalDocs > 0 && (
               <div className="t-alert">
                 <span>

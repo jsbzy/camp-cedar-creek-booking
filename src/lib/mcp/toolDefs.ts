@@ -13,6 +13,17 @@ const bool = (description: string) => ({ type: "boolean", description });
 
 export const READ_TOOLS = [
   {
+    name: "list_messages",
+    description:
+      "Guest messages waiting for an answer, newest first. These come from the thread on each guest's own booking page. Check this whenever someone asks what needs attention.",
+    inputSchema: { type: "object", properties: {} },
+  },
+  {
+    name: "read_thread",
+    description: "The whole conversation on one booking, by confirmation code.",
+    inputSchema: { type: "object", properties: { code: { type: "string" } }, required: ["code"] },
+  },
+  {
     name: "read_ical_feeds",
     description:
       "Which outside calendars (Hipcamp, Airbnb, Google) a site is importing, when they were last read, and our own feed address to paste into those platforms.",
@@ -88,6 +99,20 @@ export const READ_TOOLS = [
 ];
 
 export const WRITE_TOOLS = [
+  {
+    name: "reply_to_guest",
+    description:
+      "Answer a guest on their booking thread. They get an email with the reply and a link back to the page. Marks the conversation read.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        code: { type: "string", description: "The booking's confirmation code." },
+        body: { type: "string", description: "What to say. Write it as Lauren and Jeremy would." },
+        from: { type: "string", description: "Who is answering, if it matters. Defaults to Camp Cedar Creek." },
+      },
+      required: ["code", "body"],
+    },
+  },
   {
     name: "set_ical_feeds",
     description:

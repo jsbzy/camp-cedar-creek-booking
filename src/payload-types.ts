@@ -68,6 +68,7 @@ export interface Config {
   blocks: {};
   collections: {
     bookings: Booking;
+    messages: Message;
     guests: Guest;
     'event-inquiries': EventInquiry;
     'blocked-dates': BlockedDate;
@@ -86,6 +87,7 @@ export interface Config {
   collectionsJoins: {};
   collectionsSelect: {
     bookings: BookingsSelect<false> | BookingsSelect<true>;
+    messages: MessagesSelect<false> | MessagesSelect<true>;
     guests: GuestsSelect<false> | GuestsSelect<true>;
     'event-inquiries': EventInquiriesSelect<false> | EventInquiriesSelect<true>;
     'blocked-dates': BlockedDatesSelect<false> | BlockedDatesSelect<true>;
@@ -368,6 +370,37 @@ export interface Guest {
   createdAt: string;
 }
 /**
+ * Guest conversations, from the booking page. Reply here or ask Cici.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "messages".
+ */
+export interface Message {
+  id: number;
+  preview?: string | null;
+  from: 'guest' | 'host';
+  /**
+   * Cleared when a guest writes; set once someone has seen it.
+   */
+  readByOwner?: boolean | null;
+  body: string;
+  booking: number | Booking;
+  /**
+   * So the whole conversation sits on the guest's profile.
+   */
+  guest?: (number | null) | Guest;
+  /**
+   * Who wrote it, for host messages. Guests are named by the booking.
+   */
+  authorName?: string | null;
+  /**
+   * Written by the smoketest; never notifies anyone.
+   */
+  isTest?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * Requests for The Loft & grounds. Review and approve or decline.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -605,6 +638,10 @@ export interface PayloadLockedDocument {
         value: number | Booking;
       } | null)
     | ({
+        relationTo: 'messages';
+        value: number | Message;
+      } | null)
+    | ({
         relationTo: 'guests';
         value: number | Guest;
       } | null)
@@ -742,6 +779,22 @@ export interface BookingsSelect<T extends boolean = true> {
         dayBeforeSentAt?: T;
         postStaySentAt?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "messages_select".
+ */
+export interface MessagesSelect<T extends boolean = true> {
+  preview?: T;
+  from?: T;
+  readByOwner?: T;
+  body?: T;
+  booking?: T;
+  guest?: T;
+  authorName?: T;
+  isTest?: T;
   updatedAt?: T;
   createdAt?: T;
 }
