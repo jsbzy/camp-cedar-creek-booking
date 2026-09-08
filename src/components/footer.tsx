@@ -11,18 +11,15 @@ const columns = [
   {
     title: "Info",
     links: [
-      { href: "/contact", label: "Contact" },
-      { href: "/faq", label: "FAQ" },
-    ],
-  },
-  {
-    title: "Legal",
-    links: [
-      { href: "/privacy", label: "Privacy" },
-      { href: "/terms", label: "Terms" },
+      { href: "mailto:hello@campcedarcreek.com", label: "Contact" },
     ],
   },
 ];
+// FAQ, Privacy and Terms were here pointing at pages that were never built.
+// Every one of them 404'd, and because Next prefetches footer links, all four
+// threw console errors on every page of the site. They come back when the
+// pages exist: Privacy and Terms need real text rather than invented text, so
+// they are filed as a request instead of guessed at.
 
 export function Footer() {
   return (
