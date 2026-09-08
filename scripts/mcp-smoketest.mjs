@@ -47,6 +47,8 @@ const SITE_NAME = "King Bolete";
 ok("a bad key is refused", (await rpc("nope", "initialize", {})).unauthorized === true);
 const init = await rpc(EDITOR, "initialize", { protocolVersion: "2025-06-18" });
 ok("initialize answers", /Camp Cedar Creek/.test(init.result?.serverInfo?.title || ""), JSON.stringify(init).slice(0, 200));
+ok("it introduces itself as Cici", /\bCici\b/.test(init.result?.serverInfo?.title || "") && /You are Cici/.test(init.result?.instructions || ""));
+ok("it does not pretend not to be Claude", /you are Claude/i.test(init.result?.instructions || ""));
 const eTools = (await rpc(EDITOR, "tools/list")).result.tools.map((t) => t.name);
 const aTools = (await rpc(ADMIN, "tools/list")).result.tools.map((t) => t.name);
 ok("both keys get the same tools", eTools.length === aTools.length && eTools.every((t) => aTools.includes(t)));

@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
       return ok(id, {
         protocolVersion: PROTO.includes(want) ? want : PROTO[1],
         capabilities: { tools: { listChanged: false } },
-        serverInfo: { name: "camp-cedar-creek", version: "2.0.0", title: "Camp Cedar Creek" },
+        serverInfo: { name: "cici", version: "2.1.0", title: "Cici · Camp Cedar Creek" },
         instructions: await instructionsWithRules(),
       });
     }
