@@ -73,6 +73,8 @@ export interface Config {
     'event-inquiries': EventInquiry;
     addons: Addon;
     reviews: Review;
+    pages: Page;
+    requests: Request;
     media: Media;
     users: User;
     'payload-kv': PayloadKv;
@@ -88,6 +90,8 @@ export interface Config {
     'event-inquiries': EventInquiriesSelect<false> | EventInquiriesSelect<true>;
     addons: AddonsSelect<false> | AddonsSelect<true>;
     reviews: ReviewsSelect<false> | ReviewsSelect<true>;
+    pages: PagesSelect<false> | PagesSelect<true>;
+    requests: RequestsSelect<false> | RequestsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
@@ -101,9 +105,11 @@ export interface Config {
   fallbackLocale: null;
   globals: {
     settings: Setting;
+    'brand-guide': BrandGuide;
   };
   globalsSelect: {
     settings: SettingsSelect<false> | SettingsSelect<true>;
+    'brand-guide': BrandGuideSelect<false> | BrandGuideSelect<true>;
   };
   locale: null;
   widgets: {
@@ -407,6 +413,60 @@ export interface Review {
   createdAt: string;
 }
 /**
+ * The marketing pages. Saving makes a draft; publishing puts it live.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pages".
+ */
+export interface Page {
+  id: number;
+  title: string;
+  /**
+   * The homepage is "home". Others become /p/<slug>.
+   */
+  slug: string;
+  /**
+   * The complete page. Edited through the connector; every change is validated against the Brand Guide.
+   */
+  html: string;
+  /**
+   * What changed and why, on the last edit.
+   */
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * New features and bigger changes, captured as they come up.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "requests".
+ */
+export interface Request {
+  id: number;
+  title: string;
+  /**
+   * What they want, in their words, and why.
+   */
+  detail?: string | null;
+  status?: ('new' | 'planned' | 'building' | 'done' | 'declined') | null;
+  /**
+   * Small: an hour or two. Big: needs a plan and a test pass.
+   */
+  size?: ('unknown' | 'small' | 'big') | null;
+  /**
+   * Who asked.
+   */
+  requestedBy?: string | null;
+  /**
+   * What was decided or shipped.
+   */
+  response?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * Uploaded photos. (Site photos currently use hosted URLs — uploads move to R2 at launch.)
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -503,6 +563,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'reviews';
         value: number | Review;
+      } | null)
+    | ({
+        relationTo: 'pages';
+        value: number | Page;
+      } | null)
+    | ({
+        relationTo: 'requests';
+        value: number | Request;
       } | null)
     | ({
         relationTo: 'media';
@@ -729,6 +797,33 @@ export interface ReviewsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pages_select".
+ */
+export interface PagesSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  html?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "requests_select".
+ */
+export interface RequestsSelect<T extends boolean = true> {
+  title?: T;
+  detail?: T;
+  status?: T;
+  size?: T;
+  requestedBy?: T;
+  response?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media_select".
  */
 export interface MediaSelect<T extends boolean = true> {
@@ -886,6 +981,21 @@ export interface Setting {
   createdAt?: string | null;
 }
 /**
+ * What the site may say and how it may say it. The LAW block at the bottom is enforced on every edit made through the connector.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "brand-guide".
+ */
+export interface BrandGuide {
+  id: number;
+  /**
+   * Must keep a parseable ```json LAW block, or all writes are refused.
+   */
+  markdown: string;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "settings_select".
  */
@@ -937,6 +1047,16 @@ export interface SettingsSelect<T extends boolean = true> {
         count?: T;
         breakdown?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "brand-guide_select".
+ */
+export interface BrandGuideSelect<T extends boolean = true> {
+  markdown?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

@@ -26,10 +26,23 @@ cd ~/repos/camp-cedar-creek-booking && npm run dev   # port 3000 is taken on bzy
 
 Dev server on http://localhost:3000, admin at /admin. Seed the DB: `npm run seed`.
 
+## How we build here
+
+Incremental and tested, always. One change at a time, verified before the
+next. Every change to the connector or the Brand Guide runs
+`npx tsx src/lib/mcp/validate.test.ts` (pure, fast) and
+`node scripts/mcp-smoketest.mjs <base> <admin_key> <editor_key>` (end to end,
+self-cleaning) before it ships. Do not add a feature without a test that
+would catch it breaking. If a request needs new machinery, file it in the
+Requests collection rather than half-building it: the site staying small is
+a feature.
+
 ## Conventions
 
 - Fonts: Poppins (headings 600/700), Roboto (body 300/400) — matches campcedarcreek.com.
 - Palette: black/white/off-white only; photography carries the color. No accent colors.
-- Data access goes through `src/lib/data/*` — pages/components never import Payload directly.
+- Data access goes through `src/lib/data/*`; pages and components never import Payload directly.
+- The homepage is a Payload `pages` document (slug `home`), drafts on: saving stages, publishing is a separate act. `/` serves published, `/preview` serves the draft.
+- The connector is `src/app/api/mcp/route.ts` with pure logic in `src/lib/mcp/`. Two tiers: `MCP_ADMIN_KEY`, `MCP_EDITOR_KEY`.
 - Bookings are never deleted, only status-changed (pending | confirmed | cancelled | completed | refunded).
 - Deploys: Vercel project `camp-cedar-creek-booking` (jsbzys-projects). Do not push/deploy mid-phase; verify locally first.

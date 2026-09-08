@@ -1,0 +1,73 @@
+import { NextRequest } from "next/server";
+import { callTool, type Tier } from "@/lib/mcp/tools";
+import { READ_TOOLS, WRITE_TOOLS, ADMIN_TOOLS, INSTRUCTIONS } from "@/lib/mcp/toolDefs";
+
+// MCP connector for Camp Cedar Creek. Streamable-HTTP JSON-RPC, stateless.
+// Two tiers: ?k=<MCP_ADMIN_KEY> or ?k=<MCP_EDITOR_KEY>. Editors do the daily
+// work; admins publish the homepage, change the rules, and touch bookings.
+//
+// This runs on Node (not edge) because the tools use Payload's local API.
+
+export const dynamic = "force-dynamic";
+export const maxDuration = 60;
+
+const PROTO = ["2025-06-18", "2025-03-26", "2024-11-05"];
+
+function tierFor(key: string): Tier | null {
+  if (key && key === process.env.MCP_ADMIN_KEY) return "admin";
+  if (key && key === process.env.MCP_EDITOR_KEY) return "editor";
+  return null;
+}
+
+const json = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
+const ok = (id: unknown, result: unknown) => json({ jsonrpc: "2.0", id, result });
+const rpcError = (id: unknown, code: number, message: string) => json({ jsonrpc: "2.0", id, error: { code, message } });
+
+export async function GET() {
+  return new Response(null, { status: 405 });
+}
+export async function DELETE() {
+  return new Response(null, { status: 200 });
+}
+
+export async function POST(request: NextRequest) {
+  const tier = tierFor(request.nextUrl.searchParams.get("k") || "");
+  if (!tier) return new Response("Unauthorized", { status: 401 });
+
+  let msg: any;
+  try {
+    msg = await request.json();
+  } catch {
+    return rpcError(null, -32700, "Parse error");
+  }
+  if (Array.isArray(msg)) return rpcError(null, -32600, "Batches not supported");
+
+  const { id, method, params } = msg || {};
+  if (id === undefined || id === null) return new Response(null, { status: 202 }); // notification
+
+  try {
+    if (method === "initialize") {
+      const want = params?.protocolVersion;
+      return ok(id, {
+        protocolVersion: PROTO.includes(want) ? want : PROTO[1],
+        capabilities: { tools: { listChanged: false } },
+        serverInfo: { name: "camp-cedar-creek", version: "1.0.0", title: `Camp Cedar Creek (${tier})` },
+        instructions: INSTRUCTIONS,
+      });
+    }
+    if (method === "ping") return ok(id, {});
+    if (method === "tools/list")
+      return ok(id, { tools: tier === "admin" ? [...READ_TOOLS, ...WRITE_TOOLS, ...ADMIN_TOOLS] : [...READ_TOOLS, ...WRITE_TOOLS] });
+    if (method === "tools/call") {
+      const r = await callTool(params.name, params.arguments || {}, tier);
+      return ok(id, { content: [{ type: "text", text: r.text }], isError: !!r.isError });
+    }
+    if (method === "resources/list") return ok(id, { resources: [] });
+    if (method === "prompts/list") return ok(id, { prompts: [] });
+    return rpcError(id, -32601, `Method not found: ${method}`);
+  } catch (e: any) {
+    console.error("[mcp]", method, params?.name, e);
+    return rpcError(id, -32603, `Internal error: ${e?.message}`);
+  }
+}
