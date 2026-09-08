@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { callTool } from "@/lib/mcp/tools";
-import { READ_TOOLS, WRITE_TOOLS, ADMIN_TOOLS, INSTRUCTIONS } from "@/lib/mcp/toolDefs";
+import { READ_TOOLS, WRITE_TOOLS, ADMIN_TOOLS, instructions, assistantName } from "@/lib/mcp/toolDefs";
 import { lawFrom, rulesSummary } from "@/lib/mcp/validate";
 import { getDb } from "@/lib/data/db";
 
@@ -46,11 +46,12 @@ async function instructionsWithRules(): Promise<string> {
     const db = await getDb();
     const guide: any = await db.findGlobal({ slug: "brand-guide" });
     const rules = rulesSummary(lawFrom(guide?.markdown));
-    return rules ? `${INSTRUCTIONS}\n\nThe rules:\n${rules}` : INSTRUCTIONS;
+    const base = instructions();
+    return rules ? `${base}\n\nThe rules:\n${rules}` : base;
   } catch (e) {
     // Never fail a connection over this. The server still enforces the rules.
     console.error("[mcp] could not attach rules to instructions:", e);
-    return INSTRUCTIONS;
+    return instructions();
   }
 }
 
@@ -74,7 +75,7 @@ export async function POST(request: NextRequest) {
       return ok(id, {
         protocolVersion: PROTO.includes(want) ? want : PROTO[1],
         capabilities: { tools: { listChanged: false } },
-        serverInfo: { name: "cici", version: "2.1.0", title: "Cici · Camp Cedar Creek" },
+        serverInfo: { name: "camp-cedar-creek", version: "2.2.0", title: `${assistantName()} · Camp Cedar Creek` },
         instructions: await instructionsWithRules(),
       });
     }

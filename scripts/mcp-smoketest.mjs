@@ -50,7 +50,11 @@ const SITE_NAME = "King Bolete";
 ok("a bad key is refused", (await rpc("nope", "initialize", {})).unauthorized === true);
 const init = await rpc(EDITOR, "initialize", { protocolVersion: "2025-06-18" });
 ok("initialize answers", /Camp Cedar Creek/.test(init.result?.serverInfo?.title || ""), JSON.stringify(init).slice(0, 200));
-ok("it introduces itself as Cici", /\bCici\b/.test(init.result?.serverInfo?.title || "") && /You are Cici/.test(init.result?.instructions || ""));
+// The name is a setting now, so assert the label and the instructions agree
+// rather than asserting one particular name.
+const who = (init.result?.serverInfo?.title || "").split("\u00b7")[0].trim();
+ok("it has a name", !!who, JSON.stringify(init.result?.serverInfo));
+ok("the name in the label matches the one it introduces itself by", new RegExp(`You are ${who},`).test(init.result?.instructions || ""), who);
 ok("it does not pretend not to be Claude", /you are Claude/i.test(init.result?.instructions || ""));
 const eTools = (await rpc(EDITOR, "tools/list")).result.tools.map((t) => t.name);
 const aTools = (await rpc(ADMIN, "tools/list")).result.tools.map((t) => t.name);
@@ -58,7 +62,7 @@ ok("both keys get the same tools", eTools.length === aTools.length && eTools.eve
 ok("everything is on both keys", ["set_rates", "block_dates", "update_site", "add_request", "publish_homepage", "set_booking_status", "update_brand_guide"].every((t) => eTools.includes(t)));
 ok("the undo tools are offered", eTools.includes("recent_changes") && eTools.includes("restore_version"));
 ok("the rules travel with the connection", /no em dashes/.test(init.result?.instructions || ""), (init.result?.instructions || "").slice(-120));
-ok("the four kinds of request are spelled out", ["ASKING", "CHANGING", "ADDING", "NEW MACHINERY"].every((k) => (init.result?.instructions || "").includes(k)));
+ok("the four kinds of ask are spelled out, in the owners' own words", ["ASK.", "UPDATE.", "ADD.", "BUILD."].every((k) => (init.result?.instructions || "").includes(k)));
 
 // --- reading ---
 const guide = await call(EDITOR, "read_brand_guide");
