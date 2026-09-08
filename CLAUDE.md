@@ -2,7 +2,7 @@
 
 Hipcamp-style direct booking system for Camp Cedar Creek (Sandy, OR). 21 bookable sites + event inquiries. Full spec: `docs/BUILD_PLAN.md` (data model, emails, iCal architecture, real site inventory — read it before big changes).
 
-**Deployed 2026-09-07 (Phase 4 done).** Staging is live at https://camp-cedar-creek-booking.bzy.design on Neon Postgres (Vercel marketplace, project `camp-cedar-creek-booking`), Stripe off (no keys → direct-confirm), emails via Resend to jeff@bzydigital.com. **`main` deploys on push** — the build runs `payload migrate && next build`. Work on `payload-backend`, merge `--ff-only` into `main` to ship. Admin login: `ADMIN.local.md` (gitignored). Owner test script: `docs/TESTING.md`. Runbook: `docs/DEPLOY.md`. Never run `npm run seed` or `npm run dev` against the Neon URI — `push:false` in the adapter now guards it, but `seed` poisoned the migration state once (see DEPLOY.md).
+**Deployed 2026-09-07 (Phase 4 done).** Staging is live at https://camp-cedar-creek-booking.bzy.design on Neon Postgres (Vercel marketplace, project `camp-cedar-creek-booking`), Stripe off (no keys → direct-confirm), emails via Resend to jeff@bzydesign.com. **`main` deploys on push** — the build runs `payload migrate && next build`. Work on `payload-backend`, merge `--ff-only` into `main` to ship. Admin login: `ADMIN.local.md` (gitignored). Owner test script: `docs/TESTING.md`. Runbook: `docs/DEPLOY.md`. Never run `npm run seed` or `npm run dev` against the Neon URI — `push:false` in the adapter now guards it, but `seed` poisoned the migration state once (see DEPLOY.md).
 
 ## Decisions (locked 2026-07-08)
 
