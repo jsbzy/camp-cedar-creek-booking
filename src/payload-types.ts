@@ -69,6 +69,7 @@ export interface Config {
   collections: {
     sites: Site;
     bookings: Booking;
+    guests: Guest;
     'blocked-dates': BlockedDate;
     'event-inquiries': EventInquiry;
     addons: Addon;
@@ -86,6 +87,7 @@ export interface Config {
   collectionsSelect: {
     sites: SitesSelect<false> | SitesSelect<true>;
     bookings: BookingsSelect<false> | BookingsSelect<true>;
+    guests: GuestsSelect<false> | GuestsSelect<true>;
     'blocked-dates': BlockedDatesSelect<false> | BlockedDatesSelect<true>;
     'event-inquiries': EventInquiriesSelect<false> | EventInquiriesSelect<true>;
     addons: AddonsSelect<false> | AddonsSelect<true>;
@@ -286,6 +288,10 @@ export interface Booking {
   waiverSigned?: boolean | null;
   waiverSignature?: string | null;
   /**
+   * Their profile and past stays. Linked automatically.
+   */
+  guestProfile?: (number | null) | Guest;
+  /**
    * Made by the automated test suite. Never emails the owners; excluded from reports.
    */
   isTest?: boolean | null;
@@ -308,6 +314,56 @@ export interface Booking {
     dayBeforeSentAt?: string | null;
     postStaySentAt?: string | null;
   };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Everyone who has stayed. Built from bookings; add your own notes.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "guests".
+ */
+export interface Guest {
+  id: number;
+  displayName: string;
+  /**
+   * What you want to remember. Two dogs, likes site 4, asked about a wedding.
+   */
+  notes?: string | null;
+  primaryEmail?: string | null;
+  primaryPhone?: string | null;
+  /**
+   * Matched to an existing guest by name alone. Confirm it is the same person, then untick.
+   */
+  needsReview?: boolean | null;
+  reviewNote?: string | null;
+  emails?:
+    | {
+        value?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  phones?:
+    | {
+        value?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  names?:
+    | {
+        value?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  stayCount?: number | null;
+  nightsTotal?: number | null;
+  spendTotal?: number | null;
+  firstStay?: string | null;
+  lastStay?: string | null;
+  /**
+   * Demo data. Remove before launch.
+   */
+  isExample?: boolean | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -553,6 +609,10 @@ export interface PayloadLockedDocument {
         value: number | Booking;
       } | null)
     | ({
+        relationTo: 'guests';
+        value: number | Guest;
+      } | null)
+    | ({
         relationTo: 'blocked-dates';
         value: number | BlockedDate;
       } | null)
@@ -715,6 +775,7 @@ export interface BookingsSelect<T extends boolean = true> {
   total?: T;
   waiverSigned?: T;
   waiverSignature?: T;
+  guestProfile?: T;
   isTest?: T;
   source?: T;
   magicLinkToken?: T;
@@ -731,6 +792,44 @@ export interface BookingsSelect<T extends boolean = true> {
         dayBeforeSentAt?: T;
         postStaySentAt?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "guests_select".
+ */
+export interface GuestsSelect<T extends boolean = true> {
+  displayName?: T;
+  notes?: T;
+  primaryEmail?: T;
+  primaryPhone?: T;
+  needsReview?: T;
+  reviewNote?: T;
+  emails?:
+    | T
+    | {
+        value?: T;
+        id?: T;
+      };
+  phones?:
+    | T
+    | {
+        value?: T;
+        id?: T;
+      };
+  names?:
+    | T
+    | {
+        value?: T;
+        id?: T;
+      };
+  stayCount?: T;
+  nightsTotal?: T;
+  spendTotal?: T;
+  firstStay?: T;
+  lastStay?: T;
+  isExample?: T;
   updatedAt?: T;
   createdAt?: T;
 }

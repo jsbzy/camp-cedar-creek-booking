@@ -115,6 +115,12 @@ export const Bookings: CollectionConfig = {
       admin: { hidden: true },
     },
     {
+      name: "guestProfile",
+      type: "relationship",
+      relationTo: "guests",
+      admin: { position: "sidebar", description: "Their profile and past stays. Linked automatically." },
+    },
+    {
       name: "isTest",
       type: "checkbox",
       defaultValue: false,

@@ -1,5 +1,6 @@
 import type { Booking } from "@/types";
 import { getDb } from "./db";
+import { attachGuestToBooking, refreshGuestForBooking } from "@/lib/guests/attach";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 function mapBooking(doc: any): Booking {
@@ -83,6 +84,15 @@ export async function createBooking(
       source: "direct",
     },
   });
+  // Link the booking to a guest profile, creating one if this is someone new.
+  // Test bookings get no profile: the guest list is for real people.
+  // Never let a CRM problem fail a booking.
+  try {
+    if (!options.isTest) await attachGuestToBooking(doc.id, input.guest);
+  } catch (err) {
+    console.error("[guests] could not attach a profile to " + doc.id + ":", err);
+  }
+
   return mapBooking(doc);
 }
 
@@ -138,7 +148,7 @@ export async function cancelBooking(
   confirmationCode: string,
   opts: { reason?: string; refundAmount: number; refunded?: boolean }
 ): Promise<Booking | undefined> {
-  return updateByCode(confirmationCode, {
+  const updated = await updateByCode(confirmationCode, {
     // "refunded" only once money has actually moved (Stripe refund issued);
     // until keys exist the demo flow always lands on "cancelled".
     status: opts.refunded ? "refunded" : "cancelled",
@@ -146,6 +156,15 @@ export async function cancelBooking(
     cancelledAt: new Date().toISOString(),
     refundAmount: opts.refundAmount,
   });
+  // Their totals move when a stay is cancelled.
+  if (updated) {
+    try {
+      await refreshGuestForBooking(updated.id);
+    } catch (err) {
+      console.error("[guests] could not refresh totals after cancelling " + confirmationCode + ":", err);
+    }
+  }
+  return updated;
 }
 
 export async function markNotificationSent(

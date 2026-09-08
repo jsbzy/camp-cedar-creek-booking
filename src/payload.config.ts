@@ -18,6 +18,7 @@ import { Reviews } from "./collections/Reviews";
 import { Settings } from "./globals/Settings";
 import { Pages } from "./collections/Pages";
 import { Requests } from "./collections/Requests";
+import { Guests } from "./collections/Guests";
 import { BrandGuide } from "./globals/BrandGuide";
 
 const filename = fileURLToPath(import.meta.url);
@@ -72,7 +73,7 @@ export default buildConfig({
   routes: {
     api: "/payload-api",
   },
-  collections: [Sites, Bookings, BlockedDates, EventInquiries, Addons, Reviews, Pages, Requests, Media, Users],
+  collections: [Sites, Bookings, Guests, BlockedDates, EventInquiries, Addons, Reviews, Pages, Requests, Media, Users],
   globals: [Settings, BrandGuide],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || "ccc-dev-secret-change-before-prod",

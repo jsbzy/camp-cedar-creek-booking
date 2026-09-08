@@ -1,0 +1,114 @@
+import React from "react";
+import type { UIFieldServerProps } from "payload";
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+// The guest, the way an owner reads them: how often they have come, what they
+// spent, and every stay listed. Server-rendered so it can query the bookings.
+
+const money = (n: unknown) =>
+  typeof n === "number" ? n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }) : "—";
+
+function longDate(s: unknown): string {
+  if (typeof s !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return "—";
+  const [y, m, d] = s.split("-").map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
+const STATUS: Record<string, { bg: string; fg: string }> = {
+  confirmed: { bg: "#e3f4e8", fg: "#1d6b3a" },
+  pending: { bg: "#fff4d6", fg: "#7a5a00" },
+  completed: { bg: "#eceae6", fg: "#4a4741" },
+  cancelled: { bg: "#f3e3e3", fg: "#8a2b2b" },
+  refunded: { bg: "#e6ecf7", fg: "#2b4a8a" },
+};
+
+export async function GuestSummary({ data, payload }: UIFieldServerProps) {
+  const guestId = (data as any)?.id;
+  if (!guestId) {
+    return (
+      <div style={{ padding: "14px 0", color: "#777", fontSize: 14 }}>
+        Guests are created automatically when a booking is made. Save this one and their stays will appear here.
+      </div>
+    );
+  }
+
+  const res = await payload.find({
+    collection: "bookings",
+    where: { guestProfile: { equals: guestId } },
+    sort: "-checkIn",
+    limit: 50,
+    depth: 0,
+  });
+  const bookings = res.docs as any[];
+  const counted = bookings.filter((b) => !["cancelled", "refunded"].includes(b.status) && !b.isTest);
+  const nights = counted.reduce((a, b) => a + (b.nights ?? 0), 0);
+  const spend = counted.reduce((a, b) => a + (b.total ?? 0), 0);
+  const d = data as any;
+
+  const s: Record<string, React.CSSProperties> = {
+    card: { border: "1px solid #e3e1dc", borderRadius: 8, background: "#fff", padding: "20px 22px", marginBottom: 26 },
+    top: { display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 16, flexWrap: "wrap" },
+    name: { fontSize: 22, fontWeight: 600, margin: 0, lineHeight: 1.2 },
+    contact: { fontSize: 13.5, color: "#666", marginTop: 4 },
+    stats: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(110px,1fr))", gap: 14, marginTop: 18, paddingTop: 16, borderTop: "1px solid #eee" },
+    k: { fontSize: 11, letterSpacing: ".08em", textTransform: "uppercase", color: "#888", marginBottom: 2 },
+    v: { fontSize: 20, fontWeight: 600, color: "#1f1f1d", fontVariantNumeric: "tabular-nums" },
+    sub: { fontSize: 12.5, color: "#777" },
+    h: { fontSize: 11, letterSpacing: ".08em", textTransform: "uppercase", color: "#888", margin: "20px 0 6px", paddingTop: 16, borderTop: "1px solid #eee" },
+    row: { display: "flex", alignItems: "center", gap: 12, padding: "9px 0", borderBottom: "1px solid #f2f1ee", fontSize: 14, textDecoration: "none", color: "#1f1f1d" },
+    pill: { fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 999, whiteSpace: "nowrap" },
+    flag: { marginTop: 14, padding: "10px 14px", borderRadius: 6, background: "#fff4d6", color: "#7a5a00", fontSize: 13.5 },
+  };
+
+  return (
+    <div style={s.card}>
+      <div style={s.top}>
+        <div>
+          <p style={s.name}>{d.displayName || "Guest"}</p>
+          <div style={s.contact}>
+            {d.primaryEmail ? <a href={`mailto:${d.primaryEmail}`} style={{ color: "inherit" }}>{d.primaryEmail}</a> : "no email on file"}
+            {d.primaryPhone ? ` · ${d.primaryPhone}` : ""}
+          </div>
+        </div>
+        {counted.length > 1 ? (
+          <span style={{ ...s.pill, background: "#1f1f1d", color: "#fff" }}>Repeat guest</span>
+        ) : null}
+      </div>
+
+      <div style={s.stats}>
+        <div><div style={s.k}>Stays</div><div style={s.v}>{counted.length}</div></div>
+        <div><div style={s.k}>Nights</div><div style={s.v}>{nights}</div></div>
+        <div><div style={s.k}>Spent</div><div style={s.v}>{money(spend)}</div></div>
+        <div><div style={s.k}>First</div><div style={s.v} /><div style={s.sub}>{longDate(d.firstStay)}</div></div>
+        <div><div style={s.k}>Last</div><div style={s.v} /><div style={s.sub}>{longDate(d.lastStay)}</div></div>
+      </div>
+
+      {d.needsReview ? (
+        <div style={s.flag}>
+          <b>Check this is the same person.</b> {d.reviewNote || "Matched by name alone."} If it is someone else, clear the
+          matching keys and untick “Needs review”.
+        </div>
+      ) : null}
+
+      <div style={s.h}>Stays</div>
+      {bookings.length ? (
+        bookings.map((b) => {
+          const st = STATUS[b.status] ?? STATUS.completed;
+          return (
+            <a key={b.id} href={`/admin/collections/bookings/${b.id}`} style={s.row}>
+              <span style={{ flex: "0 0 150px", color: "#666" }}>{longDate(b.checkIn)}</span>
+              <span style={{ flex: 1, fontWeight: 500 }}>{b.siteName}</span>
+              <span style={{ flex: "0 0 70px", color: "#666" }}>{b.nights}n</span>
+              <span style={{ flex: "0 0 70px", textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{money(b.total)}</span>
+              <span style={{ ...s.pill, background: st.bg, color: st.fg }}>{b.status}</span>
+              {b.isTest ? <span style={{ ...s.pill, background: "#eee", color: "#777" }}>test</span> : null}
+            </a>
+          );
+        })
+      ) : (
+        <div style={{ color: "#999", fontSize: 14, padding: "8px 0" }}>No stays recorded yet.</div>
+      )}
+    </div>
+  );
+}

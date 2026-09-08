@@ -17,7 +17,8 @@
     "seed:content": "tsx scripts/seed-content.ts",
     "test": "tsx src/lib/mcp/validate.test.ts",
     "test:booking": "node scripts/booking-smoketest.mjs",
-    "test:connector": "node scripts/mcp-smoketest.mjs"
+    "test:connector": "node scripts/mcp-smoketest.mjs",
+    "seed:guests": "tsx scripts/seed-guests.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",
