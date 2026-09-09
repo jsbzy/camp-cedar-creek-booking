@@ -568,7 +568,7 @@ export interface Request {
   createdAt: string;
 }
 /**
- * Uploaded photos. (Site photos currently use hosted URLs. Uploads move to R2 at launch.)
+ * Every photo on the site. Stored by us, so nothing breaks when a listing elsewhere comes down.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media".
