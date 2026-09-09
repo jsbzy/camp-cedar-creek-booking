@@ -30,6 +30,16 @@ export async function POST(request: NextRequest) {
         removed++;
       }
     }
+
+    // Requests too. The suite files one every run to prove add_request works,
+    // and declining it is not enough: the list is what the owners read to see
+    // what is coming, and half of it had become "smoketest test request".
+    const reqs = await db.find({ collection: "requests", pagination: false, depth: 0, where: { title: { like: "smoketest-" } } });
+    for (const doc of reqs.docs as { id: number | string; title?: string }[]) {
+      if (!doc.title?.startsWith("smoketest-")) continue;
+      await db.delete({ collection: "requests", id: doc.id });
+      removed++;
+    }
     return NextResponse.json({ removed });
   }
 

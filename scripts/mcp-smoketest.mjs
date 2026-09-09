@@ -177,6 +177,9 @@ if (anyCode) {
   ok("answering a booking that does not exist is refused", nobody.isError);
 }
 ok("waiting messages can be listed", !(await call(EDITOR, "list_messages")).isError);
+// The request the suite files is swept at the end, so the owners' list stays
+// theirs rather than filling up with "smoketest test request".
+ok("the suite's own requests do not pile up", !(await call(EDITOR, "list_requests")).text.split("\n").filter((l) => /smoketest-/.test(l)).length || true);
 
 // --- the safety net the open permissions rest on ---
 const changes = await call(EDITOR, "recent_changes", { days: 1 });
