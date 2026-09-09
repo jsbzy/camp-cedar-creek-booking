@@ -4,7 +4,6 @@ import { Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { Site } from "@/types";
 import { siteTypes } from "@/lib/site-types";
-import { getPropertyRating } from "@/lib/data";
 
 interface SiteCardProps {
   site: Site;
@@ -12,7 +11,6 @@ interface SiteCardProps {
 
 export async function SiteCard({ site }: SiteCardProps) {
   const typeInfo = siteTypes.find((t) => t.type === site.type);
-  const propertyRating = await getPropertyRating();
 
   return (
     <Link href={`/sites/${site.type}/${site.slug}`} className="group block">
@@ -38,11 +36,18 @@ export async function SiteCard({ site }: SiteCardProps) {
           </p>
           <div className="mt-3 flex items-center justify-between text-sm">
             <span className="font-semibold">From ${site.basePrice}/night</span>
-            <div className="flex items-center gap-1 text-muted-foreground">
-              <Star className="size-3 fill-cedar text-cedar" />
-              <span className="text-xs font-medium text-foreground">{propertyRating.average}</span>
-              <span className="text-xs">({propertyRating.count})</span>
-            </div>
+            {/* This site's own score, from Hipcamp. Every card used to show the
+                property-wide figure, so all 21 sites claimed an identical
+                "4.9 (427)", which reads as invented the moment you compare two.
+                A site with no reviews yet shows nothing, which is honest and
+                looks better than a number nobody earned. */}
+            {typeof site.rating === "number" && site.reviewCount ? (
+              <div className="flex items-center gap-1 text-muted-foreground">
+                <Star className="size-3 fill-cedar text-cedar" />
+                <span className="text-xs font-medium text-foreground">{site.rating}%</span>
+                <span className="text-xs">({site.reviewCount})</span>
+              </div>
+            ) : null}
           </div>
         </div>
       </div>

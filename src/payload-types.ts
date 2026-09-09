@@ -292,6 +292,14 @@ export interface Site {
    */
   sortOrder?: number | null;
   /**
+   * Hipcamp's recommend score for this site, as a percentage. Leave empty and no rating is shown, which is better than showing one nobody earned.
+   */
+  rating?: number | null;
+  /**
+   * How many reviews that percentage is based on.
+   */
+  reviewCount?: number | null;
+  /**
    * Paste this into Hipcamp → Calendar → Sync calendars → Import, and into Airbnb for the cottage. Bookings made here then block those dates there.
    */
   icalExportUrl?: string | null;
@@ -907,6 +915,8 @@ export interface SitesSelect<T extends boolean = true> {
   latitude?: T;
   longitude?: T;
   sortOrder?: T;
+  rating?: T;
+  reviewCount?: T;
   icalExportUrl?: T;
   icalImportUrls?:
     | T

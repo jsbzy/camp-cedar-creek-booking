@@ -5,6 +5,7 @@ import * as migration_20260908_033826_booking_is_test from './20260908_033826_bo
 import * as migration_20260908_043743_guests from './20260908_043743_guests';
 import * as migration_20260908_063100_versions_for_sites_addons_blocks_settings from './20260908_063100_versions_for_sites_addons_blocks_settings';
 import * as migration_20260908_232720_guest_messages from './20260908_232720_guest_messages';
+import * as migration_20260909_020437_site_ratings from './20260909_020437_site_ratings';
 
 export const migrations = [
   {
@@ -40,6 +41,11 @@ export const migrations = [
   {
     up: migration_20260908_232720_guest_messages.up,
     down: migration_20260908_232720_guest_messages.down,
-    name: '20260908_232720_guest_messages'
+    name: '20260908_232720_guest_messages',
+  },
+  {
+    up: migration_20260909_020437_site_ratings.up,
+    down: migration_20260909_020437_site_ratings.down,
+    name: '20260909_020437_site_ratings'
   },
 ];

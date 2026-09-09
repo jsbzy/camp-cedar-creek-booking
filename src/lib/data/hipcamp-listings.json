@@ -1,0 +1,23 @@
+{
+  "_source": "Scraped 2026-09-08 from the owners' two Hipcamp listings: oregon-camp-cedar-creek-1-9mxhzov1 and oregon-mt-hood-vanlife-oasis-w-coworking-9mxhk92x. Percentages are Hipcamp's recommend score, not a star rating.",
+  "sites": {
+    "fairy-ring":        { "pct": 97,  "count": 70, "sleeps": 10, "price": 63 },
+    "candy-cap":         { "pct": 99,  "count": 66, "sleeps": 16, "price": 84 },
+    "reishi":            { "pct": 98,  "count": 48, "sleeps": 6,  "price": 50 },
+    "lions-mane":        { "pct": 97,  "count": 85, "sleeps": 8,  "price": 60 },
+    "morel":             { "pct": 99,  "count": 67, "sleeps": 4,  "price": 50 },
+    "king-bolete":       { "pct": 97,  "count": 56, "sleeps": 10, "price": 63 },
+    "amanita":           { "pct": 97,  "count": 43, "sleeps": 4,  "price": 40 },
+    "chanterelle":       { "pct": 98,  "count": 27, "sleeps": 12, "price": 84 },
+    "puffball":          { "pct": 98,  "count": 27, "sleeps": 30, "price": 168 },
+    "turkey-tail":       { "pct": 100, "count": 19, "sleeps": 4,  "price": 50 },
+    "trailer-glampsite": { "pct": 100, "count": 5,  "sleeps": 2,  "price": 95 },
+    "solar-site-8":      { "pct": 100, "count": 12, "sleeps": 4,  "price": 32, "vehicleFt": 22 },
+    "power-site-6":      { "pct": 100, "count": 10, "sleeps": 4,  "price": 45, "vehicleFt": 33 },
+    "solar-site-4":      { "pct": 100, "count": 9,  "sleeps": 4,  "price": 36, "vehicleFt": 22 },
+    "solar-site-5":      { "pct": 100, "count": 5,  "sleeps": 4,  "price": 36, "vehicleFt": 33 },
+    "solar-site-9":      { "pct": 100, "count": 2,  "sleeps": 4,  "price": 36, "vehicleFt": 22 },
+    "power-site-3":      { "pct": 100, "count": 2,  "sleeps": 3,  "price": 45, "vehicleFt": 22 },
+    "power-site-7":      { "pct": 100, "count": 2,  "sleeps": 4,  "price": 45, "vehicleFt": 33 }
+  }
+}

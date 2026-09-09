@@ -72,14 +72,20 @@ export default async function SiteDetailPage({
                   <span className="text-sm text-muted-foreground">
                     Up to {site.maxGuests} guests
                   </span>
-                  <span className="text-sm text-muted-foreground">·</span>
-                  <div className="flex items-center gap-1 text-sm">
-                    <Star className="size-3.5 fill-cedar text-cedar" />
-                    <span className="font-medium">{rating.average}</span>
-                    <span className="text-muted-foreground">
-                      ({rating.count} reviews)
-                    </span>
-                  </div>
+                  {/* This site's own Hipcamp score, not the property's. Nothing
+                      is shown for a site that has not been reviewed yet. */}
+                  {typeof site.rating === "number" && site.reviewCount ? (
+                    <>
+                      <span className="text-sm text-muted-foreground">·</span>
+                      <div className="flex items-center gap-1 text-sm">
+                        <Star className="size-3.5 fill-cedar text-cedar" />
+                        <span className="font-medium">{site.rating}%</span>
+                        <span className="text-muted-foreground">
+                          ({site.reviewCount} {site.reviewCount === 1 ? "review" : "reviews"})
+                        </span>
+                      </div>
+                    </>
+                  ) : null}
                 </div>
               </div>
               {/* Price — visible on mobile, hidden on desktop (widget shows it) */}

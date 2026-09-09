@@ -184,6 +184,27 @@ export const Sites: CollectionConfig = {
       admin: { description: "Lower numbers appear first." },
     },
     {
+      type: "row",
+      fields: [
+        {
+          name: "rating",
+          type: "number",
+          min: 0,
+          max: 100,
+          admin: {
+            description:
+              "Hipcamp's recommend score for this site, as a percentage. Leave empty and no rating is shown, which is better than showing one nobody earned.",
+          },
+        },
+        {
+          name: "reviewCount",
+          type: "number",
+          min: 0,
+          admin: { description: "How many reviews that percentage is based on." },
+        },
+      ],
+    },
+    {
       name: "icalExportUrl",
       label: "This site's calendar (give this to Hipcamp / Airbnb)",
       type: "text",

@@ -5,6 +5,9 @@ export type SiteType =
   | "glamping";
 
 export interface Site {
+  /** Hipcamp recommend score for this site, 0-100. Absent means show nothing. */
+  rating?: number;
+  reviewCount?: number;
   id: string;
   slug: string;
   name: string;

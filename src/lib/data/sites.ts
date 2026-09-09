@@ -6,6 +6,8 @@ import { getDb } from "./db";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 function mapSite(doc: any): Site {
   return {
+    rating: typeof doc.rating === "number" ? doc.rating : undefined,
+    reviewCount: typeof doc.reviewCount === "number" ? doc.reviewCount : undefined,
     id: String(doc.id),
     slug: doc.slug,
     name: doc.name,
