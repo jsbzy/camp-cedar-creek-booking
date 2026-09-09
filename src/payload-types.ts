@@ -378,7 +378,7 @@ export interface Guest {
   createdAt: string;
 }
 /**
- * Guest conversations, from the booking page. Reply here or ask Cici.
+ * Every guest message, newest first. Open the booking or the guest to read a whole conversation. To answer, ask Cici.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "messages".
@@ -394,7 +394,7 @@ export interface Message {
   body: string;
   booking: number | Booking;
   /**
-   * So the whole conversation sits on the guest's profile.
+   * Set from the booking when the message is written, so the conversation also sits on the guest's profile. Empty on test bookings, which have no profile.
    */
   guest?: (number | null) | Guest;
   /**
