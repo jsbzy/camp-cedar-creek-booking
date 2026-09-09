@@ -4,6 +4,12 @@ Hipcamp-style direct booking system for Camp Cedar Creek (Sandy, OR). 21 bookabl
 
 **Deployed 2026-09-07 (Phase 4 done).** Staging is live at https://camp-cedar-creek-booking.bzy.design on Neon Postgres (Vercel marketplace, project `camp-cedar-creek-booking`), Stripe off (no keys → direct-confirm), emails via Resend to jeff@bzydesign.com. **`main` deploys on push** — the build runs `payload migrate && next build`. Work on `payload-backend`, merge `--ff-only` into `main` to ship. Admin login: `ADMIN.local.md` (gitignored). Owner test script: `docs/TESTING.md`. Runbook: `docs/DEPLOY.md`. Never run `npm run seed` or `npm run dev` against the Neon URI — `push:false` in the adapter now guards it, but `seed` poisoned the migration state once (see DEPLOY.md).
 
+## Contact
+
+Jeff is **jeff@bzydesign.com**. Not bzydigital.com, which is the Claude account login and is wrong for
+anything Jeff-facing: docs, logins, reply-to headers, `OWNER_NOTIFY_EMAIL`. The owners are Lauren and
+Jeremy at hello@campcedarcreek.com, which must never receive a test email.
+
 ## Decisions (locked 2026-07-08)
 
 - **Backend/admin:** Payload CMS 3 inside this Next.js app. Admin at `/admin` (owners use it; keep it simple). Schema lives in `src/collections/`. SQLite (`@payloadcms/db-sqlite`) for local dev; Neon Postgres at deploy.
