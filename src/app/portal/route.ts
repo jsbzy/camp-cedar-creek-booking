@@ -33,13 +33,15 @@ export async function GET() {
   html{background:#fffefe;color-scheme:light}*{box-sizing:border-box}
   body{margin:0;background:#fffefe;color:#1f1f1d;font:300 16px/1.5 Roboto,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
   .wrap{max-width:520px;margin:0 auto;padding:64px 24px 80px;text-align:center}
-  .word{width:230px;margin:0 auto 44px;display:block;filter:invert(1)}
+  .cici{width:150px;height:auto;margin:0 auto 14px;display:block}
+  .word{width:200px;margin:0 auto 44px;display:block;filter:invert(1)}
   h2{font:600 11.5px Poppins,sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#8a8781;margin:30px 0 10px}
   a.l{display:flex;justify-content:space-between;align-items:center;border:1px solid #dedcd8;border-radius:8px;padding:13px 16px;margin:0 0 8px;text-decoration:none;color:#1f1f1d;background:#fff;text-align:left}
   a.l:hover{border-color:#1f1f1d}a.l:focus-visible{outline:2px solid #1f1f1d;outline-offset:2px}
   a.l b{font:600 15px Poppins,sans-serif}a.l span{font-size:12.5px;color:#8a8781}
   footer{margin-top:44px;font-size:12.5px;color:#8a8781}
 </style></head><body><div class="wrap">
+<img class="cici" src="/cici.png" alt="Cici">
 <img class="word" src="/site-assets/img/White-20Black-20Transparent-20Cropped-4d2f21.png" alt="Camp Cedar Creek">
 ${groups}
 <footer>BZY Design · jeff@bzydesign.com</footer>
