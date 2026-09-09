@@ -31,6 +31,29 @@ function getResend(): Resend | null {
  * booking, cancellation, or inquiry. Returns the Resend message id, or null
  * when sending is disabled (no RESEND_API_KEY) or failed.
  */
+/**
+ * Addresses this build must not write to.
+ *
+ * The site is not launched. Every booking, guest and message in it is ours,
+ * except that the seed data carries the camp's own address, so any test that
+ * touches those records mails the owners for real. It has happened twice: a
+ * smoketest at 6am, and a reply sent while checking that a thread rendered.
+ *
+ * Defaults to the camp inbox and is cleared at launch by setting
+ * PROTECTED_EMAILS to an empty string.
+ */
+function protectedAddresses(): string[] {
+  const raw = process.env.PROTECTED_EMAILS ?? "hello@campcedarcreek.com";
+  return raw.split(",").map((a) => a.trim().toLowerCase()).filter(Boolean);
+}
+
+/** Split a recipient list into the ones we may write to and the ones we may not. */
+export function splitProtected(to: string, blocked = protectedAddresses()): { allowed: string[]; refused: string[] } {
+  const all = to.split(",").map((a) => a.trim()).filter(Boolean);
+  const refused = all.filter((a) => blocked.includes(a.toLowerCase()));
+  return { allowed: all.filter((a) => !refused.includes(a)), refused };
+}
+
 export async function sendEmail(opts: {
   to: string;
   subject: string;
@@ -40,27 +63,33 @@ export async function sendEmail(opts: {
   text?: string;
   replyTo?: string;
 }): Promise<string | null> {
+  const { allowed, refused } = splitProtected(opts.to);
+  if (refused.length) {
+    console.warn(`[email] refused to mail ${refused.join(", ")} before launch: "${opts.subject}"`);
+  }
+  if (!allowed.length) return null;
+
   const client = getResend();
   if (!client) {
-    console.log(`[email] RESEND_API_KEY not set — skipped "${opts.subject}" to ${opts.to}`);
+    console.log(`[email] RESEND_API_KEY not set, skipped "${opts.subject}" to ${allowed.join(", ")}`);
     return null;
   }
   try {
     const { data, error } = await client.emails.send({
       from: FROM,
-      to: opts.to.split(",").map((a) => a.trim()).filter(Boolean),
+      to: allowed,
       subject: opts.subject,
       ...(opts.react ? { react: opts.react } : { text: opts.text ?? "" }),
       replyTo: opts.replyTo,
     } as Parameters<typeof client.emails.send>[0]);
     if (error) {
-      console.error(`[email] Resend error for "${opts.subject}" to ${opts.to}:`, error);
+      console.error(`[email] Resend error for "${opts.subject}" to ${allowed.join(", ")}:`, error);
       return null;
     }
-    console.log(`[email] sent "${opts.subject}" to ${opts.to} (${data?.id})`);
+    console.log(`[email] sent "${opts.subject}" to ${allowed.join(", ")} (${data?.id})`);
     return data?.id ?? null;
   } catch (err) {
-    console.error(`[email] failed "${opts.subject}" to ${opts.to}:`, err);
+    console.error(`[email] failed "${opts.subject}" to ${allowed.join(", ")}:`, err);
     return null;
   }
 }
