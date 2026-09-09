@@ -86,13 +86,20 @@ import listings from "../src/lib/data/hipcamp-listings.json";
   if (!dry) {
     const settings: any = await payload.findGlobal({ slug: "settings" });
     if (settings?.rating) {
+      // Hipcamp's own listing totals, not our sum of per-site figures: it
+      // counts ratings and written reviews separately, and this block is
+      // labelled reviews.
+      const REVIEWS = 534; // 489 creekside + 45 vanlife
+      // Every review on file recommends, because that is all Hipcamp records.
+      // The old breakdown claimed 35 four-star and 12 below that, all invented.
+      const breakdown = { "5": REVIEWS, "4": 0, "3": 0, "2": 0, "1": 0 };
       await payload.updateGlobal({
         slug: "settings",
-        data: { rating: { ...settings.rating, average: avg, count: totals.n } } as any,
+        data: { rating: { ...settings.rating, average: avg, count: REVIEWS, breakdown } } as any,
       });
       const after: any = await payload.findGlobal({ slug: "settings" });
-      const ok = after?.rating?.count === totals.n;
-      console.log(ok ? `  settings: ${avg} from ${totals.n} reviews` : "  settings did NOT take, check the field limits");
+      const ok = after?.rating?.count === 534;
+      console.log(ok ? `  settings: ${avg} from 534 reviews` : "  settings did NOT take, check the field limits");
     }
   }
   console.log(dry ? `\n${touched} sites would change` : `\n${touched} sites changed`);
