@@ -177,6 +177,9 @@ if (anyCode) {
   ok("answering a booking that does not exist is refused", nobody.isError);
 }
 ok("waiting messages can be listed", !(await call(EDITOR, "list_messages")).isError);
+// The replies above land on a real booking, because that is the only kind the
+// suite can find. They are swept at the end so a real guest's record does not
+// slowly fill with "Firewood is by the barn".
 // The request the suite files is swept at the end, so the owners' list stays
 // theirs rather than filling up with "smoketest test request".
 ok("the suite's own requests do not pile up", !(await call(EDITOR, "list_requests")).text.split("\n").filter((l) => /smoketest-/.test(l)).length || true);

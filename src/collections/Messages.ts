@@ -17,7 +17,7 @@ export const Messages: CollectionConfig = {
     group: "Manage",
     useAsTitle: "preview",
     defaultColumns: ["preview", "from", "booking", "createdAt"],
-    description: "Guest conversations, from the booking page. Reply here or ask Cici.",
+    description: "Every guest message, newest first. Open the booking or the guest to read a whole conversation. To answer, ask Cici.",
     listSearchableFields: ["body"],
   },
   versions: { maxPerDoc: 20 },
@@ -45,6 +45,7 @@ export const Messages: CollectionConfig = {
           type: "select",
           required: true,
           defaultValue: "guest",
+          admin: { readOnly: true },
           options: [
             { label: "Guest", value: "guest" },
             { label: "Camp Cedar Creek", value: "host" },
@@ -58,19 +59,23 @@ export const Messages: CollectionConfig = {
         },
       ],
     },
-    { name: "body", type: "textarea", required: true, maxLength: 4000 },
-    { name: "booking", type: "relationship", relationTo: "bookings", required: true, index: true },
+    { name: "body", type: "textarea", required: true, maxLength: 4000, admin: { readOnly: true } },
+    { name: "booking", type: "relationship", relationTo: "bookings", required: true, index: true, admin: { readOnly: true } },
     {
       name: "guest",
       type: "relationship",
       relationTo: "guests",
       index: true,
-      admin: { description: "So the whole conversation sits on the guest's profile." },
+      admin: {
+        readOnly: true,
+        description:
+          "Set from the booking when the message is written, so the conversation also sits on the guest's profile. Empty on test bookings, which have no profile.",
+      },
     },
     {
       name: "authorName",
       type: "text",
-      admin: { description: "Who wrote it, for host messages. Guests are named by the booking." },
+      admin: { readOnly: true, description: "Who wrote it, for host messages. Guests are named by the booking." },
     },
     {
       name: "isTest",

@@ -35,6 +35,11 @@ export const Bookings: CollectionConfig = {
       admin: { components: { Field: "/components/admin/BookingSummary#BookingSummary" } },
     },
     {
+      name: "thread",
+      type: "ui",
+      admin: { components: { Field: "/components/admin/Thread#Thread" } },
+    },
+    {
       name: "confirmationCode",
       type: "text",
       unique: true,

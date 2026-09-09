@@ -21,6 +21,11 @@ export const Guests: CollectionConfig = {
       type: "ui",
       admin: { components: { Field: "/components/admin/GuestSummary#GuestSummary" } },
     },
+    {
+      name: "thread",
+      type: "ui",
+      admin: { components: { Field: "/components/admin/Thread#Thread" } },
+    },
     { name: "displayName", type: "text", required: true },
     {
       name: "notes",

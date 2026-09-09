@@ -31,6 +31,16 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Messages too, and these were the worst of it: reply_to_guest is exercised
+    // against the first real booking the suite can find, so a dozen "Firewood is
+    // by the barn" replies had accumulated on a real guest's record.
+    const msgs = await db.find({ collection: "messages", pagination: false, depth: 0, where: { body: { like: "smoketest-" } } });
+    for (const doc of msgs.docs as { id: number | string; body?: string }[]) {
+      if (!doc.body?.includes("smoketest-")) continue;
+      await db.delete({ collection: "messages", id: doc.id });
+      removed++;
+    }
+
     // Requests too. The suite files one every run to prove add_request works,
     // and declining it is not enough: the list is what the owners read to see
     // what is coming, and half of it had become "smoketest test request".
