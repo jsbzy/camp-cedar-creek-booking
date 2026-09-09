@@ -77,8 +77,12 @@ import listings from "../src/lib/data/hipcamp-listings.json";
     (a: any, s: any) => ({ n: a.n + s.count, w: a.w + s.pct * s.count }),
     { n: 0, w: 0 }
   ) as any;
-  const avg = Math.round(totals.w / totals.n);
-  console.log(`\n  property: ${avg}% from ${totals.n} reviews, across ${Object.keys(sites).length} sites`);
+  const pct = Math.round(totals.w / totals.n);
+  // Settings holds a five-star average, not a percentage, so the recommend
+  // score is converted rather than jammed in. Writing 98 into a field capped at
+  // 5 fails validation silently, which is how this was wrong the first time.
+  const avg = Math.round((pct / 100) * 5 * 10) / 10;
+  console.log(`\n  property: ${pct}% recommend from ${totals.n} reviews, shown as ${avg} out of 5`);
   if (!dry) {
     const settings: any = await payload.findGlobal({ slug: "settings" });
     if (settings?.rating) {
@@ -86,7 +90,9 @@ import listings from "../src/lib/data/hipcamp-listings.json";
         slug: "settings",
         data: { rating: { ...settings.rating, average: avg, count: totals.n } } as any,
       });
-      console.log("  settings rating updated to match");
+      const after: any = await payload.findGlobal({ slug: "settings" });
+      const ok = after?.rating?.count === totals.n;
+      console.log(ok ? `  settings: ${avg} from ${totals.n} reviews` : "  settings did NOT take, check the field limits");
     }
   }
   console.log(dry ? `\n${touched} sites would change` : `\n${touched} sites changed`);
