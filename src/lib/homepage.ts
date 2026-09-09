@@ -21,8 +21,6 @@ const LABELS: [RegExp, string][] = [
 export interface HomepageExtras {
   /** The live sites grid, injected at <!--CCC:SITES-->. */
   sites?: string;
-  /** "8 of 21 sites open this weekend", injected after the hero button. */
-  availability?: string;
   /** Our design tweaks, added to <head>. */
   css?: string;
   credentials?: string;
@@ -44,7 +42,9 @@ export function adaptHomepage(html: string, opts: { ribbon?: string; extras?: Ho
   const x = opts.extras ?? {};
   if (x.css) out = out.replace(/<\/head>/i, `${x.css}</head>`);
   out = out.replace("<!--CCC:SITES-->", x.sites ?? "");
-  out = out.replace("<!--CCC:AVAILABILITY-->", x.availability ?? "");
+  // The weekend availability line was removed. Strip its marker so an older
+  // stored page does not leave a stray comment in the output.
+  out = out.replace("<!--CCC:AVAILABILITY-->", "");
   out = out.replace("<!--CCC:CREDENTIALS-->", x.credentials ?? "");
 
   if (opts.ribbon) {

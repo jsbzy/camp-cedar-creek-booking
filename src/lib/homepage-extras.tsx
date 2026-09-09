@@ -87,10 +87,6 @@ export const HOMEPAGE_CSS = `
   .ccc-cred b { font-weight: 500; color: #1f1f1d; }
   @media (max-width: 600px) { .ccc-cred { gap: 8px 22px; font-size: 13.5px; padding: 16px 5%; } }
 
-  /* Availability line under the hero button */
-  .ccc-avail { font-family: Roboto, sans-serif; font-weight: 300; font-size: 15px; color: #fff;
-    text-align: center; margin: 18px 0 0; text-shadow: 0 1px 3px rgba(0,0,0,.45); }
-  .ccc-avail b { font-weight: 400; }
 </style>`;
 
 const TYPE_LABEL: Record<string, string> = {
@@ -153,69 +149,16 @@ ${cards}
 </div></section>`;
 }
 
-/** How many active sites have nothing on Friday and Saturday night. */
-async function weekendOpen(): Promise<{ open: number; total: number } | null> {
-  try {
-    const db = await getDb();
-    const today = todayPacific();
-    const [y, m, d] = today.split("-").map(Number);
-    const now = new Date(Date.UTC(y, m - 1, d));
-    // The Friday and Saturday nights of the coming weekend.
-    const dow = now.getUTCDay();
-    const toFri = (5 - dow + 7) % 7;
-    const fri = new Date(now.getTime() + toFri * 86400000).toISOString().slice(0, 10);
-    const sun = new Date(now.getTime() + (toFri + 2) * 86400000).toISOString().slice(0, 10);
-
-    const [sitesRes, bookingsRes, blocksRes] = await Promise.all([
-      db.find({ collection: "sites", where: { status: { equals: "active" } }, pagination: false, depth: 0 }),
-      db.find({
-        collection: "bookings",
-        pagination: false,
-        depth: 0,
-        where: { and: [{ status: { not_in: ["cancelled", "refunded"] } }, { isTest: { not_equals: true } }, { checkIn: { less_than: sun } }, { checkOut: { greater_than: fri } }] },
-      }),
-      db.find({
-        collection: "blocked-dates",
-        pagination: false,
-        depth: 0,
-        where: { and: [{ startDate: { less_than: sun } }, { endDate: { greater_than: fri } }] },
-      }),
-    ]);
-    const taken = new Set<string>([
-      ...(bookingsRes.docs as any[]).map((b) => b.siteSlug),
-      ...(blocksRes.docs as any[]).map((b) => b.siteSlug),
-    ]);
-    const total = sitesRes.docs.length;
-    const open = (sitesRes.docs as any[]).filter((s) => !taken.has(s.slug)).length;
-    return { open, total };
-  } catch (err) {
-    console.error("[home] availability unavailable:", err);
-    return null;
-  }
-}
-
-/** "8 of 21 sites open this weekend." Only shown when it is true and useful. */
-export async function availabilityLineHtml(): Promise<string> {
-  const a = await weekendOpen();
-  // Nothing to say when none are taken: "21 of 21 open" advertises an empty
-  // campground. Nothing to say when none are left either.
-  if (!a || !a.total || a.open === 0 || a.open === a.total) return "";
-  return `<p class="ccc-avail"><b>${a.open} of ${a.total} sites</b> open this weekend</p>`;
-}
-
 /**
- * The line under the hero: what is open, the award, the rating, no fees.
+ * The line under the hero: the award and the rating.
  * Rendered here rather than stored, so the numbers are always live and the
  * owners cannot break it from the editor.
  */
 export async function credentialsHtml(): Promise<string> {
   const db = await getDb();
-  const [a, settings] = await Promise.all([weekendOpen(), db.findGlobal({ slug: "settings" }).catch(() => null) as Promise<any>]);
-  const bits: string[] = [];
-  if (a && a.total && a.open > 0 && a.open < a.total) bits.push(`<span><b>${a.open} of ${a.total} sites</b> open this weekend</span>`);
-  bits.push(`<span>Hipcamp <b>Best of Oregon</b> finalist, 2023 &amp; 2024</span>`);
+  const settings = (await db.findGlobal({ slug: "settings" }).catch(() => null)) as any;
+  const bits: string[] = [`<span>Hipcamp <b>Best of Oregon</b> finalist, 2023 &amp; 2024</span>`];
   const r = settings?.rating;
   if (r?.average && r?.count) bits.push(`<span><b>${esc(r.average)}</b> from ${esc(r.count)} reviews</span>`);
-  bits.push(`<span><b>No booking fees</b></span>`);
   return `<div class="ccc-cred">${bits.join("")}</div>`;
 }

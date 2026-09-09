@@ -35,7 +35,7 @@ async function notFound(): Promise<NextResponse> {
     const home = res.docs[0] as { html?: string } | undefined;
     const full = home?.html ? wrapInShell(home.html, NOT_FOUND_BODY, "Page not found · Camp Cedar Creek") : null;
     if (!full) return plain;
-    return new NextResponse(adaptHomepage(full, { extras: { css: HOMEPAGE_CSS, sites: "", availability: "" } }), {
+    return new NextResponse(adaptHomepage(full, { extras: { css: HOMEPAGE_CSS, sites: "" } }), {
       status: 404,
       headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" },
     });
@@ -63,7 +63,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
     const full = home?.html ? wrapInShell(home.html, page.html, page.title || "Camp Cedar Creek") : null;
     if (!full) return new NextResponse("This page cannot be displayed yet.", { status: 503 });
 
-    return new NextResponse(adaptHomepage(full, { extras: { css: HOMEPAGE_CSS, sites: "", availability: "" } }), {
+    return new NextResponse(adaptHomepage(full, { extras: { css: HOMEPAGE_CSS, sites: "" } }), {
       status: 200,
       headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" },
     });
