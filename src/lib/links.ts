@@ -13,6 +13,8 @@ export interface Link {
   note?: string;
   /** Needs a login or a key, so say so before someone hits a wall. */
   gated?: boolean;
+  /** A small image beside the row on the portal. Only Cici has one. */
+  icon?: string;
 }
 
 export interface LinkGroup {
@@ -51,6 +53,7 @@ export const LINK_GROUPS: LinkGroup[] = [
         label: "Working with Cici",
         href: "https://claude.ai/code/artifact/d2722c7d-8943-4eb4-a902-36d899531616",
         note: "how it works, then a walkthrough of all of it",
+        icon: "/cici.png",
       },
       {
         label: "Styleguide",
