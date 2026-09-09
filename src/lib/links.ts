@@ -33,7 +33,7 @@ export const LINK_GROUPS: LinkGroup[] = [
     heading: "The site",
     items: [
       { label: "Homepage", href: "/", note: "what a guest lands on" },
-      { label: "Booking site", href: "/sites", note: "all 21 sites, and where a guest books" },
+      { label: "Booking site", href: "/sites", note: "every site, and where a guest books" },
       { label: "Events", href: "/events", note: "the Loft and the grounds" },
     ],
   },
