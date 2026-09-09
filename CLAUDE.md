@@ -43,10 +43,12 @@ next. Three suites, all self-cleaning and safe against production:
 npm test                                          # validator, pure, ~1s
 npm run test:booking  -- <base> <cron_secret>     # the whole guest journey, silent
 npm run test:booking  -- <base> <cron_secret> <resend_key> --emails   # + real emails
-npm run test:connector -- <base> <admin> <editor> # connector, incl. the undo round trip
+npm run test:connector -- <base> <admin> <editor> <cron_secret>   # connector, incl. the undo round trip
 ```
 
-Run the relevant ones before every push, and all three after a deploy. Do not add a feature without a test that
+The connector suite's cron secret is not optional in practice: without it the
+run cannot sweep the page, site, request and message it creates, and the litter
+lands on real records. Run the relevant ones before every push, and all three after a deploy. Do not add a feature without a test that
 would catch it breaking. If a request needs new machinery, file it in the
 Requests collection rather than half-building it: the site staying small is
 a feature.

@@ -236,7 +236,15 @@ if (reqId) {
 }
 
 const swept = await sweep();
-if (swept === null && SECRET) console.log("\n!! could not sweep the page and site this run created");
+// Skipping the sweep is how a dozen "Firewood is by the barn" replies ended up
+// on a real guest's record: the secret is the fourth argument, it is easy to
+// leave off, and the run used to say nothing when it did.
+if (!SECRET) {
+  console.log("\n!! no cron secret, so this run left its page, site, request and message behind");
+  console.log("   re-run as: npm run test:connector -- <base> <admin> <editor> <cron_secret>");
+} else if (swept === null) {
+  console.log("\n!! could not sweep what this run created");
+}
 
 console.log(`\n${n - fails}/${n} passed` + (fails ? "  <-- do not hand this build to anyone" : ""));
 process.exit(fails ? 1 : 0);
