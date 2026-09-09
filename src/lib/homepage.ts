@@ -25,6 +25,7 @@ export interface HomepageExtras {
   availability?: string;
   /** Our design tweaks, added to <head>. */
   css?: string;
+  credentials?: string;
 }
 
 export function adaptHomepage(html: string, opts: { ribbon?: string; extras?: HomepageExtras } = {}): string {
@@ -44,6 +45,7 @@ export function adaptHomepage(html: string, opts: { ribbon?: string; extras?: Ho
   if (x.css) out = out.replace(/<\/head>/i, `${x.css}</head>`);
   out = out.replace("<!--CCC:SITES-->", x.sites ?? "");
   out = out.replace("<!--CCC:AVAILABILITY-->", x.availability ?? "");
+  out = out.replace("<!--CCC:CREDENTIALS-->", x.credentials ?? "");
 
   if (opts.ribbon) {
     const bar =

@@ -14,18 +14,9 @@ const esc = (s: unknown) =>
 /** Design tweaks layered over the Webflow stylesheet, kept in one place. */
 export const HOMEPAGE_CSS = `
 <style id="ccc-tweaks">
-  /* The three section dividers were a full 900px each to display one word:
-     a quarter of the page. Enough to feel like a chapter break, not a screen. */
-  .section_category-header { height: 420px !important; min-height: 420px !important; }
-  .section_category-header .category-header { font-size: 96px !important; }
-  .section_category-header .subheader_category-hero { font-size: 30px !important; }
-  @media (max-width: 767px) {
-    .section_category-header { height: 320px !important; min-height: 320px !important; }
-    .section_category-header .category-header { font-size: 60px !important; }
-    .section_category-header .subheader_category-hero { font-size: 22px !important; }
-  }
-  /* Headings were retagged for a sane outline; these pin the look they had. */
-  h2.category-header { font-size: 96px; font-weight: 700; }
+  /* Content headings were retagged for a sane outline; these pin the look
+     they had. (The one-word divider sections these used to sit between are
+     gone as of the refresh, so their rules went with them.) */
   .section_category h3:not([class]), h3.heading-17, h3.is-centered,
   .section_category-events h3.text-align-center, .section_testiomonials h3.text-align-center {
     font-size: 48px; font-weight: 700; line-height: 1.2;
@@ -57,6 +48,34 @@ export const HOMEPAGE_CSS = `
   .ccc-sites-all a:hover { background: #000; color: #fff; }
   @media (max-width: 991px) { .ccc-sites-grid { grid-template-columns: repeat(2, 1fr); } .ccc-sites-head h2 { font-size: 36px; } }
   @media (max-width: 600px) { .ccc-sites-grid { grid-template-columns: 1fr; } .ccc-sites { padding: 56px 5% 64px; } }
+
+  /* The hero used to sit under a flat 40% black wash so white text could
+     read over it. That dimmed the best photograph on the site. A radial fall-off
+     behind the words and a soft band under the nav do the same job and leave
+     the creek its colour. */
+  .section_hero .image-overlay-layer {
+    background: radial-gradient(ellipse 64% 58% at 50% 56%, rgba(0,0,0,.72), rgba(0,0,0,.34) 62%, rgba(0,0,0,0) 100%),
+                linear-gradient(to bottom, rgba(0,0,0,.5), rgba(0,0,0,0) 20%) !important;
+    opacity: 1 !important;
+  }
+  .ccc-kicker { font-family: Roboto, sans-serif; font-weight: 500; font-size: 14px; letter-spacing: .16em;
+    text-transform: uppercase; color: #fff; text-align: center; margin: 0 0 16px; text-shadow: 0 1px 8px rgba(0,0,0,.6); }
+  .section_hero .hero-header { text-shadow: 0 2px 24px rgba(0,0,0,.35); }
+  .section_hero p.hero { max-width: 46ch; margin-left: auto; margin-right: auto; font-weight: 400 !important;
+    font-size: 20px !important; color: #fff !important; text-shadow: 0 1px 10px rgba(0,0,0,.6); }
+  .section_hero .button.is-white { padding: 16px 32px !important; font-size: 16px !important; font-weight: 500 !important; }
+  /* The nav button is black on a dark photograph, which is the same as no button. */
+  .navbar2_component .button.is-secondary, .navbar2_button-wrapper .button {
+    background: rgba(255,255,255,.14) !important; border: 1px solid rgba(255,255,255,.55) !important; color: #fff !important; backdrop-filter: blur(6px); }
+
+  /* Credential bar: the four things a visitor wants to know before scrolling,
+     one line, real numbers, in place of the "Welcome to Camp Cedar Creek!"
+     heading and the three dimmed pillar cards it used to sit above. */
+  .ccc-cred { display: flex; justify-content: center; flex-wrap: wrap; gap: 14px 34px; padding: 20px 5%;
+    border-bottom: 1px solid #e8e6e2; background: #fffefe; font-family: Roboto, sans-serif; font-weight: 300;
+    font-size: 14.5px; color: #555; }
+  .ccc-cred b { font-weight: 500; color: #1f1f1d; }
+  @media (max-width: 600px) { .ccc-cred { gap: 8px 22px; font-size: 13.5px; padding: 16px 5%; } }
 
   /* Availability line under the hero button */
   .ccc-avail { font-family: Roboto, sans-serif; font-weight: 300; font-size: 15px; color: #fff;
@@ -124,8 +143,8 @@ ${cards}
 </div></section>`;
 }
 
-/** "8 of 21 sites open this weekend." Only shown when it is true and useful. */
-export async function availabilityLineHtml(): Promise<string> {
+/** How many active sites have nothing on Friday and Saturday night. */
+async function weekendOpen(): Promise<{ open: number; total: number } | null> {
   try {
     const db = await getDb();
     const today = todayPacific();
@@ -158,12 +177,35 @@ export async function availabilityLineHtml(): Promise<string> {
     ]);
     const total = sitesRes.docs.length;
     const open = (sitesRes.docs as any[]).filter((s) => !taken.has(s.slug)).length;
-    // Nothing to say when none are taken: "21 of 21 open" advertises an empty
-    // campground. Nothing to say when none are left either.
-    if (!total || open === 0 || open === total) return "";
-    return `<p class="ccc-avail"><b>${open} of ${total} sites</b> open this weekend</p>`;
+    return { open, total };
   } catch (err) {
-    console.error("[home] availability line unavailable:", err);
-    return "";
+    console.error("[home] availability unavailable:", err);
+    return null;
   }
+}
+
+/** "8 of 21 sites open this weekend." Only shown when it is true and useful. */
+export async function availabilityLineHtml(): Promise<string> {
+  const a = await weekendOpen();
+  // Nothing to say when none are taken: "21 of 21 open" advertises an empty
+  // campground. Nothing to say when none are left either.
+  if (!a || !a.total || a.open === 0 || a.open === a.total) return "";
+  return `<p class="ccc-avail"><b>${a.open} of ${a.total} sites</b> open this weekend</p>`;
+}
+
+/**
+ * The line under the hero: what is open, the award, the rating, no fees.
+ * Rendered here rather than stored, so the numbers are always live and the
+ * owners cannot break it from the editor.
+ */
+export async function credentialsHtml(): Promise<string> {
+  const db = await getDb();
+  const [a, settings] = await Promise.all([weekendOpen(), db.findGlobal({ slug: "settings" }).catch(() => null) as Promise<any>]);
+  const bits: string[] = [];
+  if (a && a.total && a.open > 0 && a.open < a.total) bits.push(`<span><b>${a.open} of ${a.total} sites</b> open this weekend</span>`);
+  bits.push(`<span>Hipcamp <b>Best of Oregon</b> finalist, 2023 &amp; 2024</span>`);
+  const r = settings?.rating;
+  if (r?.average && r?.count) bits.push(`<span><b>${esc(r.average)}</b> from ${esc(r.count)} reviews</span>`);
+  bits.push(`<span><b>No booking fees</b></span>`);
+  return `<div class="ccc-cred">${bits.join("")}</div>`;
 }
