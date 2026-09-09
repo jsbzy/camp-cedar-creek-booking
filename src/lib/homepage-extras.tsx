@@ -68,6 +68,15 @@ export const HOMEPAGE_CSS = `
   .navbar2_component .button.is-secondary, .navbar2_button-wrapper .button {
     background: rgba(255,255,255,.14) !important; border: 1px solid rgba(255,255,255,.55) !important; color: #fff !important; backdrop-filter: blur(6px); }
 
+  /* Phones: the headline was breaking to two lines and the subline to four.
+     One step down on each keeps the whole hero above the fold on a 390px screen. */
+  @media (max-width: 600px) {
+    .ccc-kicker { font-size: 12px; letter-spacing: .12em; margin-bottom: 12px; }
+    .section_hero .hero-header { font-size: 44px !important; line-height: 1.04 !important; }
+    .section_hero p.hero { font-size: 17px !important; line-height: 1.45 !important; max-width: 34ch; }
+    .section_hero .button.is-white { padding: 14px 26px !important; }
+  }
+
   /* Credential bar: the four things a visitor wants to know before scrolling,
      one line, real numbers, in place of the "Welcome to Camp Cedar Creek!"
      heading and the three dimmed pillar cards it used to sit above. */
