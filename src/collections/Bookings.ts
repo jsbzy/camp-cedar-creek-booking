@@ -8,6 +8,10 @@ const dateValidate = (value?: string | null) =>
 export const Bookings: CollectionConfig = {
   slug: "bookings",
   admin: {
+    // Twenty-five cancelled test bookings had piled up in front of the real
+    // ones. Bookings are never deleted, so hide them instead: clear the
+    // "Is Test" filter in the admin to see them again.
+    baseListFilter: () => ({ isTest: { not_equals: true } }),
     useAsTitle: "confirmationCode",
     defaultColumns: ["confirmationCode", "siteName", "checkIn", "checkOut", "status", "total"],
     group: "Manage",

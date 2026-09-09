@@ -50,6 +50,25 @@ export async function POST(request: NextRequest) {
       await db.delete({ collection: "requests", id: doc.id });
       removed++;
     }
+    // Guest profiles spawned by a test booking. They carry no email now, but
+    // they sit in the Guests list the owners actually read.
+    const guests = await db.find({ collection: "guests", pagination: false, depth: 0, where: { displayName: { like: "smoketest-" } } });
+    for (const doc of guests.docs as { id: number | string; displayName?: string }[]) {
+      if (!doc.displayName?.includes("smoketest-")) continue;
+      await db.delete({ collection: "guests", id: doc.id });
+      removed++;
+    }
+
+    // The homepage keeps the note from the last edit, and the suite's last act
+    // is undoing its own change, so the live page was left saying
+    // "undo smoketest-mttpbp2g" in the admin.
+    const home = await db.find({ collection: "pages", pagination: false, depth: 0, where: { slug: { equals: "home" } }, limit: 1 });
+    const homeDoc = home.docs[0] as { id: number | string; notes?: string } | undefined;
+    if (homeDoc?.notes?.includes("smoketest-")) {
+      await db.update({ collection: "pages", id: homeDoc.id, data: { notes: "" } as never });
+      removed++;
+    }
+
     return NextResponse.json({ removed });
   }
 
