@@ -50,9 +50,9 @@ export const LINK_GROUPS: LinkGroup[] = [
     heading: "Guides",
     items: [
       {
-        label: "The guide",
+        label: "Website, booking site and AI assistant",
         href: "https://claude.ai/code/artifact/d2722c7d-8943-4eb4-a902-36d899531616",
-        note: "the new site, the admin, and Cici",
+        note: "what changed, and how to work it",
         icon: "/cici.png",
       },
       {
