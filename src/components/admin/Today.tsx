@@ -79,27 +79,27 @@ export async function Today(props: AdminViewServerProps) {
     .t .date{color:#8a8781;font-size:14px;margin:0 0 18px}
     .t .sum{font-size:17px;line-height:1.5;color:#1f1f1d;margin:0 0 30px;max-width:56ch}
     .t h2{font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:#8a8781;margin:0 0 8px;font-weight:600}
-    .t .card{border:1px solid #e3e1dc;border-radius:8px;background:#fff;margin:0 0 28px;overflow:hidden}
-    .t .row{display:flex;align-items:baseline;gap:12px;padding:11px 16px;border-bottom:1px solid #f1efeb;font-size:14.5px;color:#1f1f1d;text-decoration:none}
-    .t .row:last-child{border-bottom:none}
-    a.row:hover{background:#faf9f7}
-    .t .row .k{flex:0 0 96px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#8a8781;padding-top:2px}
-    .t .row .who{font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    .t .row .where{color:#6f6c67;font-size:13.5px;white-space:nowrap}
-    .t .row .dot{width:7px;height:7px;border-radius:50%;background:#1f1f1d;flex:none;align-self:center}
-    .t .row .go{margin-left:auto;color:#8a8781;font-size:13px}
-    .t .day{display:flex;gap:14px;padding:11px 16px;border-bottom:1px solid #f1efeb;align-items:baseline}
-    .t .day:last-child{border-bottom:none}
-    .t .day .d{flex:0 0 96px;font-size:13px;color:#8a8781}
-    .t .day .d b{color:#1f1f1d;display:block;font-size:14px;font-weight:500}
-    .t .day .list{flex:1;display:flex;flex-wrap:wrap;gap:6px}
-    .t .chip{background:#f2f1ee;border-radius:5px;padding:4px 10px;font-size:13.5px;text-decoration:none;color:#1f1f1d}
-    .t .chip:hover{background:#e7e5e1}
+    .t .t-card{display:block;border:1px solid #e3e1dc;border-radius:8px;background:#fff;margin:0 0 28px;overflow:hidden}
+    .t .t-row{display:flex;width:100%;box-sizing:border-box;align-items:baseline;gap:12px;padding:11px 16px;border-bottom:1px solid #f1efeb;font-size:14.5px;color:#1f1f1d;text-decoration:none}
+    .t .t-row:last-child{border-bottom:none}
+    a.t-row:hover{background:#faf9f7}
+    .t .t-row .k{flex:0 0 96px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#8a8781;padding-top:2px}
+    .t .t-row .who{font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .t .t-row .where{color:#6f6c67;font-size:13.5px;white-space:nowrap}
+    .t .t-row .dot{width:7px;height:7px;border-radius:50%;background:#1f1f1d;flex:none;align-self:center}
+    .t .t-row .go{margin-left:auto;color:#8a8781;font-size:13px}
+    .t .t-day{display:flex;width:100%;box-sizing:border-box;gap:14px;padding:11px 16px;border-bottom:1px solid #f1efeb;align-items:baseline}
+    .t .t-day:last-child{border-bottom:none}
+    .t .t-day .d{flex:0 0 96px;font-size:13px;color:#8a8781}
+    .t .t-day .d b{color:#1f1f1d;display:block;font-size:14px;font-weight:500}
+    .t .t-day .list{flex:1;display:flex;flex-wrap:wrap;gap:6px}
+    .t .t-chip{background:#f2f1ee;border-radius:5px;padding:4px 10px;font-size:13.5px;text-decoration:none;color:#1f1f1d}
+    .t .t-chip:hover{background:#e7e5e1}
     .t .none{color:#a3a09a;font-size:14px;margin:0 0 28px}
   `;
 
   const stayRow = (b: any, label: string) => (
-    <a key={`${label}-${b.id}`} className="row" href={`/admin/collections/bookings/${b.id}`}>
+    <a key={`${label}-${b.id}`} className="t-row" href={`/admin/collections/bookings/${b.id}`}>
       <span className="k">{label}</span>
       <span className="who">{guestName(b)}</span>
       <span className="where">
@@ -121,9 +121,9 @@ export async function Today(props: AdminViewServerProps) {
         {attention.length > 0 && (
           <>
             <h2>Needs you</h2>
-            <div className="card">
+            <div className="t-card">
               {attention.map((a) => (
-                <a key={a.href} className="row" href={a.href}>
+                <a key={a.href} className="t-row" href={a.href}>
                   <span className="dot" />
                   <span className="who">{a.text}</span>
                   <span className="go">Open</span>
@@ -136,7 +136,7 @@ export async function Today(props: AdminViewServerProps) {
         {(arr.length > 0 || dep.length > 0 || stay.length > 0) && (
           <>
             <h2>On the property</h2>
-            <div className="card">
+            <div className="t-card">
               {arr.map((b) => stayRow(b, "Arriving"))}
               {dep.map((b) => stayRow(b, "Leaving"))}
               {stay.filter((b) => b.checkIn !== today).map((b) => stayRow(b, "Staying"))}
@@ -146,9 +146,9 @@ export async function Today(props: AdminViewServerProps) {
 
         <h2>Coming up</h2>
         {days.length ? (
-          <div className="card">
+          <div className="t-card">
             {days.map((d) => (
-              <div key={d} className="day">
+              <div key={d} className="t-day">
                 <span className="d">
                   <b>{pretty(d, { weekday: "long" })}</b>
                   {pretty(d, { month: "short", day: "numeric" })}
@@ -157,7 +157,7 @@ export async function Today(props: AdminViewServerProps) {
                   {weekDocs
                     .filter((b) => b.checkIn === d)
                     .map((b) => (
-                      <a key={b.id} className="chip" href={`/admin/collections/bookings/${b.id}`}>
+                      <a key={b.id} className="t-chip" href={`/admin/collections/bookings/${b.id}`}>
                         {guestName(b)} · {b.siteName}
                       </a>
                     ))}
