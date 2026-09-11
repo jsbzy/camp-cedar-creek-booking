@@ -9,9 +9,10 @@ import { todayPacific } from "@/lib/cancellation";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-// What the owners open in the morning. Who is arriving, who is leaving, who is
-// here tonight, what is coming this week, and anything waiting on them. The
-// collection list that used to be here is a filing cabinet, not a day's work.
+// What the owners open in the morning. One sentence that says whether anything
+// is happening, then only the things that actually are: who needs an answer,
+// who is on the property, who is coming this week. An empty day is one line,
+// not three boxes and seven rows saying nothing.
 
 const plus = (date: string, days: number) => {
   const [y, m, d] = date.split("-").map(Number);
@@ -21,8 +22,8 @@ const pretty = (date: string, opts: Intl.DateTimeFormatOptions = { weekday: "sho
   const [y, m, d] = date.split("-").map(Number);
   return new Date(y, m - 1, d).toLocaleDateString("en-US", opts);
 };
-const money = (n: unknown) => (typeof n === "number" ? `$${n.toLocaleString("en-US")}` : "");
 const guestName = (b: any) => `${b.guest?.firstName ?? ""} ${b.guest?.lastName ?? ""}`.trim() || "Guest";
+const n = (count: number, one: string, many = one + "s") => `${count} ${count === 1 ? one : many}`;
 
 export async function Today(props: AdminViewServerProps) {
   const payload = props.initPageResult.req.payload;
@@ -48,150 +49,126 @@ export async function Today(props: AdminViewServerProps) {
     }),
   ]);
 
+  const arr = arriving.docs as any[];
+  const dep = departing.docs as any[];
+  const stay = staying.docs as any[];
+  const weekDocs = week.docs as any[];
+
+  // The sentence at the top. It is the whole page on a quiet day.
+  const parts: string[] = [];
+  if (arr.length) parts.push(`${n(arr.length, "arrival")}`);
+  if (dep.length) parts.push(`${n(dep.length, "departure")}`);
+  const summary = parts.length
+    ? `${parts.join(", ")} today. ${stay.length ? `${n(stay.length, "site")} occupied tonight.` : "Nobody staying tonight."}`
+    : stay.length
+      ? `Quiet day. ${n(stay.length, "site")} occupied tonight.`
+      : "Quiet day. Nobody arriving, nobody leaving, nobody staying tonight.";
+
+  const attention = [
+    unread.totalDocs > 0 && { text: `${n(unread.totalDocs, "guest message")} waiting for an answer`, href: "/admin/collections/messages?where[readByOwner][equals]=false" },
+    inquiries.totalDocs > 0 && { text: `${n(inquiries.totalDocs, "event inquiry", "event inquiries")} waiting for a reply`, href: "/admin/collections/event-inquiries?where[status][equals]=pending" },
+    pending.totalDocs > 0 && { text: `${n(pending.totalDocs, "booking")} awaiting payment`, href: "/admin/collections/bookings?where[status][equals]=pending" },
+    review.totalDocs > 0 && { text: `${n(review.totalDocs, "guest profile")} matched by name, worth confirming`, href: "/admin/collections/guests?where[needsReview][equals]=true" },
+  ].filter(Boolean) as { text: string; href: string }[];
+
+  const days = Array.from({ length: 7 }, (_, i) => plus(today, i + 1)).filter((d) => weekDocs.some((b) => b.checkIn === d));
+
   const css = `
-    .t-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:6px 0 4px}
-    .t-head h1{font-size:28px;font-weight:600;margin:0}
-    .t-date{color:#8a8781;font-size:14px}
-    .t-actions{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 26px}
-    .t-actions a{border:1px solid #cfcdc8;border-radius:6px;padding:7px 13px;text-decoration:none;color:#1f1f1d;font-size:13.5px;background:#fff}
-    .t-actions a:hover{border-color:#1f1f1d}
-    .t-actions a.primary{background:#1f1f1d;color:#fff;border-color:#1f1f1d}
-    .t-alerts{display:flex;flex-direction:column;gap:8px;margin:0 0 26px}
-    .t-alert{display:flex;justify-content:space-between;align-items:center;gap:14px;border:1px solid #e8dcc0;background:#fdf8ec;border-radius:8px;padding:11px 16px;font-size:14px;color:#6b5a2e}
-    .t-alert a{color:#6b5a2e;font-weight:600}
-    .t-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px;margin:0 0 30px}
-    .t-col{border:1px solid #e3e1dc;border-radius:8px;background:#fff;overflow:hidden}
-    .t-col h2{font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:#8a8781;margin:0;padding:13px 16px 11px;border-bottom:1px solid #eeece8;display:flex;justify-content:space-between}
-    .t-col h2 b{color:#1f1f1d;font-size:13px}
-    .t-row{display:flex;align-items:baseline;gap:10px;padding:10px 16px;border-bottom:1px solid #f4f2ef;font-size:14px;text-decoration:none;color:#1f1f1d}
-    .t-row:last-child{border-bottom:none}
-    .t-row:hover{background:#faf9f7}
-    .t-row .who{font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    .t-row .where{color:#6f6c67;font-size:13px;white-space:nowrap}
-    .t-empty{padding:16px;color:#a3a09a;font-size:13.5px}
-    .t-week{border:1px solid #e3e1dc;border-radius:8px;background:#fff;overflow:hidden}
-    .t-day{display:flex;gap:14px;padding:11px 16px;border-bottom:1px solid #f4f2ef}
-    .t-day:last-child{border-bottom:none}
-    .t-day.none{color:#a3a09a}
-    .t-day .d{flex:0 0 128px;font-size:13.5px;color:#6f6c67}
-    .t-day .d b{color:#1f1f1d;display:block;font-size:14px}
-    .t-day .list{flex:1;display:flex;flex-wrap:wrap;gap:6px}
-    .t-chip{background:#f2f1ee;border-radius:5px;padding:3px 9px;font-size:13px;text-decoration:none;color:#1f1f1d}
-    .t-chip:hover{background:#e7e5e1}
-    h3.t-sec{font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:#8a8781;margin:0 0 10px}
+    .t{max-width:760px}
+    .t h1{font-size:28px;font-weight:600;margin:6px 0 2px;letter-spacing:-.01em}
+    .t .date{color:#8a8781;font-size:14px;margin:0 0 18px}
+    .t .sum{font-size:17px;line-height:1.5;color:#1f1f1d;margin:0 0 30px;max-width:56ch}
+    .t h2{font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:#8a8781;margin:0 0 8px;font-weight:600}
+    .t .card{border:1px solid #e3e1dc;border-radius:8px;background:#fff;margin:0 0 28px;overflow:hidden}
+    .t .row{display:flex;align-items:baseline;gap:12px;padding:11px 16px;border-bottom:1px solid #f1efeb;font-size:14.5px;color:#1f1f1d;text-decoration:none}
+    .t .row:last-child{border-bottom:none}
+    a.row:hover{background:#faf9f7}
+    .t .row .k{flex:0 0 96px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#8a8781;padding-top:2px}
+    .t .row .who{font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .t .row .where{color:#6f6c67;font-size:13.5px;white-space:nowrap}
+    .t .row .dot{width:7px;height:7px;border-radius:50%;background:#1f1f1d;flex:none;align-self:center}
+    .t .row .go{margin-left:auto;color:#8a8781;font-size:13px}
+    .t .day{display:flex;gap:14px;padding:11px 16px;border-bottom:1px solid #f1efeb;align-items:baseline}
+    .t .day:last-child{border-bottom:none}
+    .t .day .d{flex:0 0 96px;font-size:13px;color:#8a8781}
+    .t .day .d b{color:#1f1f1d;display:block;font-size:14px;font-weight:500}
+    .t .day .list{flex:1;display:flex;flex-wrap:wrap;gap:6px}
+    .t .chip{background:#f2f1ee;border-radius:5px;padding:4px 10px;font-size:13.5px;text-decoration:none;color:#1f1f1d}
+    .t .chip:hover{background:#e7e5e1}
+    .t .none{color:#a3a09a;font-size:14px;margin:0 0 28px}
   `;
 
-  const list = (docs: any[], empty: string) =>
-    docs.length ? (
-      docs.map((b) => (
-        <a key={b.id} className="t-row" href={`/admin/collections/bookings/${b.id}`}>
-          <span className="who">{guestName(b)}</span>
-          <span className="where">
-            {b.siteName} · {b.guests}p{b.nights ? ` · ${b.nights}n` : ""}
-          </span>
-        </a>
-      ))
-    ) : (
-      <div className="t-empty">{empty}</div>
-    );
-
-  const days = Array.from({ length: 7 }, (_, i) => plus(today, i + 1));
-  const weekDocs = week.docs as any[];
+  const stayRow = (b: any, label: string) => (
+    <a key={`${label}-${b.id}`} className="row" href={`/admin/collections/bookings/${b.id}`}>
+      <span className="k">{label}</span>
+      <span className="who">{guestName(b)}</span>
+      <span className="where">
+        {b.siteName}
+        {b.nights ? ` · ${b.nights} night${b.nights === 1 ? "" : "s"}` : ""}
+      </span>
+    </a>
+  );
 
   return (
     <Gutter>
+      <div className="t">
         <style dangerouslySetInnerHTML={{ __html: css }} />
 
-        <div className="t-head">
-          <h1>Today</h1>
-          <span className="t-date">{pretty(today, { weekday: "long", month: "long", day: "numeric", year: "numeric" })}</span>
-        </div>
+        <h1>Today</h1>
+        <p className="date">{pretty(today, { weekday: "long", month: "long", day: "numeric" })}</p>
+        <p className="sum">{summary}</p>
 
-        <div className="t-actions">
-          <a className="primary" href="/admin/calendar">Calendar</a>
-          <a href="/admin/collections/bookings">All bookings</a>
-          <a href="/admin/collections/guests">Guests</a>
-          <a href="/admin/collections/blocked-dates/create">Block dates</a>
-          <a href="/admin/collections/sites">Sites and rates</a>
-        </div>
-
-        {(unread.totalDocs > 0 || inquiries.totalDocs > 0 || review.totalDocs > 0 || pending.totalDocs > 0) && (
-          <div className="t-alerts">
-            {unread.totalDocs > 0 && (
-              <div className="t-alert">
-                <span>
-                  {unread.totalDocs} guest {unread.totalDocs === 1 ? "message" : "messages"} waiting for an answer
-                </span>
-                <a href="/admin/collections/messages?where[readByOwner][equals]=false">Open</a>
-              </div>
-            )}
-            {inquiries.totalDocs > 0 && (
-              <div className="t-alert">
-                <span>
-                  {inquiries.totalDocs} event {inquiries.totalDocs === 1 ? "inquiry" : "inquiries"} waiting for a reply
-                </span>
-                <a href="/admin/collections/event-inquiries?where[status][equals]=pending">Open</a>
-              </div>
-            )}
-            {pending.totalDocs > 0 && (
-              <div className="t-alert">
-                <span>
-                  {pending.totalDocs} booking{pending.totalDocs === 1 ? "" : "s"} awaiting payment
-                </span>
-                <a href="/admin/collections/bookings?where[status][equals]=pending">Open</a>
-              </div>
-            )}
-            {review.totalDocs > 0 && (
-              <div className="t-alert">
-                <span>
-                  {review.totalDocs} guest {review.totalDocs === 1 ? "profile" : "profiles"} matched by name, worth confirming
-                </span>
-                <a href="/admin/collections/guests?where[needsReview][equals]=true">Open</a>
-              </div>
-            )}
-          </div>
+        {attention.length > 0 && (
+          <>
+            <h2>Needs you</h2>
+            <div className="card">
+              {attention.map((a) => (
+                <a key={a.href} className="row" href={a.href}>
+                  <span className="dot" />
+                  <span className="who">{a.text}</span>
+                  <span className="go">Open</span>
+                </a>
+              ))}
+            </div>
+          </>
         )}
 
-        <div className="t-cols">
-          <div className="t-col">
-            <h2>Arriving <b>{arriving.docs.length}</b></h2>
-            {list(arriving.docs as any[], "Nobody arriving today.")}
-          </div>
-          <div className="t-col">
-            <h2>Departing <b>{departing.docs.length}</b></h2>
-            {list(departing.docs as any[], "Nobody leaving today.")}
-          </div>
-          <div className="t-col">
-            <h2>Here tonight <b>{staying.docs.length}</b></h2>
-            {list(staying.docs as any[], "The property is empty tonight.")}
-          </div>
-        </div>
+        {(arr.length > 0 || dep.length > 0 || stay.length > 0) && (
+          <>
+            <h2>On the property</h2>
+            <div className="card">
+              {arr.map((b) => stayRow(b, "Arriving"))}
+              {dep.map((b) => stayRow(b, "Leaving"))}
+              {stay.filter((b) => b.checkIn !== today).map((b) => stayRow(b, "Staying"))}
+            </div>
+          </>
+        )}
 
-        <h3 className="t-sec">The week ahead</h3>
-        <div className="t-week">
-          {days.map((d) => {
-            const on = weekDocs.filter((b) => b.checkIn === d);
-            return (
-              <div key={d} className={`t-day${on.length ? "" : " none"}`}>
+        <h2>Coming up</h2>
+        {days.length ? (
+          <div className="card">
+            {days.map((d) => (
+              <div key={d} className="day">
                 <span className="d">
                   <b>{pretty(d, { weekday: "long" })}</b>
                   {pretty(d, { month: "short", day: "numeric" })}
                 </span>
                 <span className="list">
-                  {on.length ? (
-                    on.map((b) => (
-                      <a key={b.id} className="t-chip" href={`/admin/collections/bookings/${b.id}`}>
-                        {guestName(b)} · {b.siteName} {money(b.total)}
+                  {weekDocs
+                    .filter((b) => b.checkIn === d)
+                    .map((b) => (
+                      <a key={b.id} className="chip" href={`/admin/collections/bookings/${b.id}`}>
+                        {guestName(b)} · {b.siteName}
                       </a>
-                    ))
-                  ) : (
-                    <span style={{ fontSize: 13.5 }}>No arrivals</span>
-                  )}
+                    ))}
                 </span>
               </div>
-            );
-          })}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <p className="none">No arrivals in the next week.</p>
+        )}
+      </div>
     </Gutter>
   );
 }
