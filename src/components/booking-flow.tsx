@@ -8,7 +8,7 @@ import { WaiverStep } from "@/components/booking-form/waiver-step";
 import { ReviewStep } from "@/components/booking-form/review-step";
 import type { Site, AddOn } from "@/types";
 
-const stepLabels = ["Dates", "Add-ons", "Guest Info", "Waiver", "Review"];
+const stepLabels = ["Dates", "Add-ons", "Details", "Waiver", "Review"];
 
 interface BookingFlowProps {
   site: Site;

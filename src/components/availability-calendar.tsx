@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { pacificToday } from "@/lib/dates";
 import {
   format,
   startOfMonth,
@@ -27,7 +28,7 @@ export function AvailabilityCalendar({
   const [availability, setAvailability] = useState<DateAvailability[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const today = startOfDay(new Date());
+  const today = pacificToday();
   const month1Start = startOfMonth(today);
   const month2End = endOfMonth(addMonths(today, 1));
 

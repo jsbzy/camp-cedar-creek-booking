@@ -23,6 +23,14 @@ import type { SiteType } from "@/types";
 
 export const dynamic = "force-dynamic";
 
+export async function generateMetadata({ params }: { params: Promise<{ type: string; slug: string }> }) {
+  const { slug } = await params;
+  const site = await getSiteBySlug(slug);
+  return site
+    ? { title: `${site.name} · Camp Cedar Creek`, description: site.shortDescription || site.description?.slice(0, 160) }
+    : { title: "Camp Cedar Creek" };
+}
+
 export default async function SiteDetailPage({
   params,
 }: {

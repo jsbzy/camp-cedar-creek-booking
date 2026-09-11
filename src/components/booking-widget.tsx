@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { pacificToday } from "@/lib/dates";
 import { type DateRange } from "react-day-picker";
 import { format, addDays, startOfDay, differenceInDays } from "date-fns";
 import { Calendar as CalendarIcon, Minus, Plus, Loader2 } from "lucide-react";
@@ -25,7 +26,7 @@ export function BookingWidget({ site }: BookingWidgetProps) {
     total: number;
   } | null>(null);
 
-  const today = startOfDay(new Date());
+  const today = pacificToday();
 
   const fetchPrice = useCallback(
     async (from: Date, to: Date) => {

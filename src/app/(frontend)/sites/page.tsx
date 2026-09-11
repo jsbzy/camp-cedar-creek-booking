@@ -5,6 +5,8 @@ import type { SiteType } from "@/types";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Sites · Camp Cedar Creek", description: "Every site at Camp Cedar Creek, Sandy, Oregon, and where to book it." };
+
 export default async function SitesPage({
   searchParams,
 }: {

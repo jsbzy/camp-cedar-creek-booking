@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { formatDate } from "@/lib/dates";
 import { Star, ThumbsUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Review, PropertyRating } from "@/types";
@@ -54,7 +55,7 @@ function ReviewCard({ review }: { review: Review }) {
           <div>
             <p className="text-sm font-medium">{review.author}</p>
             <p className="text-xs text-muted-foreground">
-              {new Date(review.date).toLocaleDateString("en-US", {
+              {formatDate(review.date, {
                 month: "long",
                 year: "numeric",
               })}
