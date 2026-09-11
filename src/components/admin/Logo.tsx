@@ -28,17 +28,8 @@ export function Logo() {
   );
 }
 
-// The small mark in the top-left of the admin chrome, once you are logged in.
+// The first crumb of the breadcrumb, which Payload fills with a 16px logo.
+// A logo that small is a mystery button. The word is the thing it does.
 export function Icon() {
-  return (
-    <img
-      src="/site-assets/img/No-20Words-20Cropped-20Square-5c6cba.png"
-      alt="Camp Cedar Creek"
-      // Payload drops this into .step-nav__home, an 18px box, and its
-      // max-width:100% then squeezed a fixed 26px-wide image to 18 wide while
-      // the inline height held it at 26: an oval. Fill whatever box it is
-      // given instead, and let object-fit keep it round.
-      style={{ width: "100%", height: "100%", objectFit: "contain", display: "block", filter: "invert(1)" }}
-    />
-  );
+  return <span className="ccc-home-crumb">Today</span>;
 }

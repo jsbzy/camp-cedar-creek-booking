@@ -104,6 +104,16 @@ body { font-family: var(--font-body); -webkit-font-smoothing: antialiased; }
 .nav__log-out { color: var(--ccc-ink-3); }
 .nav__controls { border-top: 1px solid var(--ccc-border); }
 
+/* ---- breadcrumb ---- */
+/* Today / Bookings / CCC-9A26CA. On Today itself the crumb is alone and says
+   nothing, so it goes. */
+.step-nav { font-size: 14px; color: var(--ccc-ink-3); }
+.step-nav a { color: var(--ccc-ink-2); text-decoration: none; }
+.step-nav a:hover { color: var(--ccc-ink); }
+.step-nav__last { color: var(--ccc-ink); font-weight: 500; }
+.ccc-home-crumb { font-size: 14px; font-weight: 500; color: var(--ccc-ink-2); }
+.step-nav__home:only-child { display: none; }
+
 /* ---- lists and tables ---- */
 .collection-list__wrap { background: transparent; }
 .table { background: var(--ccc-surface); border: 1px solid var(--ccc-border); border-radius: var(--style-radius-l); overflow: hidden; }
