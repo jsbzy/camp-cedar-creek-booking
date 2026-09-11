@@ -111,7 +111,9 @@ body { font-family: var(--font-body); -webkit-font-smoothing: antialiased; }
 .step-nav a { color: var(--ccc-ink-2); text-decoration: none; }
 .step-nav a:hover { color: var(--ccc-ink); }
 .step-nav__last { color: var(--ccc-ink); font-weight: 500; }
-.ccc-home-crumb { font-size: 14px; font-weight: 500; color: var(--ccc-ink-2); }
+.ccc-home-crumb { font-size: 14px; font-weight: 500; color: var(--ccc-ink-2); white-space: nowrap; }
+/* Payload sizes the home crumb for a 16px icon; give the word room. */
+.step-nav__home, .step-nav__home > span { width: auto; max-width: none; height: auto; overflow: visible; text-overflow: clip; display: inline-flex; align-items: center; }
 .step-nav__home:only-child { display: none; }
 
 /* ---- lists and tables ---- */
