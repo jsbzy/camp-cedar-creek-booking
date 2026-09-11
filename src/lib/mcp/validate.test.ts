@@ -45,7 +45,7 @@ const banned = (html: string) => validatePage(law, html, HTML).filter((p) => p.s
 
 // --- content rules ---
 t("wrong acreage rejected", banned(edit("These 37 acres", "These 40 acres")).length > 0);
-t("a price is rejected", banned(edit("Tent &amp; Car Camping", "Camping from $45/night")).length > 0);
+t("a price is allowed: rates are the owners' call", banned(edit("These 37 acres", "These 37 acres, from $45/night,")).length === 0);
 t("award inflation rejected", banned(edit("Finalist 2023", "Winner 2023")).length > 0);
 t("em dash rejected", banned(edit("in our 7 ponds", "in our 7 ponds — really")).length > 0);
 t("wrong pond count rejected", banned(edit("our 7 ponds", "our 5 ponds")).length > 0);
@@ -73,7 +73,7 @@ t("ambiguous reports its count", locateText(HTML, "<p>").count > 1);
 t("absent reports zero", locateText(HTML, "not on this page").count === 0);
 
 // --- plain text rule (site descriptions, house rules) ---
-t("text rule catches a price", validateText(law, "Sites from $45/night").length > 0);
+t("text rule lets a price through", validateText(law, "Sites from $45/night").length === 0);
 t("text rule catches an em dash", validateText(law, "Great site — right on the creek").length > 0);
 t("text rule allows normal copy", validateText(law, "Right on the creek, with a big fire ring.").length === 0);
 t("text rule blocks scripts", validateText(law, '<script>x()</script>').length > 0);

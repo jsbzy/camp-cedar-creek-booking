@@ -89,8 +89,6 @@ const offPortal = inTool.filter((u) => !portal.includes(u));
 ok("every link the tool gives is on the portal too", offPortal.length === 0, offPortal.join(" "));
 
 // --- rejections ---
-const priced = await call(EDITOR, "edit_homepage_text", { find: "Personal Fire Rings + Firewood for Purchase", replace: "Firewood $10/night", note: MARK });
-ok("a price is rejected", priced.isError && /rates change seasonally/.test(priced.text), priced.text);
 const dashed = await call(EDITOR, "edit_homepage_text", { find: "2+ Miles of Private Hiking Trails", replace: "2+ Miles — Private Hiking Trails", note: MARK });
 ok("an em dash is rejected", dashed.isError && /em dash/i.test(dashed.text), dashed.text);
 const missing = await call(EDITOR, "edit_homepage_text", { find: "zzz not on the page zzz", replace: "x" });

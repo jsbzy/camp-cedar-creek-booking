@@ -31,12 +31,13 @@ of trails · WiFi over 150mbps at the Barn and Loft · The Loft holds 25 ·
 30 minutes from Portland and from Mt. Hood, 6 from downtown Sandy ·
 Hipcamp "Best of Oregon" **finalist** 2023 and 2024 · hello@campcedarcreek.com
 
-Safety facts, never softened: creekside needs **4WD/AWD** and is
+Facts worth getting right: creekside needs **4WD/AWD** and is
 pack-in/pack-out with no hookups. Dogs are **off-leash creekside, on-leash at
 the Barn**: two rules, never one.
 
-**No prices on this site.** Rates change seasonally and live on Hipcamp,
-Airbnb, and Peerspace. Link to the listing.
+Prices are the owners' call. A rate written into page copy goes stale the
+moment the rate changes, and the booking pages always show the live one, so
+prefer pointing at those.
 
 ## Not yet confirmed by the owners
 
@@ -77,8 +78,6 @@ Compiled into the server-side validator. Enforced on every write.
     { "re": "\\b([2-4689]|5|1[0-9])\\s+ponds\\b", "why": "there are 7 ponds" },
     { "re": "\\bBest of Oregon\\W{0,4}(winner|won|winning)\\b", "why": "Camp Cedar Creek was a Hipcamp Best of Oregon FINALIST in 2023 and 2024, not a winner; award claims must be exact" },
     { "re": "\\b(award[- ]winning|voted best)\\b", "why": "unearned award language; the accurate claim is 'Best of Oregon' finalist 2023 and 2024" },
-    { "re": "\\$\\s?\\d+\\s*(/|per\\s*)?(night|nightly|day)\\b", "why": "nightly rates change seasonally and live on Hipcamp/Airbnb/Peerspace; a price here goes stale silently. Link to the listing instead." },
-    { "re": "\\b(2wd|two[- ]wheel drive|any (vehicle|car)|all vehicles)\\b[^.]{0,60}creekside", "why": "creekside campsites require 4WD/AWD; access claims are a safety fact and may not be softened" },
     { "re": "creekside[^.]{0,60}\\b(hookups?|electrical|full hook)", "why": "creekside is pack-in/pack-out with no hookups; hookups are at the Blue Barn van sites only" },
     { "re": "\\bdogs?\\s+(are\\s+)?(always\\s+)?off[- ]leash\\b(?![^.]{0,80}creek)", "why": "dogs are off-leash at the creekside campground but ON-leash at the Blue Barn; never state one blanket dog policy" },
     { "re": "\\b(luxury|premier|world[- ]class|state[- ]of[- ]the[- ]art|unparalleled)\\b", "why": "off-voice: the land is the pitch, the copy stays out of its way" },

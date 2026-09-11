@@ -49,7 +49,7 @@ that is the environment split.
 
 `src/lib/mcp/validate.ts` is pure and unit tested (`npm test`, 26 cases). Every
 wording change is checked against the LAW block in `src/content/brand-guide.md`
-before it is saved: no prices in page copy, no em dashes, no contradicting the
+before it is saved: no em dashes, no hype words, no contradicting the
 stated facts, no touching scripts, styles or the forms. `locateText` matches
 exactly, then loosely if the loose match is unique, so entities and non-breaking
 spaces in the Webflow markup do not defeat a find.
