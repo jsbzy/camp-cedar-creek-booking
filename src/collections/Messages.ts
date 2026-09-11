@@ -14,14 +14,14 @@ export const Messages: CollectionConfig = {
   slug: "messages",
   labels: { singular: "Message", plural: "Messages" },
   admin: {
-    group: "Manage",
+    group: false,
     useAsTitle: "preview",
     defaultColumns: ["preview", "from", "booking", "createdAt"],
     description: "Every guest message, newest first. Open the booking or the guest to read a whole conversation. To answer, ask Cici.",
     listSearchableFields: ["body"],
   },
   versions: { maxPerDoc: 20 },
-  access: { read: () => true },
+  access: { read: () => true, create: ({ req }) => (req.user as { role?: string } | undefined)?.role === "admin" },
   fields: [
     {
       name: "preview",

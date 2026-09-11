@@ -14,7 +14,7 @@ export const Pages: CollectionConfig = {
   admin: {
     useAsTitle: "title",
     defaultColumns: ["title", "slug", "_status", "updatedAt"],
-    group: "Website",
+    group: false,
     description: "The marketing pages. Saving makes a draft; publishing puts it live.",
   },
   versions: {

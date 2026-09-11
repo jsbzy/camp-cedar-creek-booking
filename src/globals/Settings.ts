@@ -6,9 +6,10 @@ export const Settings: GlobalConfig = {
   // for an approval step, but they should never be unrecoverable either.
   versions: { max: 100 },
   slug: "settings",
+  label: "Camp info",
   admin: {
-    group: "Set up",
-    description: "Property-wide info shown across the website.",
+    group: "Settings",
+    description: "What the website says about the camp: times, rules, policies, who you are.",
   },
   access: {
     read: () => true,

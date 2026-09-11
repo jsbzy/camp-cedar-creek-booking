@@ -1,1 +1,159 @@
-/* Custom admin styles (intentionally minimal). */
+/*
+ * The admin, warmed up.
+ *
+ * Payload ships a competent grey skin: system font, pure white, zebra rows,
+ * blue focus rings, 3px corners. The owners' point of reference is Airbnb's
+ * host dashboard, so this remaps Payload's own tokens to the site's palette
+ * (off-white ground, white surfaces, soft edges, Poppins and Roboto) and
+ * quietens the parts that read as a database. No accent colour: warmth
+ * comes from the ground, the radius and the type. Photography does the rest.
+ */
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Roboto:wght@300;400;500&display=swap");
+
+:root {
+  --ccc-ground: #f7f6f2;
+  --ccc-sidebar: #f2f1ec;
+  --ccc-surface: #ffffff;
+  --ccc-hover: #faf9f6;
+  --ccc-border: #e6e3dc;
+  --ccc-hairline: #efece6;
+  --ccc-ink: #1f1f1d;
+  --ccc-ink-2: #6f6c67;
+  --ccc-ink-3: #9a9791;
+  --ccc-font-heading: "Poppins", "Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  --theme-bg: var(--ccc-ground);
+  --theme-input-bg: var(--ccc-surface);
+  --theme-text: var(--ccc-ink);
+  --theme-border-color: var(--ccc-border);
+  --theme-elevation-0: #ffffff;
+  --theme-elevation-50: #f7f6f2;
+  --theme-elevation-100: #efece6;
+  --theme-elevation-150: #e6e3dc;
+  --theme-elevation-200: #d9d6cf;
+  --theme-elevation-250: #c9c6be;
+  --theme-elevation-300: #b5b2aa;
+  --theme-elevation-400: #9a9791;
+  --theme-elevation-500: #7f7c76;
+  --theme-elevation-600: #6f6c67;
+  --theme-elevation-800: #1f1f1d;
+  --theme-elevation-1000: #000000;
+
+  /* Payload uses its "success" ramp for focus rings and the Published pill. Greyscale it. */
+  --theme-success-50: #f7f6f2;
+  --theme-success-100: #efece6;
+  --theme-success-150: #e6e3dc;
+  --theme-success-200: #d9d6cf;
+  --theme-success-250: #c9c6be;
+  --theme-success-400: #9a9791;
+  --theme-success-500: #6f6c67;
+  --theme-success-600: #1f1f1d;
+  --theme-success-800: #1f1f1d;
+
+  --style-radius-s: 8px;
+  --style-radius-m: 10px;
+  --style-radius-l: 12px;
+
+  --font-body: "Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --nav-width: 240px;
+  --gutter-h: 48px;
+
+  /* One status palette for every custom component. */
+  --status-confirmed-bg: #1f1f1d;
+  --status-confirmed-fg: #ffffff;
+  --status-pending-bg: #f3e9c9;
+  --status-pending-fg: #6b5300;
+  --status-completed-bg: #eceae5;
+  --status-completed-fg: #4a4741;
+  --status-cancelled-bg: #f1e4e2;
+  --status-cancelled-fg: #7a2e2e;
+}
+
+body { font-family: var(--font-body); -webkit-font-smoothing: antialiased; }
+.app-header { background: var(--ccc-ground); }
+.app-header__bg { background: var(--ccc-ground); }
+
+/* ---- type ---- */
+.list-header__title, .doc-header__title, .global-edit__title, h1.doc-header__title {
+  font-family: var(--ccc-font-heading); font-weight: 600; font-size: 26px; line-height: 32px; letter-spacing: -0.01em; color: var(--ccc-ink);
+}
+.field-label { font-weight: 500; font-size: 13px; color: var(--ccc-ink-2); }
+.field-description { font-size: 13px; line-height: 18px; color: var(--ccc-ink-3); }
+.list-header .field-description, .doc-header .field-description { font-size: 14px; color: var(--ccc-ink-2); max-width: 60ch; }
+.required { color: var(--ccc-ink-3); }
+
+/* ---- sidebar ---- */
+.nav { background: var(--ccc-sidebar); border-right: 1px solid var(--ccc-border); }
+.nav__scroll { padding: 0 12px; }
+.nav__link, .nav a.nav__link {
+  display: flex; align-items: center; padding: 7px 12px; border-radius: 8px; margin-bottom: 2px;
+  color: var(--ccc-ink); font-size: 15px; line-height: 24px; font-weight: 500; text-decoration: none;
+}
+.nav__link:hover { background: #e9e7e1; }
+.nav__link--active { background: var(--ccc-surface); box-shadow: 0 0 0 1px var(--ccc-border); font-weight: 600; }
+.nav__link-indicator { display: none; }
+.nav-group { margin-top: 22px; }
+.nav-group__toggle {
+  padding: 0 12px 6px; font-size: 11.5px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--ccc-ink-3);
+}
+.nav__log-out { color: var(--ccc-ink-3); }
+.nav__controls { border-top: 1px solid var(--ccc-border); }
+
+/* ---- lists and tables ---- */
+.collection-list__wrap { background: transparent; }
+.table { background: var(--ccc-surface); border: 1px solid var(--ccc-border); border-radius: var(--style-radius-l); overflow: hidden; }
+.table table { border-collapse: separate; border-spacing: 0; }
+.table tbody tr:nth-child(odd) { background: transparent; }
+.table thead th { padding: 12px; font-size: 12.5px; font-weight: 500; color: var(--ccc-ink-2); text-transform: none; border-bottom: 1px solid var(--ccc-border); background: var(--ccc-surface); }
+.table td { padding: 15px 12px; font-size: 14px; line-height: 20px; color: var(--ccc-ink); border-bottom: 1px solid var(--ccc-hairline); vertical-align: middle; }
+.table tbody tr:last-child td { border-bottom: 0; }
+.table tbody tr:hover td { background: var(--ccc-hover); }
+.table td a { text-decoration: none; font-weight: 500; color: var(--ccc-ink); }
+.table td a:hover { text-decoration: underline; }
+.sort-column__buttons { opacity: 0; transition: opacity .1s; }
+.table thead th:hover .sort-column__buttons { opacity: 1; }
+.code-cell, .cell-code { font-family: var(--font-body); background: transparent; padding: 0; color: var(--ccc-ink-2); }
+.collection-list__search-input, .search-filter__input { border-radius: 999px; background: var(--ccc-surface); }
+.list-controls { background: transparent; }
+.paginator, .per-page, .collection-list__page-info { color: var(--ccc-ink-2); }
+
+/* ---- cards, forms, bars ---- */
+.card { background: var(--ccc-surface); border-radius: var(--style-radius-l); }
+.doc-controls { background: var(--ccc-surface); border-bottom: 1px solid var(--ccc-border); }
+.doc-controls__meta, .doc-controls__list-item { color: var(--ccc-ink-3); font-size: 12.5px; }
+.document-fields__sidebar-wrap { border-left: 1px solid var(--ccc-border); background: var(--ccc-ground); }
+.collapsible { border: 1px solid var(--ccc-border); background: var(--ccc-surface); border-radius: var(--style-radius-m); }
+.array-field__row-header, .collapsible__header-wrap { background: var(--ccc-surface); }
+.field-type input, .field-type textarea, .rs__control, .field-type select {
+  border-radius: var(--style-radius-s); border-color: var(--ccc-border); box-shadow: none; background: var(--ccc-surface);
+}
+.field-type input:focus, .field-type textarea:focus { border-color: var(--ccc-ink); }
+.doc-controls--scrolled, .doc-controls.doc-controls--sticky { box-shadow: 0 1px 0 var(--ccc-border); }
+
+/* ---- buttons ---- */
+.btn { border-radius: var(--style-radius-s); font-weight: 500; font-size: 14px; }
+.btn--size-medium { padding: 9px 16px; line-height: 20px; }
+.btn--style-primary { --bg-color: var(--ccc-ink); --hover-bg: #000; --color: #fff; }
+.btn--style-secondary, .btn--style-pill {
+  --bg-color: var(--ccc-surface); --btn-border: 1px solid #d9d6cf; --hover-btn-border: 1px solid var(--ccc-ink); --color: var(--ccc-ink);
+}
+.list-header__create-new-button, .list-create-new-doc__create-new-button {
+  background: var(--ccc-surface); border: 1px solid #d9d6cf; border-radius: 999px; padding: 6px 14px; color: var(--ccc-ink);
+}
+
+/* ---- pills used by the cells ---- */
+.ccc-pill { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12.5px; font-weight: 500; line-height: 18px; white-space: nowrap; }
+.ccc-pill--confirmed, .ccc-pill--approved, .ccc-pill--active { background: var(--status-confirmed-bg); color: var(--status-confirmed-fg); }
+.ccc-pill--pending { background: var(--status-pending-bg); color: var(--status-pending-fg); }
+.ccc-pill--completed, .ccc-pill--inactive, .ccc-pill--off { background: var(--status-completed-bg); color: var(--status-completed-fg); }
+.ccc-pill--cancelled, .ccc-pill--refunded, .ccc-pill--declined { background: var(--status-cancelled-bg); color: var(--status-cancelled-fg); }
+.ccc-cover { display: flex; align-items: center; gap: 12px; }
+.ccc-cover img { width: 56px; height: 42px; object-fit: cover; border-radius: 6px; flex: none; background: var(--ccc-hairline); }
+.ccc-cover .ph { width: 56px; height: 42px; border-radius: 6px; background: var(--ccc-hairline); flex: none; }
+.ccc-muted { color: var(--ccc-ink-3); }
+
+/* ---- phone ---- */
+@media (max-width: 768px) {
+  .table td, .table th { min-width: 96px; padding: 12px 8px; }
+  .t .t-row { padding: 14px 16px; }
+}

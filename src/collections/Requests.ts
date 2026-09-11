@@ -11,7 +11,7 @@ export const Requests: CollectionConfig = {
   admin: {
     useAsTitle: "title",
     defaultColumns: ["title", "status", "size", "requestedBy", "createdAt"],
-    group: "Advanced",
+    group: false,
     description: "New features and bigger changes, captured as they come up.",
   },
   defaultSort: "-createdAt",

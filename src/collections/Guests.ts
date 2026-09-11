@@ -8,13 +8,13 @@ export const Guests: CollectionConfig = {
   labels: { singular: "Guest", plural: "Guests" },
   admin: {
     useAsTitle: "displayName",
-    defaultColumns: ["displayName", "stayCount", "lastStay", "primaryEmail", "needsReview"],
-    group: "Manage",
+    defaultColumns: ["displayName", "stayCount", "lastStay", "primaryEmail"],
+    hideAPIURL: true,
     description: "Everyone who has stayed. Built from bookings; add your own notes.",
     listSearchableFields: ["displayName", "primaryEmail", "primaryPhone"],
   },
   defaultSort: "-lastStay",
-  access: { read: () => true },
+  access: { read: () => true, create: ({ req }) => (req.user as { role?: string } | undefined)?.role === "admin" },
   fields: [
     {
       name: "summary",
@@ -26,7 +26,7 @@ export const Guests: CollectionConfig = {
       type: "ui",
       admin: { components: { Field: "/components/admin/Thread#Thread" } },
     },
-    { name: "displayName", type: "text", required: true },
+    { name: "displayName", type: "text", required: true, label: "Name" },
     {
       name: "notes",
       type: "textarea",
@@ -36,7 +36,7 @@ export const Guests: CollectionConfig = {
     },
     // Contact details and totals are all in the card above; keeping the raw
     // fields on the form too just made the screen look like a database.
-    { name: "primaryEmail", type: "text", admin: { hidden: true } },
+    { name: "primaryEmail", type: "text", label: "Email", admin: { hidden: true } },
     { name: "primaryPhone", type: "text", admin: { hidden: true } },
     {
       name: "needsReview",
@@ -47,7 +47,7 @@ export const Guests: CollectionConfig = {
         description: "Matched to an existing guest by name alone. Confirm it is the same person, then untick.",
       },
     },
-    { name: "reviewNote", type: "text", admin: { position: "sidebar", readOnly: true } },
+    { name: "reviewNote", type: "text", admin: { position: "sidebar", readOnly: true, condition: (data) => Boolean(data?.needsReview) } },
     // Everything below is maintained by the app.
     {
       type: "collapsible",
@@ -59,16 +59,16 @@ export const Guests: CollectionConfig = {
         { name: "names", type: "array", fields: [{ name: "value", type: "text" }], admin: { readOnly: true } },
       ],
     },
-    { name: "stayCount", type: "number", defaultValue: 0, admin: { hidden: true } },
+    { name: "stayCount", type: "number", defaultValue: 0, label: "Stays", admin: { hidden: true } },
     { name: "nightsTotal", type: "number", defaultValue: 0, admin: { hidden: true } },
     { name: "spendTotal", type: "number", defaultValue: 0, admin: { hidden: true } },
     { name: "firstStay", type: "text", admin: { hidden: true } },
-    { name: "lastStay", type: "text", admin: { hidden: true } },
+    { name: "lastStay", type: "text", label: "Last stay", admin: { hidden: true, components: { Cell: "/components/admin/cells#DateCell" } } },
     {
       name: "isExample",
       type: "checkbox",
       defaultValue: false,
-      admin: { position: "sidebar", description: "Demo data. Remove before launch." },
+      admin: { position: "sidebar", description: "Demo data. Remove before launch.", condition: (_d, _s, { user }) => (user as { role?: string } | undefined)?.role === "admin" },
     },
   ],
 };

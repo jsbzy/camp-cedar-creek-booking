@@ -14,9 +14,13 @@ export const Bookings: CollectionConfig = {
     baseListFilter: () => ({ isTest: { not_equals: true } }),
     useAsTitle: "confirmationCode",
     defaultColumns: ["confirmationCode", "siteName", "checkIn", "checkOut", "status", "total"],
-    group: "Manage",
-    description: "Guest reservations. Never delete a booking. Change its status instead.",
+    hideAPIURL: true,
+    description: "Every reservation, newest first. To cancel one, open it and change its status.",
     listSearchableFields: ["confirmationCode", "siteName", "guest.lastName", "guest.email"],
+  },
+  access: {
+    // A hand-made booking skips availability, pricing and the confirmation email.
+    create: ({ req }) => (req.user as { role?: string } | undefined)?.role === "admin",
   },
   defaultSort: "-createdAt",
   hooks: {
@@ -48,7 +52,7 @@ export const Bookings: CollectionConfig = {
       type: "text",
       unique: true,
       index: true,
-      admin: { hidden: true },
+      admin: { hidden: true, components: { Cell: "/components/admin/cells#BookingTitleCell" } },
     },
     {
       name: "status",
@@ -62,6 +66,7 @@ export const Bookings: CollectionConfig = {
         { label: "Completed", value: "completed" },
         { label: "Refunded", value: "refunded" },
       ],
+      admin: { components: { Cell: "/components/admin/cells#StatusCell" } },
     },
     { name: "site", type: "relationship", relationTo: "sites", admin: { hidden: true } },
     { name: "siteSlug", type: "text", required: true, index: true, admin: { hidden: true } },
@@ -69,8 +74,8 @@ export const Bookings: CollectionConfig = {
     {
       type: "row",
       fields: [
-        { name: "checkIn", type: "text", required: true, validate: dateValidate, admin: { readOnly: true, description: "To move a booking, cancel and rebook. This does not re-check availability." } },
-        { name: "checkOut", type: "text", required: true, validate: dateValidate, admin: { readOnly: true } },
+        { name: "checkIn", type: "text", required: true, validate: dateValidate, admin: { readOnly: true, description: "To move a booking, cancel and rebook. This does not re-check availability.", components: { Cell: "/components/admin/cells#DateCell" } } },
+        { name: "checkOut", type: "text", required: true, validate: dateValidate, admin: { readOnly: true, components: { Cell: "/components/admin/cells#DateCell" } } },
         { name: "nights", type: "number", min: 1, admin: { readOnly: true } },
         { name: "guests", type: "number", min: 1 },
       ],
@@ -114,7 +119,7 @@ export const Bookings: CollectionConfig = {
       fields: [
         { name: "subtotal", type: "number", admin: { hidden: true } },
         { name: "addOnsTotal", type: "number", admin: { hidden: true } },
-        { name: "total", type: "number", admin: { hidden: true } },
+        { name: "total", type: "number", admin: { hidden: true, components: { Cell: "/components/admin/cells#MoneyCell" } } },
       ],
     },
     { name: "waiverSigned", type: "checkbox", defaultValue: false, admin: { hidden: true } },
@@ -136,6 +141,7 @@ export const Bookings: CollectionConfig = {
       admin: {
         position: "sidebar",
         description: "Made by the automated test suite. Never emails the owners; excluded from reports.",
+        condition: (_data, _sibling, { user }) => (user as { role?: string } | undefined)?.role === "admin",
       },
     },
     {

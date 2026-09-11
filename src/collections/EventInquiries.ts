@@ -2,12 +2,12 @@ import type { CollectionConfig } from "payload";
 
 export const EventInquiries: CollectionConfig = {
   slug: "event-inquiries",
-  labels: { singular: "Event Inquiry", plural: "Inquiries" },
+  labels: { singular: "Event", plural: "Events" },
   admin: {
     useAsTitle: "guestName",
-    defaultColumns: ["guestName", "eventType", "preferredDates", "partySize", "status"],
-    group: "Manage",
-    description: "Requests for The Loft & grounds. Review and approve or decline.",
+    defaultColumns: ["guestName", "eventType", "status", "createdAt"],
+    hideAPIURL: true,
+    description: "People asking about the Loft or the grounds for an event. Approve, decline, or quote.",
   },
   defaultSort: "-createdAt",
   fields: [
@@ -22,6 +22,7 @@ export const EventInquiries: CollectionConfig = {
         { label: "Declined", value: "declined" },
         { label: "Converted to booking", value: "converted" },
       ],
+      admin: { components: { Cell: "/components/admin/cells#StatusCell" } },
     },
     {
       type: "row",

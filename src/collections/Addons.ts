@@ -9,8 +9,9 @@ export const Addons: CollectionConfig = {
   labels: { singular: "Add-On", plural: "Add-Ons" },
   admin: {
     useAsTitle: "name",
-    defaultColumns: ["name", "price", "perNight", "active", "sortOrder"],
-    group: "Set up",
+    defaultColumns: ["name", "price", "perNight", "active"],
+    group: "Settings",
+    hideAPIURL: true,
     description: "Optional extras guests can add during booking (firewood, rentals, etc.).",
   },
   defaultSort: "sortOrder",
@@ -23,12 +24,13 @@ export const Addons: CollectionConfig = {
     {
       type: "row",
       fields: [
-        { name: "price", type: "number", required: true, min: 0, admin: { description: "USD" } },
+        { name: "price", type: "number", required: true, min: 0, admin: { description: "USD", components: { Cell: "/components/admin/cells#MoneyCell" } } },
         {
           name: "perNight",
           type: "checkbox",
           defaultValue: false,
-          admin: { description: "Charge per night instead of once per stay." },
+          label: "Charged",
+          admin: { description: "Charge per night instead of once per stay.", components: { Cell: "/components/admin/cells#PerNightCell" } },
         },
         { name: "maxQuantity", type: "number", required: true, defaultValue: 1, min: 1 },
       ],
@@ -45,7 +47,7 @@ export const Addons: CollectionConfig = {
         { label: "Glamping", value: "glamping" },
       ],
     },
-    { name: "active", type: "checkbox", defaultValue: true },
+    { name: "active", type: "checkbox", defaultValue: true, admin: { components: { Cell: "/components/admin/cells#OffCell" } } },
     { name: "sortOrder", type: "number", defaultValue: 0 },
   ],
 };

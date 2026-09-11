@@ -5,7 +5,8 @@ export const Reviews: CollectionConfig = {
   admin: {
     useAsTitle: "author",
     defaultColumns: ["author", "siteSlug", "rating", "date", "published"],
-    group: "Website",
+    group: "Settings",
+    hideAPIURL: true,
     description: "Guest reviews shown on site pages. Unpublish to hide one.",
   },
   defaultSort: "-date",
@@ -17,14 +18,14 @@ export const Reviews: CollectionConfig = {
       type: "row",
       fields: [
         { name: "author", type: "text", required: true },
-        { name: "date", type: "text", required: true, admin: { description: "YYYY-MM-DD" } },
-        { name: "rating", type: "number", required: true, min: 1, max: 5 },
+        { name: "date", type: "text", required: true, admin: { description: "YYYY-MM-DD", components: { Cell: "/components/admin/cells#DateCell" } } },
+        { name: "rating", type: "number", required: true, min: 1, max: 5, admin: { components: { Cell: "/components/admin/cells#StarsCell" } } },
       ],
     },
     { name: "text", type: "textarea", required: true },
     { name: "siteSlug", type: "text", index: true, admin: { description: "Which site the stay was at." } },
     { name: "recommends", type: "checkbox", defaultValue: true },
-    { name: "published", type: "checkbox", defaultValue: true },
+    { name: "published", type: "checkbox", defaultValue: true, admin: { components: { Cell: "/components/admin/cells#OffCell" } } },
     {
       name: "source",
       type: "select",

@@ -14,8 +14,8 @@ export const Sites: CollectionConfig = {
   labels: { singular: "Site", plural: "Sites" },
   admin: {
     useAsTitle: "name",
-    defaultColumns: ["name", "type", "basePrice", "weekendPrice", "status", "sortOrder"],
-    group: "Set up",
+    defaultColumns: ["name", "type", "basePrice", "weekendPrice", "status"],
+    hideAPIURL: true,
     description: "Bookable campsites, van spots, and glamping units shown on the website.",
     listSearchableFields: ["name", "slug"],
   },
@@ -84,7 +84,7 @@ export const Sites: CollectionConfig = {
     ],
   },
   fields: [
-    { name: "name", type: "text", required: true },
+    { name: "name", type: "text", required: true, admin: { components: { Cell: "/components/admin/cells#SiteCoverCell" } } },
     {
       name: "slug",
       type: "text",
@@ -110,10 +110,10 @@ export const Sites: CollectionConfig = {
       required: true,
       defaultValue: "active",
       options: [
-        { label: "Active (bookable)", value: "active" },
+        { label: "Live", value: "active" },
         { label: "Hidden", value: "inactive" },
       ],
-      admin: { description: "Hidden sites disappear from the website immediately." },
+      admin: { position: "sidebar", description: "Hidden sites disappear from the website immediately.", components: { Cell: "/components/admin/cells#StatusCell" } },
     },
     {
       name: "shortDescription",
@@ -128,12 +128,13 @@ export const Sites: CollectionConfig = {
         { name: "url", type: "text", required: true },
         { name: "alt", type: "text" },
       ],
-      admin: { description: "First photo is the cover image." },
+      admin: { description: "First photo is the cover image.", initCollapsed: true, components: { RowLabel: "/components/admin/rowLabels#PhotoRowLabel" } },
     },
     {
       name: "amenities",
       type: "array",
       fields: [{ name: "label", type: "text", required: true }],
+      admin: { initCollapsed: true, components: { RowLabel: "/components/admin/rowLabels#TextRowLabel" } },
     },
     {
       type: "row",
@@ -144,14 +145,16 @@ export const Sites: CollectionConfig = {
           type: "number",
           required: true,
           min: 0,
-          admin: { description: "Sun–Thu nightly rate (USD)" },
+          label: "Weeknight",
+          admin: { description: "Sunday to Thursday, per night", components: { Cell: "/components/admin/cells#MoneyCell" } },
         },
         {
           name: "weekendPrice",
           type: "number",
           required: true,
           min: 0,
-          admin: { description: "Fri & Sat nightly rate (USD)" },
+          label: "Weekend",
+          admin: { description: "Friday and Saturday, per night", components: { Cell: "/components/admin/cells#MoneyCell" } },
         },
       ],
     },
