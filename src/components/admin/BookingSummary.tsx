@@ -12,11 +12,11 @@ import { useAllFormFields } from "@payloadcms/ui";
 // hidden on the form.
 
 const STATUS: Record<string, { label: string; bg: string; fg: string }> = {
-  pending: { label: "Pending payment", bg: "#fff4d6", fg: "#7a5a00" },
-  confirmed: { label: "Confirmed", bg: "#e3f4e8", fg: "#1d6b3a" },
-  cancelled: { label: "Cancelled", bg: "#f3e3e3", fg: "#8a2b2b" },
-  completed: { label: "Completed", bg: "#e9e9e9", fg: "#333" },
-  refunded: { label: "Refunded", bg: "#e6ecf7", fg: "#2b4a8a" },
+  pending: { label: "Pending payment", bg: "var(--status-pending-bg, #f3e9c9)", fg: "var(--status-pending-fg, #6b5300)" },
+  confirmed: { label: "Confirmed", bg: "var(--status-confirmed-bg, #1f1f1d)", fg: "var(--status-confirmed-fg, #fff)" },
+  cancelled: { label: "Cancelled", bg: "var(--status-cancelled-bg, #f1e4e2)", fg: "var(--status-cancelled-fg, #7a2e2e)" },
+  completed: { label: "Completed", bg: "var(--status-completed-bg, #eceae5)", fg: "var(--status-completed-fg, #4a4741)" },
+  refunded: { label: "Refunded", bg: "var(--status-cancelled-bg, #f1e4e2)", fg: "var(--status-cancelled-fg, #7a2e2e)" },
 };
 
 const money = (n: unknown) =>

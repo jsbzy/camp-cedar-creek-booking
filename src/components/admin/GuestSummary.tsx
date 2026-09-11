@@ -16,11 +16,11 @@ function longDate(s: unknown): string {
 }
 
 const STATUS: Record<string, { bg: string; fg: string }> = {
-  confirmed: { bg: "#e3f4e8", fg: "#1d6b3a" },
-  pending: { bg: "#fff4d6", fg: "#7a5a00" },
-  completed: { bg: "#eceae6", fg: "#4a4741" },
-  cancelled: { bg: "#f3e3e3", fg: "#8a2b2b" },
-  refunded: { bg: "#e6ecf7", fg: "#2b4a8a" },
+  confirmed: { bg: "var(--status-confirmed-bg, #1f1f1d)", fg: "var(--status-confirmed-fg, #fff)" },
+  pending: { bg: "var(--status-pending-bg, #f3e9c9)", fg: "var(--status-pending-fg, #6b5300)" },
+  completed: { bg: "var(--status-completed-bg, #eceae5)", fg: "var(--status-completed-fg, #4a4741)" },
+  cancelled: { bg: "var(--status-cancelled-bg, #f1e4e2)", fg: "var(--status-cancelled-fg, #7a2e2e)" },
+  refunded: { bg: "var(--status-cancelled-bg, #f1e4e2)", fg: "var(--status-cancelled-fg, #7a2e2e)" },
 };
 
 export async function GuestSummary({ data, payload }: UIFieldServerProps) {

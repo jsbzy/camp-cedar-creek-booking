@@ -33,7 +33,7 @@ export async function Today(props: AdminViewServerProps) {
   const live = { status: { not_in: ["cancelled", "refunded"] } };
   const notTest = { isTest: { not_equals: true } };
 
-  const [arriving, departing, staying, week, inquiries, review, pending, unread] = await Promise.all([
+  const [arriving, departing, staying, week, inquiries, review, pending, unread, sites] = await Promise.all([
     payload.find({ collection: "bookings", where: { and: [live, notTest, { checkIn: { equals: today } }] }, pagination: false, depth: 0, sort: "siteName" }),
     payload.find({ collection: "bookings", where: { and: [live, notTest, { checkOut: { equals: today } }] }, pagination: false, depth: 0, sort: "siteName" }),
     payload.find({ collection: "bookings", where: { and: [live, notTest, { checkIn: { less_than_equal: today } }, { checkOut: { greater_than: today } }] }, pagination: false, depth: 0, sort: "siteName" }),
@@ -47,7 +47,12 @@ export async function Today(props: AdminViewServerProps) {
       limit: 5,
       depth: 0,
     }),
+    payload.find({ collection: "sites", pagination: false, depth: 0, limit: 100 }),
   ]);
+  // A site's cover photo beside its name, wherever a site is named.
+  const cover = new Map<string, string | undefined>((sites.docs as any[]).map((s) => [s.slug, s.photos?.[0]?.url]));
+  const Cover = ({ slug }: { slug: string }) =>
+    cover.get(slug) ? <img className="cv" src={cover.get(slug)} alt="" /> : <span className="cv ph" />;
 
   const arr = arriving.docs as any[];
   const dep = departing.docs as any[];
@@ -71,7 +76,6 @@ export async function Today(props: AdminViewServerProps) {
     review.totalDocs > 0 && { text: `${n(review.totalDocs, "guest profile")} matched by name, worth confirming`, href: "/admin/collections/guests?where[needsReview][equals]=true" },
   ].filter(Boolean) as { text: string; href: string }[];
 
-  const days = Array.from({ length: 7 }, (_, i) => plus(today, i + 1)).filter((d) => weekDocs.some((b) => b.checkIn === d));
 
   const css = `
     .t{max-width:760px}
@@ -88,19 +92,14 @@ export async function Today(props: AdminViewServerProps) {
     .t .t-row .where{color:#6f6c67;font-size:13.5px;white-space:nowrap}
     .t .t-row .dot{width:7px;height:7px;border-radius:50%;background:#1f1f1d;flex:none;align-self:center}
     .t .t-row .go{margin-left:auto;color:#8a8781;font-size:13px}
-    .t .t-day{display:flex;width:100%;box-sizing:border-box;gap:14px;padding:11px 16px;border-bottom:1px solid #f1efeb;align-items:baseline}
-    .t .t-day:last-child{border-bottom:none}
-    .t .t-day .d{flex:0 0 96px;font-size:13px;color:#8a8781}
-    .t .t-day .d b{color:#1f1f1d;display:block;font-size:14px;font-weight:500}
-    .t .t-day .list{flex:1;display:flex;flex-wrap:wrap;gap:6px}
-    .t .t-chip{background:#f2f1ee;border-radius:5px;padding:4px 10px;font-size:13.5px;text-decoration:none;color:#1f1f1d}
-    .t .t-chip:hover{background:#e7e5e1}
+    .t .cv{width:40px;height:30px;object-fit:cover;border-radius:5px;flex:none;align-self:center;background:#efece6;display:inline-block}
     .t .none{color:#a3a09a;font-size:14px;margin:0 0 28px}
   `;
 
   const stayRow = (b: any, label: string) => (
     <a key={`${label}-${b.id}`} className="t-row" href={`/admin/collections/bookings/${b.id}`}>
       <span className="k">{label}</span>
+      <Cover slug={b.siteSlug} />
       <span className="who">{guestName(b)}</span>
       <span className="where">
         {b.siteName}
@@ -145,24 +144,18 @@ export async function Today(props: AdminViewServerProps) {
         )}
 
         <h2>Coming up</h2>
-        {days.length ? (
+        {weekDocs.length ? (
           <div className="t-card">
-            {days.map((d) => (
-              <div key={d} className="t-day">
-                <span className="d">
-                  <b>{pretty(d, { weekday: "long" })}</b>
-                  {pretty(d, { month: "short", day: "numeric" })}
+            {weekDocs.map((b) => (
+              <a key={b.id} className="t-row" href={`/admin/collections/bookings/${b.id}`}>
+                <span className="k">{pretty(b.checkIn, { weekday: "short", day: "numeric" })}</span>
+                <Cover slug={b.siteSlug} />
+                <span className="who">{guestName(b)}</span>
+                <span className="where">
+                  {b.siteName}
+                  {b.nights ? ` · ${b.nights} night${b.nights === 1 ? "" : "s"}` : ""}
                 </span>
-                <span className="list">
-                  {weekDocs
-                    .filter((b) => b.checkIn === d)
-                    .map((b) => (
-                      <a key={b.id} className="t-chip" href={`/admin/collections/bookings/${b.id}`}>
-                        {guestName(b)} · {b.siteName}
-                      </a>
-                    ))}
-                </span>
-              </div>
+              </a>
             ))}
           </div>
         ) : (
