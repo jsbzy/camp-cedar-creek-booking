@@ -30,7 +30,7 @@ function longDate(s: unknown): string {
 function when(iso: unknown): string {
   if (typeof iso !== "string" || !iso) return "";
   const d = new Date(iso);
-  return isNaN(d.getTime()) ? "" : d.toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+  return isNaN(d.getTime()) ? "" : d.toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: "America/Los_Angeles" });
 }
 
 export function BookingSummary() {

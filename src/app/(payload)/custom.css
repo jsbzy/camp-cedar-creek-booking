@@ -84,7 +84,12 @@ body { font-family: var(--font-body); -webkit-font-smoothing: antialiased; }
 
 /* ---- sidebar ---- */
 .nav { background: var(--ccc-sidebar); border-right: 1px solid var(--ccc-border); }
-.nav__scroll { padding: 0 12px; }
+.nav__scroll { padding: 52px 12px 0; }   /* clear the collapse button Payload pins top-left */
+/* Ungrouped collections land under a heading called Collections. They are the
+   top level; the heading says nothing. */
+.nav-group.Collections > .nav-group__toggle { display: none; }
+.nav-group.Collections { margin-top: 0; }
+.nav-group.Settings { margin-top: 26px; }
 .nav__link, .nav a.nav__link {
   display: flex; align-items: center; padding: 7px 12px; border-radius: 8px; margin-bottom: 2px;
   color: var(--ccc-ink); font-size: 15px; line-height: 24px; font-weight: 500; text-decoration: none;

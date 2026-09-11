@@ -16,7 +16,7 @@ function when(iso: unknown): string {
   const d = new Date(iso);
   return isNaN(d.getTime())
     ? ""
-    : d.toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+    : d.toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: "America/Los_Angeles" });
 }
 
 const s: Record<string, React.CSSProperties> = {
