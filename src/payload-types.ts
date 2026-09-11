@@ -144,7 +144,7 @@ export interface UserAuthOperations {
   };
 }
 /**
- * Guest reservations. Never delete a booking. Change its status instead.
+ * Every reservation, newest first. To cancel one, open it and change its status.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "bookings".
@@ -265,11 +265,11 @@ export interface Site {
     | null;
   maxGuests: number;
   /**
-   * Sun–Thu nightly rate (USD)
+   * Sunday to Thursday, per night
    */
   basePrice: number;
   /**
-   * Fri & Sat nightly rate (USD)
+   * Friday and Saturday, per night
    */
   weekendPrice: number;
   /**
@@ -409,7 +409,7 @@ export interface Message {
   createdAt: string;
 }
 /**
- * Requests for The Loft & grounds. Review and approve or decline.
+ * People asking about the Loft or the grounds for an event. Approve, decline, or quote.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "event-inquiries".
@@ -1072,7 +1072,7 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   createdAt?: T;
 }
 /**
- * Property-wide info shown across the website.
+ * What the website says about the camp: times, rules, policies, who you are.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "settings".
