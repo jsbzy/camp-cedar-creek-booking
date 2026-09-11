@@ -4,12 +4,11 @@ Hipcamp-style direct booking system for Camp Cedar Creek (Sandy, OR). 21 bookabl
 
 **Deployed 2026-09-07 (Phase 4 done).** Staging is live at https://camp-cedar-creek-booking.bzy.design on Neon Postgres (Vercel marketplace, project `camp-cedar-creek-booking`), Stripe off (no keys → direct-confirm), emails via Resend to jeff@bzydesign.com. **`main` deploys on push** — the build runs `payload migrate && next build`. Work on `payload-backend`, merge `--ff-only` into `main` to ship. Admin login: `ADMIN.local.md` (gitignored). Owner test script: `docs/TESTING.md`. Runbook: `docs/DEPLOY.md`. Never run `npm run seed` or `npm run dev` against the Neon URI — `push:false` in the adapter now guards it, but `seed` poisoned the migration state once (see DEPLOY.md).
 
-## Never email the owners before launch
+## Owner email
 
-`hello@campcedarcreek.com` is in the seed data as a guest, so any test that touches those records
-mails Lauren and Jeremy for real. It has happened twice. `sendEmail` now refuses every address in
-`PROTECTED_EMAILS` (default: that one) and logs the refusal; `src/lib/email/protected.test.ts` holds
-the rule. At launch, set `PROTECTED_EMAILS=""` so the camp gets its own mail.
+Owner notifications go to hello@campcedarcreek.com (decided 2026-09-10). Test bookings and
+test messages never notify anyone: `isTest` gates every owner email. `PROTECTED_EMAILS` can
+block addresses in `sendEmail` if that is ever needed again; it is empty now.
 
 ## Contact
 

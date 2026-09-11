@@ -39,11 +39,11 @@ function getResend(): Resend | null {
  * touches those records mails the owners for real. It has happened twice: a
  * smoketest at 6am, and a reply sent while checking that a thread rendered.
  *
- * Defaults to the camp inbox and is cleared at launch by setting
- * PROTECTED_EMAILS to an empty string.
+ * Off unless PROTECTED_EMAILS is set. Jeff's call on 2026-09-10: owner
+ * notifications go to the owners. Test bookings never notify anyone anyway.
  */
 function protectedAddresses(): string[] {
-  const raw = process.env.PROTECTED_EMAILS ?? "hello@campcedarcreek.com";
+  const raw = process.env.PROTECTED_EMAILS ?? "";
   return raw.split(",").map((a) => a.trim().toLowerCase()).filter(Boolean);
 }
 
