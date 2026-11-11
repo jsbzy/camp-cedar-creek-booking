@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/data/db";
 import { sendEventInquiryEmails } from "@/lib/email";
+import { looksLikeFormSpam } from "@/lib/form-spam";
 
 // The homepage's two Webflow forms. Their markup and field names are
 // protected by the Brand Guide precisely because they are wired here:
@@ -42,6 +43,26 @@ export async function POST(request: NextRequest) {
 
   try {
     const db = await getDb();
+    // Bot submissions (see form-spam.ts) get the same thank-you page, so the
+    // bot learns nothing, but nothing is saved and nobody is emailed. The bot
+    // posts the newsletter form with the same address seconds earlier, so
+    // that signup goes too.
+    if (isContact && looksLikeFormSpam({ name, message })) {
+      console.warn("[form] dropped a spam contact submission");
+      await db
+        .delete({
+          collection: "event-inquiries",
+          where: {
+            and: [
+              { eventType: { equals: "Newsletter" } },
+              { guestEmail: { equals: email } },
+              { createdAt: { greater_than: new Date(Date.now() - 15 * 60 * 1000).toISOString() } },
+            ],
+          },
+        })
+        .catch((err) => console.error("[form] could not remove the paired newsletter signup:", err));
+      return page(`Thanks, ${name || "friend"}.`, `We got your message and we'll get back to you shortly.`);
+    }
     if (isContact) {
       await db.create({
         collection: "event-inquiries",
