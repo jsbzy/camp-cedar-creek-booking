@@ -12,7 +12,13 @@ import { looksLikeFormSpam } from "@/lib/form-spam";
 
 export const dynamic = "force-dynamic";
 
-const page = (heading: string, body: string, status = 200) =>
+// campcedarcreek.com is a static copy of the Webflow homepage (Nov 2026) whose
+// forms post here, so "Back" returns to whichever homepage sent the form.
+const STATIC_HOMES = ["https://www.campcedarcreek.com", "https://campcedarcreek.com"];
+const backFor = (request: NextRequest) =>
+  STATIC_HOMES.includes(request.headers.get("origin") || "") ? "https://www.campcedarcreek.com/" : "/";
+
+const page = (heading: string, body: string, status = 200, back = "/") =>
   new NextResponse(
     `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Camp Cedar Creek</title>
@@ -20,16 +26,17 @@ const page = (heading: string, body: string, status = 200) =>
 <style>html{background:#fffefe}body{margin:0;min-height:100vh;display:grid;place-items:center;background:#fffefe;color:#1f1f1d;font:300 16px/1.6 Roboto,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
 .c{max-width:460px;padding:32px 28px;text-align:center}h1{font:700 26px Poppins,sans-serif;margin:0 0 10px}p{color:#333;margin:0 0 22px}
 a{display:inline-block;background:#000;color:#fff;padding:11px 20px;border-radius:4px;text-decoration:none;font-size:14px}</style>
-</head><body><div class="c"><h1>${heading}</h1><p>${body}</p><a href="/">Back to Camp Cedar Creek</a></div></body></html>`,
+</head><body><div class="c"><h1>${heading}</h1><p>${body}</p><a href="${back}">Back to Camp Cedar Creek</a></div></body></html>`,
     { status, headers: { "Content-Type": "text/html; charset=utf-8" } }
   );
 
 export async function POST(request: NextRequest) {
+  const back = backFor(request);
   let form: FormData;
   try {
     form = await request.formData();
   } catch {
-    return page("Something went wrong", "That form did not come through. Please try again.", 400);
+    return page("Something went wrong", "That form did not come through. Please try again.", 400, back);
   }
   const g = (k: string) => (form.get(k) || "").toString().trim().slice(0, 4000);
 
@@ -39,7 +46,7 @@ export async function POST(request: NextRequest) {
   const email = isContact ? g("Contact-1-Email") : g("email-2");
 
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
-    return page("That email address doesn't look right", "Go back and check it, then try again.", 400);
+    return page("That email address doesn't look right", "Go back and check it, then try again.", 400, back);
 
   try {
     const db = await getDb();
@@ -61,7 +68,7 @@ export async function POST(request: NextRequest) {
           },
         })
         .catch((err) => console.error("[form] could not remove the paired newsletter signup:", err));
-      return page(`Thanks, ${name || "friend"}.`, `We got your message and we'll get back to you shortly.`);
+      return page(`Thanks, ${name || "friend"}.`, `We got your message and we'll get back to you shortly.`, 200, back);
     }
     if (isContact) {
       await db.create({
@@ -69,15 +76,15 @@ export async function POST(request: NextRequest) {
         data: { guestName: name || "(not given)", guestEmail: email, eventType: "Homepage contact form", message, status: "pending" },
       });
       await sendEventInquiryEmails({ guestName: name || email, guestEmail: email, message });
-      return page(`Thanks, ${name || "friend"}.`, `We got your message and we'll get back to you shortly at <b>${email}</b>.`);
+      return page(`Thanks, ${name || "friend"}.`, `We got your message and we'll get back to you shortly at <b>${email}</b>.`, 200, back);
     }
     await db.create({
       collection: "event-inquiries",
       data: { guestName: "(newsletter signup)", guestEmail: email, eventType: "Newsletter", message: "Signed up for updates from the homepage.", status: "pending" },
     });
-    return page("You're on the list.", `Updates and special offers will land at <b>${email}</b>.`);
+    return page("You're on the list.", `Updates and special offers will land at <b>${email}</b>.`, 200, back);
   } catch (err) {
     console.error("[form] could not record the submission:", err);
-    return page("Something went wrong", "We could not save that just now. Please email hello@campcedarcreek.com.", 500);
+    return page("Something went wrong", "We could not save that just now. Please email hello@campcedarcreek.com.", 500, back);
   }
 }
