@@ -278,14 +278,17 @@ export interface EventInquiryEmailInput {
   message?: string;
 }
 
-export async function sendEventInquiryEmails(inquiry: EventInquiryEmailInput): Promise<void> {
+export async function sendEventInquiryEmails(
+  inquiry: EventInquiryEmailInput,
+  { receipt = true }: { receipt?: boolean } = {}
+): Promise<void> {
   const info = await getPropertyInfo();
   // OWNER_NOTIFY_EMAIL overrides for staging so demo inquiries never land in
   // the owners' real inbox.
   const ownerEmail = process.env.OWNER_NOTIFY_EMAIL || info.host.email;
 
   await Promise.all([
-    sendEmail({
+    !receipt ? Promise.resolve(null) : sendEmail({
       to: inquiry.guestEmail,
       subject: "We got your event inquiry · Camp Cedar Creek",
       react: (

@@ -75,7 +75,10 @@ export async function POST(request: NextRequest) {
         collection: "event-inquiries",
         data: { guestName: name || "(not given)", guestEmail: email, eventType: "Homepage contact form", message, status: "pending" },
       });
-      await sendEventInquiryEmails({ guestName: name || email, guestEmail: email, message });
+      // No automatic receipt from the homepage form: any address typed into it
+      // got an email from us, which made it a spam relay (Oct-Nov 2026). The
+      // owners get the inquiry and reply in person.
+      await sendEventInquiryEmails({ guestName: name || email, guestEmail: email, message }, { receipt: false });
       return page(`Thanks, ${name || "friend"}.`, `We got your message and we'll get back to you shortly at <b>${email}</b>.`, 200, back);
     }
     await db.create({
