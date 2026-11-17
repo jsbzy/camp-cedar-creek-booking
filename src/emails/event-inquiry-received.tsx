@@ -13,7 +13,7 @@ export function EventInquiryReceivedEmail({ guestName, eventType }: EventInquiry
       heading="We got your inquiry!"
     >
       <Text style={styles.text}>
-        Hi {guestName}, thanks for reaching out about hosting{" "}
+        Hi {guestName || "there"}, thanks for reaching out about hosting{" "}
         {eventType ? `your ${eventType.toLowerCase()}` : "your event"} at Camp Cedar Creek.
       </Text>
       <Text style={styles.text}>

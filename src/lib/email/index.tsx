@@ -11,6 +11,7 @@ import { CancellationConfirmationEmail } from "@/emails/cancellation-confirmatio
 import { BookingOwnerNoticeEmail } from "@/emails/booking-owner-notice";
 import { EventInquiryReceivedEmail } from "@/emails/event-inquiry-received";
 import { EventInquiryOwnerEmail } from "@/emails/event-inquiry-owner";
+import { receiptName } from "@/lib/form-spam";
 
 // The Resend key on this account is verified for bzydesign.com ONLY.
 // Sending from campcedarcreek.com 403s until the owners verify their domain.
@@ -288,7 +289,7 @@ export async function sendEventInquiryEmails(inquiry: EventInquiryEmailInput): P
       to: inquiry.guestEmail,
       subject: "We got your event inquiry · Camp Cedar Creek",
       react: (
-        <EventInquiryReceivedEmail guestName={inquiry.guestName} eventType={inquiry.eventType} />
+        <EventInquiryReceivedEmail guestName={receiptName(inquiry.guestName)} eventType={receiptName(inquiry.eventType) ? inquiry.eventType : undefined} />
       ),
     }),
     ownerEmail

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/data/db";
 import { sendEventInquiryEmails } from "@/lib/email";
+import { looksLikeFormSpam } from "@/lib/form-spam";
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
@@ -22,6 +23,12 @@ export async function POST(request: NextRequest) {
     preferredDates: dates ? String(dates).slice(0, 200) : undefined,
     message: message ? String(message).slice(0, 5000) : undefined,
   };
+
+  // Same bot checks as the homepage form: pretend it worked, save and send nothing.
+  if (looksLikeFormSpam({ name: inquiry.guestName, message: inquiry.message })) {
+    console.warn("[events/inquiry] dropped a spam submission");
+    return NextResponse.json({ ok: true }, { status: 201 });
+  }
 
   const db = await getDb();
   await db.create({
